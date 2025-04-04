@@ -54,7 +54,7 @@ function ResponsiveAppBar() {
                     sx={{   display: 'block', justifySelf: "start" }}
                 >
                     
-                  <Avatar  href='/' sx={{ displayjustifySelf: "start" }}
+                  <Avatar  sx={{ displayjustifySelf: "start" }}
                         className='navlogo'>
                     <Typography className=''>
                       DTX
