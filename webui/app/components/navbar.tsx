@@ -2,17 +2,12 @@ import * as React from 'react';
 import AppBar from '@mui/material/AppBar';
 import Box from '@mui/material/Box';
 import Toolbar from '@mui/material/Toolbar';
-import IconButton from '@mui/material/IconButton';
 import Typography from '@mui/material/Typography';
-import Menu from '@mui/material/Menu';
-import MenuIcon from '@mui/icons-material/Menu';
+
 import Container from '@mui/material/Container';
 import Avatar from '@mui/material/Avatar';
 import Button from '@mui/material/Button';
-import Tooltip from '@mui/material/Tooltip';
-import MenuItem from '@mui/material/MenuItem';
-import AdbIcon from '@mui/icons-material/Adb';
-import dtx from '../assets/dtx.gif'
+import dtx from "../assets/dtx.gif"
 
 const pages = ['Tournaments', 'Dota', 'Blog'];
 const settings = ['Profile', 'Account', 'Dashboard', 'Logout'];
@@ -44,60 +39,52 @@ function ResponsiveAppBar() {
   };
 
   return (
-    <Box sx={{ flexGrow: 1, alignContent: "left", alignItems:"start"}} key='start'>
 
-    <AppBar position="fixed" sx={{backgroundColor: "#1e3d6f"}} >
-        <Toolbar disableGutters >
-            
-        < Button 
-                  href='/'
-                    sx={{   display: 'block', justifySelf: "start" }}
-                >
-                    
-                  <Avatar  sx={{ displayjustifySelf: "start" }}
-                        className='navlogo'>
-                    <Typography className=''>
-                      DTX
-                    </Typography>
-                    
-                  </Avatar>
-              </Button>
-          
-       
-            <Container maxWidth="xl" sx={{flexGrow:5, width: "100%", justifyContent: 'center', justifyItems: 'center'}} id="navContainer">
-
-
-            <Stack
-                direction={{ xs: 'column', sm: 'row' ,}}
-                spacing={{ xs: 1, sm: 2, md: 5, xl: 12 }}
-                >
-                <Button 
-                    href={"/about"}
-                    sx={{ my: 2, color: 'white', display: 'block', width: "10em!important" }}
-
-                >
-                    About us
-                </Button>
-
-                <Button 
-                    href={"/tournament"}
-                    sx={{ my: 2, color: 'white', display: 'block' }}
-                >
-                    Tournament
-                </Button>
-                <Button
-                    href={"/blog"}
-                    sx={{ my: 2, color: 'white', display: 'block' }}
-                >
-                    Blog
-                </Button>
-            </Stack>
-          </Container>
-          
-
-        </Toolbar>
-    </AppBar>
-    </Box>
+    <div className=" sticky top-0 navbar bg-base-100 shadow-sm p-0">
+    <div className="navbar-start">
+      
+      <div className="dropdown">
+        <div tabIndex={0} role="button" className="btn btn-ghost lg:hidden">
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"> <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h8m-8 6h16" /> </svg>
+        </div>
+        <ul
+          tabIndex={0}
+          className="menu menu-sm dropdown-content bg-base-100 rounded-box z-1 mt-3 w-52 p-2 shadow">
+          <li><a>Item 1</a></li>
+          <li>
+            <a>Parent</a>
+            <ul className="p-2">
+              <li><a>Submenu 1</a></li>
+              <li><a>Submenu 2</a></li>
+            </ul>
+          </li>
+          <li><a>Item 3</a></li>
+        </ul>
+      </div>
+      <a className="p-4" href='/'>
+        
+      <div className="avatar avatar-placeholder">
+        <div className="bg-blue-950 shadow text-neutral-content w-12 rounded-full">
+          <span>DTX</span>
+        </div>
+      </div>
+      </a>
+    </div>
+    <div className="navbar-center hidden lg:flex">
+      <ul className="menu menu-horizontal px-1">
+        <li><a href="/about">About us</a></li>
+        <li>
+          <a href="/tournament"> Tournaments</a>
+        </li>
+        <li>
+          <a href="/blog">Blog</a>
+        </li>
+      </ul>
+    </div>
+    <div className="navbar-end">
+      <a className="btn">Sign in</a>
+    </div>
+  </div>
   );
 }
 export default ResponsiveAppBar;

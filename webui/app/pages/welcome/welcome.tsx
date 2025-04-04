@@ -26,50 +26,31 @@ export function Welcome() {
 
   return (
     <>
-    <Box sx={{ height: "100%", width:"100%" }}>
 
+      
+      <div className="flex justify-center h-full content-center mb-0 mt-0 overflow-hidden p-0">
+        <div className='justify-self-center content-center align-middle'>
+          <a href="https://discord.gg/eXBZGjVp" 
+            className=' justify-self-center content-center align-middle'
+            target="_blank"
+            aria-owns={open ? 'mouse-over-popover' : undefined}
+            aria-haspopup="true"
+            onMouseEnter={handlePopoverOpen}
+            onMouseLeave={handlePopoverClose}>
+            <div className="avatar flex ">
+              <div className="ring-primary ring-offset-base-100  rounded-full ring ring-offset-2 w-100 shadow-xl hover:shadow-indigo-500/50
+                              ]motion-safe:md:hover:animate-pulse motion-safe:md:hover:animate-spin motion-safe:transition delay-150 duration-300 easin-in-out">
+                <img src={dtx} alt="Vite logo animate-spin w-36" />
+              </div>
+            </div>
+          </a>
+          <span className='flex justify-center pt-8 text-center w-full'>
+            Click on the logo to join our Discord
+          </span>
 
+        </div>
+    </div>
 
-        <a href="https://discord.gg/eXBZGjVp" 
-          className='animate-bounce'
-          target="_blank"
-          aria-owns={open ? 'mouse-over-popover' : undefined}
-          aria-haspopup="true"
-          onMouseEnter={handlePopoverOpen}
-          onMouseLeave={handlePopoverClose}>
-          <Avatar  className="logo " >
-            <img src={dtx} alt="Vite logo animate-spin" />
-          </Avatar>
-        </a>
-        
-
-      <div className="card">
-     
-       
-      </div>
-      <p className="read-the-docs">
-      Click on the logo to join our Discord
-      </p>
-      <Popover
-        id="mouse-over-popover"
-        sx={{ pointerEvents: 'none' }}
-        open={open}
-        anchorEl={anchorEl}
-        anchorOrigin={{
-          vertical: 'top',
-          horizontal: 'center',
-        }}
-        transformOrigin={{
-          vertical: 'top',
-          horizontal: 'left',
-        }}
-        onClose={handlePopoverClose}
-        disableRestoreFocus
-      >
-        <Typography sx={{ p: 1 }}>Join Now.</Typography>
-      </Popover>
-
-    </Box>
     </>
   )
 

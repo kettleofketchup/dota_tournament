@@ -11,7 +11,7 @@ import type { Route } from "./+types/root";
 import "./app.css";
 import Box from '@mui/material/Box';
 import ResponsiveAppBar from "./components/navbar"
-
+import Footer from "./components/footer";
 
 
 export const links: Route.LinksFunction = () => [
@@ -52,12 +52,14 @@ export default function App() {
 
   return (
 
-  <div id="root" className="bg-radial-[at_25%_25%] from-white to-zinc-900 to-75%">
-    <Box sx={{ height: "100%", width:"100%" }}>
+  <div  className="flex flex-col h-screen flex w-screen justify-between">
 
       <ResponsiveAppBar/>
-    <Outlet />
-  </Box>
+      <div id="outlet_root" className="flex-grow overflow-hidden ">
+      <Outlet />
+      <Footer/>
+
+    </div>
   </div>
 
   );

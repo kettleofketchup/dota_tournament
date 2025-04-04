@@ -1,26 +1,19 @@
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+@plugin "daisyui" ;
 
 
-@theme {
-  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif,
-    "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
-}
 
-html,
-body {
 
-  @media (prefers-color-scheme: dark) {
-    color-scheme: dark;
-  }
-}
+
 
 #root {
   max-width: 1280px;
   margin: 0 auto;
-  padding: 2rem;
+  display: block;
+  height: 100vh;
+  padding: 0 auto;
   text-align: center;
-}
+} 
 
 
 .logo {

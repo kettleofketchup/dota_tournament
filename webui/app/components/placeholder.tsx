@@ -5,14 +5,31 @@ import Stack from '@mui/material/Stack';
 export default function Placeholder() {
   return (
     
-    <Stack spacing={1}>
-      {/* For variant="text", adjust the height via font-size */}
-      <Skeleton variant="text" sx={{ fontSize: '1rem' }} />
+<div className="flex w-52 flex-col gap-4">
+  <div className="flex items-center gap-4">
+  <div className="skeleton h-4 w-28"></div>
+    <div className="skeleton h-16 w-16 shrink-0 rounded-full"></div>
+    <div className="flex flex-col gap-4">
+    <div className="skeleton h-4 w-28"></div>
+      <div className="skeleton h-4 w-20"></div>
+      <div className="skeleton h-4 w-28"></div>
+    </div>
+  </div>
+  <div className="skeleton h-32 w-full"></div>
+  <div className="skeleton h-4 w-28"></div>
+  <div className="skeleton h-4 w-full"></div>
+  <div className="skeleton h-4 w-full"></div>
+  <div className="skeleton h-32 w-full"></div>
+  <div className="flex items-center gap-4">
+    <div className="skeleton h-16 w-16 shrink-0 rounded-full"></div>
+    <div className="flex flex-col gap-4">
+      <div className="skeleton h-4 w-20"></div>
+      <div className="skeleton h-4 w-28"></div>
+    </div>
+  </div>
+  <div className="skeleton h-32 w-full"></div>
+</div>
 
-      {/* For other variants, adjust the size with `width` and `height` */}
-      <Skeleton variant="circular" width={40} height={40} />
-      <Skeleton variant="rectangular" width={210} height={60} />
-      <Skeleton variant="rounded" width={210} height={60} />
-    </Stack>
+
   );
 }

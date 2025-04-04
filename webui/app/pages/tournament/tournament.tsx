@@ -22,10 +22,11 @@ export function Tournament() {
 
   return (
     <>
-    <Box sx={{ height: "100%", width:"100%" }}>
-      Tournament Placeholder
-      <Placeholder/>
-    </Box>
+      <div className="flex justify-center h-full content-center mb-0 mt-0 overflow-hidden p-20">
+        <div className='flex'>          
+          <Placeholder/>
+        </div>
+      </div>
     </>
   )
 
