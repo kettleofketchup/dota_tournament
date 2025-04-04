@@ -1,6 +1,5 @@
 import { useState } from 'react'
 
-import dtx from '../assets/dtx.gif'
 import Avatar from '@mui/material/Avatar';
 
 import { Icon } from "@iconify/react";
@@ -10,24 +9,22 @@ import Tab from '@mui/material/Tab';
 import Tabs from '@mui/material/Tabs';
 import Box from '@mui/material/Box';
 import AppBar from '@mui/material/AppBar';
-
+import Skeleton from '@mui/material/Skeleton';
+import Stack from '@mui/material/Stack';
+import Placeholder from '~/components/placeholder';
 export function Tournament() {
   
   const [count, setCount] = useState(0)
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
   const open = Boolean(anchorEl);
 
-  const handlePopoverOpen = (event: React.MouseEvent<HTMLElement>) => {
-    setAnchorEl(event.currentTarget);
-  };
-  const handlePopoverClose = () => {
-    setAnchorEl(null);
-  };
+
 
   return (
     <>
     <Box sx={{ height: "100%", width:"100%" }}>
-      Tournamnet info
+      Tournament Placeholder
+      <Placeholder/>
     </Box>
     </>
   )

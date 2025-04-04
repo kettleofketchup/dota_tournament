@@ -24,8 +24,9 @@ body {
 
 
 .logo {
-  height: 56em;
-  padding: 5.3em;
+  height: 1px !important;
+  width: 1px !important;
+    padding: 5.9em;
   will-change: filter;
   transition: filter 300ms;
 }
@@ -36,18 +37,23 @@ body {
   filter: drop-shadow(0 0 2em #61dafbaa);
 }
 
-.logo-top {
-  height: 1px !important;
-  width: 1px !important;
-
-  padding: 5.3em;
+.navlogo {
+  height: 50px !important;
+  width: 50px !important;
+  background: oklch(28.2% 0.091 267.935) !important;
   will-change: filter;
   transition: filter 300ms;
 }
-.logo-top:hover {
+.navlogoimg {
+  height: 1px !important;
+  width: 1px !important;
+  margin: 1em;
+  zoom: 40%;
+}
+.navlogo:hover {
   filter: drop-shadow(0 0 2em #646cffaa);
 }
-.logo-top.react:hover {
+.navlogo.react:hover {
   filter: drop-shadow(0 0 2em #61dafbaa);
 }
 

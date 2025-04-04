@@ -1,11 +1,11 @@
 import type { Route } from "./+types/home";
-import { Welcome } from "../welcome/welcome";
-import { Tournament } from "../tournament/tournament";
+import { Welcome } from "../pages/welcome/welcome";
+import { Tournament } from "../pages/tournament/tournament";
 
 export function meta({}: Route.MetaArgs) {
   return [
-    { title: "New React Router App" },
-    { name: "description", content: "Welcome to React Router!" },
+    { title: "DTX: Tournaments" },
+    { name: "description", content: "DTX Tournaments" },
   ];
 }
 

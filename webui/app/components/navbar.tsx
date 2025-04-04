@@ -44,25 +44,39 @@ function ResponsiveAppBar() {
   };
 
   return (
-    <Box sx={{ flexGrow: 1, alignContent: "left" }}>
+    <Box sx={{ flexGrow: 1, alignContent: "left", alignItems:"start"}} key='start'>
 
     <AppBar position="fixed" sx={{backgroundColor: "#1e3d6f"}} >
-      <Container maxWidth="xs" sx={{flexGrow:1}}>
         <Toolbar disableGutters >
             
-            
+        < Button 
+                  href='/'
+                    sx={{   display: 'block', justifySelf: "start" }}
+                >
+                    
+                  <Avatar  href='/' sx={{ displayjustifySelf: "start" }}
+                        className='navlogo'>
+                    <Typography className=''>
+                      DTX
+                    </Typography>
+                    
+                  </Avatar>
+              </Button>
           
        
-          <Box sx={{ flexGrow: 5, alignContent: "start", display: { xs: 'none', md: 'flex' } }}>
+            <Container maxWidth="xl" sx={{flexGrow:5, width: "100%", justifyContent: 'center', justifyItems: 'center'}} id="navContainer">
+
+
             <Stack
-                direction={{ xs: 'column', sm: 'row' }}
-                spacing={{ xs: 1, sm: 2, md: 12, xl: 16 }}
+                direction={{ xs: 'column', sm: 'row' ,}}
+                spacing={{ xs: 1, sm: 2, md: 5, xl: 12 }}
                 >
                 <Button 
-                    href={"/tournament"}
-                    sx={{ my: 2, color: 'white', display: 'block' }}
+                    href={"/about"}
+                    sx={{ my: 2, color: 'white', display: 'block', width: "10em!important" }}
+
                 >
-                    Dota
+                    About us
                 </Button>
 
                 <Button 
@@ -78,12 +92,10 @@ function ResponsiveAppBar() {
                     Blog
                 </Button>
             </Stack>
-
-          </Box>
+          </Container>
           
 
         </Toolbar>
-      </Container>
     </AppBar>
     </Box>
   );

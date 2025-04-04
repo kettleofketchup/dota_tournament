@@ -1,6 +1,6 @@
 import { useState } from 'react'
 
-import dtx from '../assets/dtx.gif'
+import dtx from '../../assets/dtx.gif'
 import Avatar from '@mui/material/Avatar';
 
 import { Icon } from "@iconify/react";
@@ -9,9 +9,8 @@ import Typography from '@mui/material/Typography';
 import Tab from '@mui/material/Tab';
 import Tabs from '@mui/material/Tabs';
 import Box from '@mui/material/Box';
-import ResponsiveAppBar from '../components/navbar';
+import ResponsiveAppBar from '../../components/navbar';
 import AppBar from '@mui/material/AppBar';
-
 export function Welcome() {
   
   const [count, setCount] = useState(0)
@@ -31,7 +30,7 @@ export function Welcome() {
 
 
 
-        <a href="https://react.dev" 
+        <a href="https://discord.gg/eXBZGjVp" 
           className='animate-bounce'
           target="_blank"
           aria-owns={open ? 'mouse-over-popover' : undefined}
