@@ -1,6 +1,5 @@
 import { useState } from 'react'
 
-import dtx from '../assets/dtx.gif'
 import Avatar from '@mui/material/Avatar';
 
 import { Icon } from "@iconify/react";
