@@ -8,5 +8,9 @@ dependencies = [
     "django>=5.2",
     "django-cors-headers>=4.7.0",
     "djangorestframework>=3.16.0",
+    "python-social-auth[django]>=0.3.6",
     "requests>=2.32.3",
+    "social-auth-app-django>=5.4.3",
+    "dotenv (>=0.9.9,<0.10.0)",
+    "django-jinja (>=2.11.0,<3.0.0)",
 ]

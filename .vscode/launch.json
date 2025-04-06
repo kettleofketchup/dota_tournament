@@ -1,0 +1,13 @@
+{
+    "configurations": [
+        {
+            "name": "Python Debugger: Module",
+            "type": "debugpy",
+            "request": "launch",
+            "args": ["runserver"],
+            "console": "integratedTerminal",
+            "program": "${workspaceFolder}/backend/manage.py",
+            "justMyCode": false
+        },
+    ]
+}

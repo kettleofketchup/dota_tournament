@@ -17,29 +17,12 @@ import Paper from '@mui/material/Paper';
 import Stack from '@mui/material/Stack';
 import { styled } from '@mui/material/styles';
 
-
+import LoginWithDiscordButton from './login';
 
 function ResponsiveAppBar() {
-  const [anchorElNav, setAnchorElNav] = React.useState<null | HTMLElement>(null);
-  const [anchorElUser, setAnchorElUser] = React.useState<null | HTMLElement>(null);
-
-  const handleOpenNavMenu = (event: React.MouseEvent<HTMLElement>) => {
-    setAnchorElNav(event.currentTarget);
-  };
-  const handleOpenUserMenu = (event: React.MouseEvent<HTMLElement>) => {
-    setAnchorElUser(event.currentTarget);
-  };
-
-  const handleCloseNavMenu = () => {
-    setAnchorElNav(null);
-  };
-
-  const handleCloseUserMenu = () => {
-    setAnchorElUser(null);
-  };
 
   return (
-
+  
     <div className=" sticky top-0 navbar bg-base-100 shadow-sm p-0">
     <div className="navbar-start">
       
@@ -82,7 +65,7 @@ function ResponsiveAppBar() {
       </ul>
     </div>
     <div className="navbar-end">
-      <a className="btn">Sign in</a>
+      <LoginWithDiscordButton/>
     </div>
   </div>
   );
