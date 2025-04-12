@@ -1,27 +1,23 @@
 services:
   frontend:
+    env_file: "./.env.release"
     image: ghcr.io/dtx-dota/website/frontend:latest
-    env_file: "./.env.dev"
-
     ports:
-      - "5471:5471"   # Internal Nginx in frontend container
-    volumes:
-      - ./frontend/:/app/
+      - "3000:3000"   # Internal Nginx in frontend container
     restart: always
-    command: ["npm", "run", "dev"]
 
   backend:
-    env_file: "./.env.dev"
+    env_file: "./.env.release"
     image: ghcr.io/dtx-dota/website/backend:latest
     ports:
       - "8000:8000"
     restart: always
     volumes:
-      - ./backend/:/app/
-      - /backend/db.sqlite3
+      - ./backend/db.sqlite3:/app/db.sqlite3
 
   nginx:
     image: nginx:alpine
+    env_file: "./.env.release"
     container_name: nginx
     restart: always
     ports:
