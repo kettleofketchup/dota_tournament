@@ -1,5 +1,6 @@
 services:
   frontend:
+    container_name: frontend
     image: ghcr.io/dtx-dota/website/frontend:latest
     env_file: "./.env.dev"
 
@@ -11,6 +12,8 @@ services:
     command: ["npx", "react-router", "dev" , "--port", "3000", "--host", "0.0.0.0"]
 
   backend:
+    container_name: backend
+
     env_file: "./.env.dev"
     image: ghcr.io/dtx-dota/website/backend:latest
     ports:

@@ -14,6 +14,7 @@ import contextlib
 import os
 from pathlib import Path
 from dotenv import load_dotenv
+
 load_dotenv()
 SOCIAL_AUTH_DISCORD_KEY = os.environ.get("client_id")
 SOCIAL_AUTH_DISCORD_SECRET = os.environ.get("discord_secret")
@@ -39,8 +40,7 @@ ALLOWED_HOSTS = ["myapp.com", "localhost"]
 # Application definition
 
 INSTALLED_APPS = [
-    'rest_framework',
-
+    "rest_framework",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -48,11 +48,9 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "social_django",
-    'corsheaders',
-
+    "corsheaders",
     "app",
     "django_jinja",
-
 ]
 
 MIDDLEWARE = [
@@ -63,10 +61,8 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
-    'corsheaders.middleware.CorsMiddleware',
-    "social_django.middleware.SocialAuthExceptionMiddleware"
-
-
+    "corsheaders.middleware.CorsMiddleware",
+    "social_django.middleware.SocialAuthExceptionMiddleware",
 ]
 
 ROOT_URLCONF = "example.urls"
@@ -77,9 +73,7 @@ TEMPLATES = [
         "APP_DIRS": False,
         "DIRS": [
             os.path.join(BASE_DIR, "common", "templates"),
-
-
-            ],
+        ],
         "OPTIONS": {
             "match_extension": ".html",
             "match_regex": r"^(?!admin/).*",
@@ -105,10 +99,8 @@ TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
         "DIRS": [
-            BASE_DIR_PATH / "templates", 
-
-
-                             ],
+            BASE_DIR_PATH / "templates",
+        ],
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
@@ -123,20 +115,17 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = "example.wsgi.application"
-SOCIAL_AUTH_ALLOWED_REDIRECT_HOSTS  = ["dtxdota.com", "localhost:5713"]
+SOCIAL_AUTH_ALLOWED_REDIRECT_HOSTS = ["dtxdota.com", "localhost"]
+
 AUTHENTICATION_BACKENDS = (
-    'social_core.backends.discord.DiscordOAuth2',
-
-
+    "social_core.backends.discord.DiscordOAuth2",
     "social_core.backends.email.EmailAuth",
     "social_core.backends.username.UsernameAuth",
-    
-
     "django.contrib.auth.backends.ModelBackend",
 )
 
 LOGIN_URL = "/login/"
-LOGIN_REDIRECT_URL = "/done/"
+LOGIN_REDIRECT_URL = "/done"
 # SOCIAL_AUTH_STRATEGY = "social_django.strategy.DjangoStrategy"
 SOCIAL_AUTH_STORAGE = "social_django.models.DjangoStorage"
 # SOCIAL_AUTH_STORAGE = 'app.models.CustomDjangoStorage'
@@ -157,8 +146,7 @@ SOCIAL_AUTH_PIPELINE = (
     # "common.pipeline.require_email",
     "social_core.pipeline.user.get_username",
     "social_core.pipeline.mail.mail_validation",
-    'social_core.pipeline.social_auth.associate_by_email',
-
+    "social_core.pipeline.social_auth.associate_by_email",
     "social_core.pipeline.user.create_user",
     "social_core.pipeline.social_auth.associate_user",
     "social_core.pipeline.debug.debug",
@@ -173,7 +161,7 @@ SOCIAL_AUTH_PIPELINE = (
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.sqlite3",
-        'NAME': BASE_DIR_PATH / 'db.sqlite3',
+        "NAME": BASE_DIR_PATH / "db.sqlite3",
     }
 }
 
@@ -237,12 +225,12 @@ ALLOWED_HOSTS = []
 with contextlib.suppress(ImportError):
     from example.local_settings import *  # noqa: F403
 CORS_ORIGIN_WHITELIST = [
-     'http://localhost:3000',
-        'http://localhost:80',
-        'http://localhost:5171',
-    'http://localhost:4143',
-
-
+    "http://localhost:3000",
+    "http://localhost:80",
+    "http://localhost:5171",
+    "https://localhost:443",
+    "https://localhost",
 ]
 
-AUTH_USER_MODEL = 'app.CustomUser'
+CSRF_TRUSTED_ORIGINS = ["https://localhost"]
+AUTH_USER_MODEL = "app.CustomUser"
