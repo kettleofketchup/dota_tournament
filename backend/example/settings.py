@@ -19,10 +19,19 @@ load_dotenv()
 SOCIAL_AUTH_DISCORD_KEY = os.environ.get("client_id")
 SOCIAL_AUTH_DISCORD_SECRET = os.environ.get("discord_secret")
 # SOCIAL_AUTH_LOGIN_REDIRECT_URL= "http://localhost:8000/complete/discord/"
-
-
+SOCIAL_AUTH_DJANGO_EXTRA_DATA = [
+    "avatar",
+    "id",
+    "global_name",
+]
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+EXTRA_DATA = [
+    "avatar",
+    "id",
+    "global_name",
+]
+
 
 BASE_DIR_PATH = Path(BASE_DIR)
 # Quick-start development settings - unsuitable for production
@@ -152,7 +161,7 @@ SOCIAL_AUTH_PIPELINE = (
     "social_core.pipeline.debug.debug",
     "social_core.pipeline.social_auth.load_extra_data",
     "social_core.pipeline.user.user_details",
-    "social_core.pipeline.debug.debug",
+    "app.pipelines.save_discord",
 )
 
 # Database

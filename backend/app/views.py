@@ -14,7 +14,6 @@ from .decorators import render_to
 from django.shortcuts import render
 
 from rest_framework import viewsets
-from .serializers import UserSerializer
 from django.shortcuts import render
 from rest_framework import status
 from rest_framework.response import Response
@@ -31,6 +30,7 @@ from social_django.models import (  # fix: skip
     AbstractUserSocialAuth,
     DjangoStorage,
 )
+
 
 def logout(request):
     """Logs out user"""
@@ -118,19 +118,25 @@ def ajax_auth(request, backend):
     data = {"id": user.id, "username": user.username}
     return HttpResponse(json.dumps(data), mimetype="application/json")
 
-from django.contrib.auth.models import User
 
-from  . models import CustomUser
-@permission_classes((IsAdminUser, ))
+from django.contrib.auth.models import User
+from .serializers import UserSerializer
+
+from .models import CustomUser
+
+
+@permission_classes((IsAdminUser,))
 class UserView(viewsets.ModelViewSet):
     serializer_class = UserSerializer
     queryset = CustomUser.objects.all()
 
 
-@api_view(['GET'])
+from .models import CustomUser
+
+
+@api_view(["GET"])
 def current_user(request):
     user = request.user
-    return Response({
-      'username' : user.username,
-      'avatar' : user.avatar,
-    })
+    social_auth = user.social_auth.get()
+
+    return Response({"username": user.username, "avatarUrl": user.avatarUrl})
