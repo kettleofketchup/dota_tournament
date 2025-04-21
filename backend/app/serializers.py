@@ -13,10 +13,13 @@ class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = CustomUser
         fields = (
+            "pk",
             "username",
             "is_staff",
             "is_active",
             "is_superuser",
+            "avatar",
+            "discordId",
             "steamid",
             "mmr",
             "avatarUrl",

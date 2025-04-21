@@ -13,3 +13,8 @@ export async function fetchCurrentUser(): Promise<User> {
     const response = await axios.get<Users>(`/users`);
     return response.data;
   }
+
+  export async function updateUser(): Promise<Users> {
+    const response = await axios.get<Users>(`/users`);
+    return response.data;
+  }

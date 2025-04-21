@@ -8,7 +8,9 @@ export declare interface User {
     mmr?: integer;
     position?: string;
     steamid?: integer;
-
+    avatar?: string;
+    discordId?: string;
+    pk?: integer;
 
   }
 

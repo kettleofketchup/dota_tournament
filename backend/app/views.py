@@ -129,6 +129,19 @@ from .models import CustomUser
 class UserView(viewsets.ModelViewSet):
     serializer_class = UserSerializer
     queryset = CustomUser.objects.all()
+    http_method_names = [
+        "get",
+        "post",
+        "put",
+        "patch",
+        "delete",
+        "head",
+        "options",
+        "trace",
+    ]
+
+    def patch(self, request, *args, **kwargs):
+        return self.partial_update(request, *args, **kwargs)
 
 
 from .models import CustomUser
@@ -143,6 +156,6 @@ def current_user(request):
             "username": user.username,
             "avatarUrl": user.avatarUrl,
             "is_staff": user.is_staff,
-            "is_superuser": user.is_staff,
+            "is_superuser": user.is_superuser,
         }
     )
