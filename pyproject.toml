@@ -1,10 +1,17 @@
 [project]
-name = "backend"
+name = "website"
 version = "0.2.0"
-description = "Add your description here"
+description = ""
+authors = [
+    {name = "kettleofketchup@gmail.com",email = "kettleofketchup@gmail.com"}
+]
 readme = "README.md"
-requires-python = "<4,>=3.10"
+requires-python = ">=3.12,<4"
+
+package-mode = false
 dependencies = [
+
+
     "django (>=5.2,<6.0)",
     "django-cors-headers>=4.7.0",
     "djangorestframework>=3.16.0",
@@ -17,7 +24,12 @@ dependencies = [
     "toml (>=0.10.2,<0.11.0)",
     "black (>=25.1.0,<26.0.0)",
     "alive-progress (>=3.2.0,<4.0.0)",
+
 ]
 
-[tool.poetry.group.dev.dependencies]
-pre-commit = "^4.2.0"
+
+[tool.poetry]
+package-mode = false
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
