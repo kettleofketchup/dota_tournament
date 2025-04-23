@@ -14,8 +14,6 @@ services:
     restart: always
     volumes:
       - ./backend/db.sqlite3:/app/db.sqlite3
-      - ./nginx/data/ssl_prod/cert.crt:/etc/ssl/certs/cert.crt
-      - ./nginx/data/ssl_prod/cert.key:/etc/ssl/private/cert.key;
   nginx:
     image: ghcr.io/dtx-dota/website/nginx:latest
     env_file: "./.env.release"
@@ -32,5 +30,3 @@ services:
     depends_on:
       - frontend
       - backend
-  certbot:
-    image: certbot/certbot

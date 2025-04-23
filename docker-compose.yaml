@@ -28,6 +28,7 @@ services:
       - ./nginx/data/ssl/cert.key:/etc/letsencrypt/live/dtxdota.com/privkey.pem
       - ./nginx/default.template.conf:/etc/nginx/templates/default.template.conf
       - ./nginx/data/user_conf.d:/etc/nginx/user_conf.d
+
     depends_on:
       - frontend
       - backend

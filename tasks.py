@@ -34,6 +34,13 @@ def dev_prod(c):
     c.run(cmd)
 
 
+@task
+def dev_release(c):
+    cmd = f"docker-compose -f docker-compose.release.yaml up"
+    c.run(cmd)
+
+
 ns_dev.add_task(dev_live, "live")
 ns_dev.add_task(dev_debug, "debug")
 ns_dev.add_task(dev_prod, "prod")
+ns_dev.add_task(dev_release, "release")

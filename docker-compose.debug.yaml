@@ -15,7 +15,6 @@ services:
 
   backend:
     container_name: backend
-
     env_file: "./.env.dev"
     image: ghcr.io/dtx-dota/website/backend:latest
     ports:
