@@ -242,5 +242,9 @@ CORS_ORIGIN_WHITELIST = [
     "https://localhost",
 ]
 
-CSRF_TRUSTED_ORIGINS = ["https://localhost"]
+CSRF_TRUSTED_ORIGINS = [
+    "https://localhost",
+    "https://dtxdota.com",
+    "http://dtxdota.com",
+]
 AUTH_USER_MODEL = "app.CustomUser"
