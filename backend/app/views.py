@@ -19,7 +19,12 @@ from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.generics import GenericAPIView
 from rest_framework.decorators import permission_classes
-from rest_framework.permissions import AllowAny, IsAdminUser, IsAdminUser
+from rest_framework.permissions import (
+    AllowAny,
+    IsAdminUser,
+    IsAdminUser,
+    IsAuthenticated,
+)
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework.reverse import reverse
@@ -148,14 +153,17 @@ from .models import CustomUser
 
 
 @api_view(["GET"])
+@permission_classes((AllowAny,))
 def current_user(request):
-    user = request.user
 
-    return Response(
-        {
-            "username": user.username,
-            "avatarUrl": user.avatarUrl,
-            "is_staff": user.is_staff,
-            "is_superuser": user.is_superuser,
-        }
-    )
+    user = request.user
+    if request.user.is_authenticated:
+
+        return Response(
+            {
+                "username": user.username,
+                "avatarUrl": user.avatarUrl,
+                "is_staff": user.is_staff,
+                "is_superuser": user.is_superuser,
+            }
+        )

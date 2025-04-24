@@ -8,6 +8,7 @@ export function useUser() {
   const [error, setError] = useState<Error | null>(null);
   const setUser = useUserStore((state) => state.setUser); // Zustand setter
   const user = useUserStore((state) => state.user); // Zustand setter
+  const clearUser = useUserStore((state) => state.clearUser); // Zustand setter
 
   const getUser = useCallback(async () => {
     setLoading(true);
@@ -20,6 +21,7 @@ export function useUser() {
           console.log('User fetched successfully:', response);     })
         .catch((error) => {
           console.error('Error fetching user:', error);
+          clearUser();
           setError(error);
       });
     }
