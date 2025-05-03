@@ -3,7 +3,7 @@ import { persist } from 'zustand/middleware';
 import type { GuildMember, UserType, GuildMembers } from '~/components/user/types';
 import { User } from '~/components/user/user';
 import { UsersPage } from '~/pages/users/users';
-import { get_dtx_members } from "~/components/api/api";
+import { get_dtx_members,fetchUsers  } from "~/components/api/api";
 import { useCallback } from 'react';
 
 interface UserState {
@@ -20,6 +20,8 @@ interface UserState {
     setUsers: (uses: UserType[]) => void;
     addUser: (user: UserType) => void;
     clearUsers: () => void;
+    getUsers: () => Promise<void>;
+
 
 }
 export const useUserStore = create<UserState>()(
@@ -37,7 +39,15 @@ export const useUserStore = create<UserState>()(
             addUser: (user) => set({users: [...get().users, user]}),
             setUsers: (users) => set({ users }),
             clearUsers: () => set({ users: [] as UserType[] }),
-
+            getUsers: async () => {
+                try {
+                  const response = await fetchUsers();
+                  set({ users: response });
+                  console.log('User fetched successfully:', response);
+                } catch (error) {
+                  console.error('Error fetching users:', error);
+                }
+              },
         }),
         {
             name: 'dtx-user-storage', // key in localStorage

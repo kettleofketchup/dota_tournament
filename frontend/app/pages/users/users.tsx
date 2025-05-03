@@ -56,7 +56,7 @@ export function UsersPage() {
       <div className="justify-self-top content-self-center align-middle ">
 
         {users && (
-        <Combobox value={searchedPerson} onChange={handleSearchUserSelect}>
+        <Combobox value={query} onChange={handleSearchUserSelect}>
                 <ComboboxInput
                   className="input input-bordered w-full"
                   placeholder="Search DTX members..."
@@ -135,6 +135,7 @@ export function UsersPage() {
               Close
             </label>
           </div>
+          <button></button>
         </div>
 
         </>
@@ -163,7 +164,7 @@ export function UsersPage() {
         >
           {filteredUsers?.map((u) => (
             <div className="grid" key={u.pk}>
-              <UserCard user={u} />
+              <UserCard user={u} saveFunc={'save'}/>
             </div>
           ))}
         </div>

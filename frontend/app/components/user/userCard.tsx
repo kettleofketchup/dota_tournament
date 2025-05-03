@@ -18,6 +18,7 @@ export const UserCard: React.FC<Props> = ({ user, edit, saveFunc }) => {
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState(false);
   const [errorMessage, setErrorMessage] = useState<Partial<Record<keyof UserType, string>>>({});
+  const getUsers = useUserStore((state) => state.getUsers);
 
 
   const addUser = useUserStore((state) => state.addUser ); // Zustand setter
@@ -61,6 +62,8 @@ export const UserCard: React.FC<Props> = ({ user, edit, saveFunc }) => {
           await axios.patch(`/users/${user.pk}/`, form);
           setEditMode(false);
           setError(false);
+          getUsers(); // Triggers fetch and repopulates store
+
 
         } catch (err) {
             setError(true);
