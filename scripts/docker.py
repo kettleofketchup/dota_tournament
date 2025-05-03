@@ -29,8 +29,11 @@ def docker_build(c, image: str, version: str, dockerfile: Path, context: Path):
 
 def docker_pull(c, image: str, version: str, dockerfile: Path, context: Path):
     cmd = f"docker pull {image}:{version}"
+    cmd2 = f"docker pull {image}:latest"
+
     with c.cd(paths.PROJECT_PATH):
         c.run(cmd)
+        c.run(cmd2)
 
 
 def tag_latest(c, image: str, version: str):
