@@ -5,7 +5,7 @@ import { TournamentCard } from '~/components/tournament/TournamentCard';
 
 import type { TournamentType, TeamType, GameType  } from '~/components/tournament/types';
 import { useUserStore } from '~/store/userStore';
-export function Tournament() {
+export default function Tournament() {
 
   const [count, setCount] = useState(0)
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
@@ -19,7 +19,6 @@ export function Tournament() {
   const setTeams = useUserStore((state) => state.setTeams); // Zustand setter
   const setTournament = useUserStore((state) => state.setTournament); // Zustand setter
   const setTeam = useUserStore((state) => state.setTeam); // Zustand setter
-  const setGame = useUserStore((state) => state.setGame); // Zustand setter
   const tournaments: TournamentType[] = useUserStore((state) => state.tournaments); // Zustand setter
    const [query, setQuery] = useState('');
 
@@ -44,6 +43,27 @@ export function Tournament() {
     return <div className="flex justify-center">Loading...</div>;
   }
 
+  // Helper component to manage individual card state
+  const TournamentCardWrapper = ({ tournamentData }: { tournamentData: TournamentType }) => {
+    const [isCardEditing, setIsCardEditing] = useState(false);
+
+    const wrapperClassName = isCardEditing
+      ? "grid col-span-2" // Spanning classes
+      : "grid col-span-1"; // Default class for the wrapper, assuming "grid" was intentional for item styling
+
+    const cssClassNames = wrapperClassName + " px-6 py-4 gap-6 content-center"
+
+    return (
+      <div className={cssClassNames} key={tournamentData.pk}>
+        <TournamentCard
+          tournament={tournamentData}
+          saveFunc={'save'}
+          onEditModeChange={setIsCardEditing} // Pass the setter
+        />
+      </div>
+    );
+  };
+
   return (<>
   <div className="flex flex-col items-start p-4 h-full  ">
     <div
@@ -63,9 +83,7 @@ export function Tournament() {
            mb-0 mt-0 p-0 bg-base-900  w-full"
           >
             {filteredTournaments?.map((u) => (
-              <div className="grid" key={u.pk}>
-                <TournamentCard tournament={u} saveFunc={'save'}/>
-              </div>
+              <TournamentCardWrapper tournamentData={u} key={`wrapper-${u.pk}`} />
             ))}
         </div>
       </div>

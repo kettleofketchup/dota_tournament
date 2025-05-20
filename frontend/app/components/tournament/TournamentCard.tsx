@@ -12,10 +12,11 @@ interface Props {
   tournament: TournamentType;
   edit?: boolean;
   saveFunc?: string;
+  onEditModeChange?: (isEditing: boolean) => void; // Added new prop
 }
 
-export const TournamentCard: React.FC<Props> = ({ tournament, edit, saveFunc }) => {
-
+export const TournamentCard: React.FC<Props> = ({ tournament, edit, saveFunc, onEditModeChange }) => {
+  let navigate = useNavigate();
   const [editMode, setEditMode] = useState(edit || false);
   const [form, setForm] = useState<TournamentType>(tournament ?? {} as TournamentType);
   const [isSaving, setIsSaving] = useState(false);
@@ -104,6 +105,12 @@ export const TournamentCard: React.FC<Props> = ({ tournament, edit, saveFunc }) 
     setForm(tournament);
   }, [tournament]);
 
+  useEffect(() => { // Added useEffect to call onEditModeChange
+    if (onEditModeChange) {
+      onEditModeChange(editMode);
+    }
+  }, [editMode, onEditModeChange]);
+
   useEffect(() => {
     if (editMode && (!allUsersFromStore || allUsersFromStore.length === 0)) {
       fetchAllUsers();
@@ -142,7 +149,36 @@ export const TournamentCard: React.FC<Props> = ({ tournament, edit, saveFunc }) 
       </>
     )
   }
+  const editModeUsers = () => {
+    return (
+          <div>
+            <label className="font-semibold" htmlFor="users-select">Players:</label>
+            <select
+              multiple
+              id="users-select"
+              value={(form.users || []).map(user => user.pk?.toString() ?? '').filter(pk => pk !== '')}
+              onChange={(e) => {
+                const selectedPKs = Array.from(e.target.selectedOptions, option => option.value);
+                handleUserSelectionChange(selectedPKs);
+              }}
+              className={`select select-bordered w-full mt-1 h-32 ${errorMessage.users ? 'select-error' : ''}`}
+            >
+              {(allUsersFromStore || []).map((user: UserType) => {
+                if (user.pk === undefined) return null;
+                return (
+                  <option key={user.pk} value={user.pk.toString()}>
+                    {user.nickname || user.username}
+                  </option>
+                );
+              })}
+            </select>
+            {errorMessage.users && (
+              <p className="text-error text-sm mt-1">{errorMessage.users}</p>
+            )}
+          </div>
 
+    )
+  }
   const editModeView = () => {
     return (
       <>
@@ -192,32 +228,7 @@ export const TournamentCard: React.FC<Props> = ({ tournament, edit, saveFunc }) 
             <p className="text-error text-sm mt-1">{errorMessage.tournament_type}</p>
           )}
         </div>
-
-        <div>
-          <label className="font-semibold" htmlFor="users-select">Players:</label>
-          <select
-            multiple
-            id="users-select"
-            value={(form.users || []).map(user => user.pk?.toString() ?? '').filter(pk => pk !== '')}
-            onChange={(e) => {
-              const selectedPKs = Array.from(e.target.selectedOptions, option => option.value);
-              handleUserSelectionChange(selectedPKs);
-            }}
-            className={`select select-bordered w-full mt-1 h-32 ${errorMessage.users ? 'select-error' : ''}`}
-          >
-            {(allUsersFromStore || []).map((user: UserType) => {
-              if (user.pk === undefined) return null;
-              return (
-                <option key={user.pk} value={user.pk.toString()}>
-                  {user.nickname || user.username}
-                </option>
-              );
-            })}
-          </select>
-          {errorMessage.users && (
-            <p className="text-error text-sm mt-1">{errorMessage.users}</p>
-          )}
-        </div>
+          {editModeUsers()}
 
         <button
           onClick={handleSave}
@@ -291,8 +302,18 @@ export const TournamentCard: React.FC<Props> = ({ tournament, edit, saveFunc }) 
                 {editMode ? "Cancel" : "Edit"}
               </button>
             )}
+
+
             </>
           )}
+
+
+          <button
+            className="btn btn-sm btn-outline outline-green-500"
+            onClick={() => navigate(`/tournament/${tournament.pk}`)}
+          >
+           View
+          </button>
         </div>
 
         <div className="mt-4 space-y-2 text-sm">

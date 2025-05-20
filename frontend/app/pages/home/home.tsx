@@ -1,17 +1,8 @@
 import { useState } from 'react'
 
 import dtx from '../../assets/dtx.gif'
-import Avatar from '@mui/material/Avatar';
 
-import { Icon } from "@iconify/react";
-import Popover from '@mui/material/Popover';
-import Typography from '@mui/material/Typography';
-import Tab from '@mui/material/Tab';
-import Tabs from '@mui/material/Tabs';
-import Box from '@mui/material/Box';
-import ResponsiveAppBar from '../../components/navbar';
-import AppBar from '@mui/material/AppBar';
-export function Welcome() {
+export default function HomePage() {
 
   const [count, setCount] = useState(0)
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);

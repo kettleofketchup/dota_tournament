@@ -14,7 +14,7 @@ const menuItems = () => {
   <>
       <li><a href="/about">About us</a></li>
         <li>
-          <a href="/tournament"> Tournaments</a>
+          <a href="/tournaments"> Tournaments</a>
         </li>
         <li>
           <a href="/blog">Blog</a>
