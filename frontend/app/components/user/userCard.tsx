@@ -12,6 +12,8 @@ interface Props {
   edit?: boolean;
   saveFunc?: string;
   compact?: boolean;
+  removeCallBack?: (e: FormEvent, user: UserType) => void;
+  removeToolTip?: string;
 }
 
 export const UserCard: React.FC<Props> = ({
@@ -19,6 +21,8 @@ export const UserCard: React.FC<Props> = ({
   edit,
   saveFunc,
   compact,
+  removeCallBack,
+  removeToolTip = 'Delete the user',
 }) => {
   const [editMode, setEditMode] = useState(edit || false);
   const [form, setForm] = useState<User>(user ?? new User({} as UserType));
@@ -76,8 +80,14 @@ export const UserCard: React.FC<Props> = ({
         setIsSaving(false);
       }
     }
+    getUsers();
   };
+
   const handleDelete = async (e: FormEvent) => {
+    if (removeCallBack !== undefined) {
+      removeCallBack(e, user);
+      return;
+    }
     e.stopPropagation();
     setErrorMessage({}); // clear old errors
     setIsSaving(true);
@@ -108,7 +118,7 @@ export const UserCard: React.FC<Props> = ({
   useEffect(() => {
     console.log('reset form', user);
     setForm(user);
-  }, [user]);
+  }, [user.username, user.nickname, user.mmr, user.position, user.avatar]);
 
   const avatar = () => {
     return (
@@ -133,10 +143,10 @@ export const UserCard: React.FC<Props> = ({
             {!compact && (
               <div className="flex gap-2 mt-1">
                 {user.is_staff && (
-                  <span className="badge badge-warning">Staff</span>
+                  <span className="p-1 badge badge-warning">Staff</span>
                 )}
                 {user.is_superuser && (
-                  <span className="badge badge-error">Admin</span>
+                  <span className="p-1 badge badge-error">Admin</span>
                 )}
               </div>
             )}
@@ -173,14 +183,6 @@ export const UserCard: React.FC<Props> = ({
         {inputView('discordId', 'Discord ID: ', 'number')}
         {inputView('guildNickname', 'Discord Guild Nickname: ')}
         <div className="flex flex-row items-start gap-4">
-          {saveCallback === 'save' && (
-            <DeleteButton
-              onClick={handleDelete}
-              tooltipText="Delete the user"
-              className="btn-sm mt-3"
-              disabled={isSaving}
-            />
-          )}
           <button
             onClick={handleSave}
             className="btn btn-primary btn-sm mt-3"
@@ -200,7 +202,7 @@ export const UserCard: React.FC<Props> = ({
     if (compact) {
       return (
         <>
-          {user.mmr !== undefined && (
+          {user.mmr && (
             <div>
               <span className="font-semibold">MMR:</span> {user.mmr}
             </div>
@@ -249,7 +251,7 @@ export const UserCard: React.FC<Props> = ({
     if (!user.steamid) return <></>;
     return (
       <>
-        <a className="btn btn-sm btn-outline ml-auto" href={goToDotabuff()}>
+        <a className="self-center btn btn-sm btn-outline" href={goToDotabuff()}>
           <span className="flex items-center">
             <img
               src="https://cdn.brandfetch.io/idKrze_WBi/w/96/h/96/theme/dark/logo.png?c=1dxbfHSJFAPEGdCLU4o5B"
@@ -275,10 +277,10 @@ export const UserCard: React.FC<Props> = ({
   return (
     <div
       key={`usercard:${getKeyName()} base`}
-      className="px-6 py-4 gap-6 content-center"
+      className="px-6 py-4 content-center"
     >
       <div
-        className=" p-2 h-full card bg-base-200 shadow-md w-full
+        className="justify-between p-2 h-full card bg-base-200 shadow-md w-full
             max-w-sm hover:bg-violet-900 . focus:outline-2
             hover:shadow-xl/30
             focus:outline-offset-2 focus:outline-violet-500
@@ -292,7 +294,7 @@ export const UserCard: React.FC<Props> = ({
             <>
               {saveCallback !== 'create' && (
                 <button
-                  className="btn btn-sm btn-outline ml-auto"
+                  className="self-center btn btn-sm btn ml-auto bg-blue-950 outline-red-500"
                   onClick={() => setEditMode(!editMode)}
                 >
                   {editMode ? 'Cancel' : 'Edit'}
@@ -303,8 +305,22 @@ export const UserCard: React.FC<Props> = ({
         </div>
         <div className="mt-4 space-y-2 text-sm">
           {editMode ? editModeView() : viewMode()}
+          <div className="flex flex-col ">
+            <div className="flex items-center justify-start gap-6">
+              {userDotabuff()}
+            </div>
+            <div className="flex items-center justify-end gap-6">
+              {currentUser.is_staff && saveCallback === 'save' && (
+                <DeleteButton
+                  onClick={handleDelete}
+                  tooltipText={removeToolTip}
+                  className="self-center btn-sm mt-3"
+                  disabled={isSaving}
+                />
+              )}
+            </div>
+          </div>
         </div>
-        {userDotabuff()}
       </div>
     </div>
   );

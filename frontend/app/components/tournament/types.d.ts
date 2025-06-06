@@ -15,6 +15,7 @@ export declare interface TeamType {
   captain?: UserType;
   dropin_members?: UserType[];
   left_members?: UserType[];
+  user_ids?: number[];
 
   tournament?: number;
   current_points?: number;
@@ -36,6 +37,8 @@ export declare interface TournamentType {
   name?: string;
   date_played?: string;
   users?: UserType[];
+  user_ids?: number[];
+
   teams?: Team[];
   pk?: number;
   winning_team?: number;

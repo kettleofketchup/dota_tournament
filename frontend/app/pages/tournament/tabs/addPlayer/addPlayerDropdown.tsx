@@ -1,13 +1,8 @@
-import React, { useEffect, useState } from 'react';
-import type { FormEvent } from 'react';
 import type {
   GuildMember,
   UserType,
   UserClassType,
 } from '~/components/user/types';
-import { UserCard } from '~/components/user/userCard';
-import axios from '~/components/api/axios';
-import { useUserStore } from '~/store/userStore';
 import {
   Combobox,
   ComboboxInput,
@@ -17,17 +12,64 @@ import {
 import Footer from '~/components/footer';
 import DiscordUserDropdown from '~/components/user/DiscordUserDropdown';
 import { User } from '~/components/user/user';
+
+import {
+  Button,
+  Tab,
+  TabGroup,
+  TabList,
+  TabPanel,
+  TabPanels,
+} from '@headlessui/react';
+import type { GameType, TournamentType } from '~/components/tournament/types'; // Adjust the import path as necessary
+import { Plus } from 'lucide-react';
+import {
+  Fragment,
+  useCallback,
+  useEffect,
+  useState,
+  type FormEvent,
+} from 'react';
+import { UsersDropdown } from '~/components/user/UsersDropdown';
+import { SearchUserDropdown } from '~/components/user/searchUser';
+import { useNavigate } from 'react-router-dom';
+import { UserCard } from '~/components/user/userCard';
+import axios from '~/components/api/axios';
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '~/components/ui/dialog';
+import { useUserStore } from '~/store/userStore';
+import { Label } from '~/components/ui/label';
+import { Input } from '~/components/ui/input';
+import { LucidePlus } from 'lucide-react';
+
+import { AddButton } from '~/components/reusable/addButton';
 interface Props {
   users: UserType[];
+  addedUsers?: UserType[];
   query: string;
   setQuery: React.Dispatch<React.SetStateAction<string>>;
+  addPlayerCallback?: (user: UserType) => Promise<void>;
+  removePlayerCallback?: (e: FormEvent, user: UserType) => Promise<void>;
 }
 
-export const SearchUserDropdown: React.FC<Props> = ({
+export const AddPlayerDropdown: React.FC<Props> = ({
   users,
+  addedUsers,
   query,
-  setQuery
+  setQuery,
+  addPlayerCallback,
+  removePlayerCallback,
 }) => {
+  const allUsers = useUserStore((state) => state.users); // Zustand setter
+
   const user: UserType = useUserStore((state) => state.currentUser); // Zustand setter
   const getUsers = useUserStore((state) => state.getUsers); // Zustand setter
 
@@ -39,20 +81,31 @@ export const SearchUserDropdown: React.FC<Props> = ({
   );
   const filteredUsers =
     query === ''
-      ? users
-      : users.filter((person) => {
-          const q = query.toLowerCase();
-          return (
-            person.username?.toLowerCase().includes(q) ||
-            person.nickname?.toLowerCase().includes(q)
-          );
-        });
+      ? users.filter(
+          (person) => !addedUsers?.some((added) => added.pk === person.pk),
+        )
+      : users.filter(
+          (person) =>
+            !addedUsers?.some((added) => added.pk === person.pk) &&
+            (person.username?.toLowerCase().includes(query.toLowerCase()) ||
+              person.nickname?.toLowerCase().includes(query.toLowerCase())),
+        );
 
-  const handleSearchUserSelect = (userName: UserType | string) => {
+  const handleSearchUserSelect = async (userName: UserType | string | null) => {
+    if (!userName || userName === undefined || userName === '') {
+      console.log(userName);
+
+      setSearchedPerson(new User({} as UserClassType));
+      return;
+    }
+
     if (typeof userName === 'object') {
+      console.log(userName);
+
       userName = userName.username || userName.nickname || '';
     }
-    if (userName === undefined || userName === '') {
+    if (!userName || userName === undefined || userName === '') {
+      console.log('No user selected, resetting searched person');
       setSearchedPerson(new User({} as UserClassType));
       return;
     }
@@ -65,7 +118,17 @@ export const SearchUserDropdown: React.FC<Props> = ({
           user.nickname?.toLowerCase() === userName?.toLowerCase()),
     );
 
+    if (user === undefined) {
+      console.log('User not found, resetting searched person');
+      setSearchedPerson(new User({} as UserClassType));
+      return;
+    }
     setSearchedPerson(new User(user as UserClassType));
+    if (addPlayerCallback !== undefined) {
+      console.log('Adding player callback with user:', user);
+      await addPlayerCallback(user as UserType);
+      setQuery(''); // Reset query after selection
+    }
   };
 
   return (
@@ -76,9 +139,8 @@ export const SearchUserDropdown: React.FC<Props> = ({
             className="input input-bordered w-full"
             placeholder="Search DTX members..."
             onChange={(event) => setQuery(event.target.value)}
-            onClick={(event) => console.log(event.target)}
           />
-          <ComboboxOptions className="border bg-base-100 shadow-lg rounded-lg max-h-60 overflow-y-auto mt-2">
+          <ComboboxOptions className="border bg-base-500 shadow-lg rounded-lg max-h-60 overflow-y-auto mt-2">
             {filteredUsers &&
             filteredUsers.length > 0 &&
             filteredUsers.length < 20 ? (
@@ -88,7 +150,7 @@ export const SearchUserDropdown: React.FC<Props> = ({
                   value={user.username}
                   className={({ active }) =>
                     `cursor-pointer select-none p-2 ${
-                      active ? 'bg-primary text-primary-content' : ''
+                      active ? 'bg-base-100 text-primary-content' : ''
                     }`
                   }
                 >
@@ -103,6 +165,7 @@ export const SearchUserDropdown: React.FC<Props> = ({
                       className="w-8 h-8 rounded-full"
                     />
                     <span>{user.username}</span>
+                    <div className="flex-1" />
                   </div>
                 </ComboboxOption>
               ))

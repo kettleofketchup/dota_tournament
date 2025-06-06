@@ -135,6 +135,7 @@ class UserView(viewsets.ModelViewSet):
     def patch(self, request, *args, **kwargs):
         return self.partial_update(request, *args, **kwargs)
 
+    @permission_classes((IsAdminUser,))
     def delete(self, request, *args, **kwargs):
         try:
             user = self.get_object()
@@ -159,7 +160,9 @@ class TournamentView(viewsets.ModelViewSet):
         "trace",
     ]
 
+    @permission_classes((IsStaff,))
     def patch(self, request, *args, **kwargs):
+        print(request.data)
         return self.partial_update(request, *args, **kwargs)
 
     def get_permissions(self):

@@ -80,7 +80,11 @@ export function UsersPage() {
          w-full "
         >
           <div className="flex">
-            <SearchUserDropdown users={users} query={query} setQuery={setQuery} />
+            <SearchUserDropdown
+              users={users}
+              query={query}
+              setQuery={setQuery}
+            />
           </div>
           <div className="flex col-start-4 align-end content-end justify-end">
             <CreateUserButton />
@@ -92,9 +96,9 @@ export function UsersPage() {
          grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4
          mb-0 mt-0 p-0 bg-base-900  w-full"
         >
-          {filteredUsers?.map((u) => (
-            <div className="grid" key={u.pk}>
-              <UserCard user={u} saveFunc={'save'} />
+          {filteredUsers?.map((u: UserType) => (
+            <div className="grid   " key={`div-${u.pk}`}>
+              <UserCard user={u} saveFunc={'save'} key={`UserCard-${u.pk}`} />
             </div>
           ))}
         </div>

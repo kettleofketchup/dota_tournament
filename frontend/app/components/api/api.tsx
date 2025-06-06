@@ -19,7 +19,7 @@ export async function fetchUsers(): Promise<UsersType> {
   return response.data;
 }
 export async function deleteUser(userId: number): Promise<void> {
-  await axios.delete(`/users/${userId}`);
+  await axios.delete(`/users/${userId}/`);
 }
 export async function updateUser(
   userId: number,
@@ -50,5 +50,32 @@ export async function getTeams(): Promise<TeamsType> {
 
 export async function getGames(): Promise<GamesTypes> {
   const response = await axios.get<GamesTypes>(`/games`);
+  return response.data;
+}
+
+export async function updateTournament(
+  pk: number,
+  data: Partial<TournamentType>,
+): Promise<TournamentType> {
+  const response = await axios.patch<TournamentType>(
+    `/tournaments/${pk}/`,
+    data,
+  );
+  return response.data;
+}
+
+export async function updateGame(
+  pk: number,
+  data: Partial<GameType>,
+): Promise<GameType> {
+  const response = await axios.patch<GameType>(`/games/${pk}`, data);
+  return response.data;
+}
+
+export async function updateTeam(
+  pk: number,
+  data: Partial<TeamType>,
+): Promise<TeamType> {
+  const response = await axios.patch<TeamType>(`/teams/${pk}/`, data);
   return response.data;
 }

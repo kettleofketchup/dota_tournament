@@ -12,9 +12,9 @@ export default function TournamentTabs({
   tournament: TournamentType;
 }) {
   const tabClass =
-    () => `rounded-full px-3 py-1 text-sm/6 font-semibold text-white
+    () => `rounded-full px-3 py-1 bg-gray-900 text-sm/6 font-semibold text-white
                         focus:not-data-focus:outline-none data-focus:outline data-focus:outline-white
-                        data-hover:bg-white/5 data-selected:bg-white/10 data-selected:data-hover:bg-white/10`;
+                        data-hover:bg-cyan/5 data-selected:bg-purple-950 data-selected:data-hover:bg-cyan/10`;
   const tabPanelClass = () => `rounded-xl bg-base-300  p-3"`;
 
   return (

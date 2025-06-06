@@ -31,10 +31,12 @@ class TournamentUserSerializer(serializers.ModelSerializer):
             "username",
             "nickname",
             "avatar",
+            "discordId",
             "position",
             "steamid",
             "avatarUrl",
-            "username",
+            "mmr",
+            "steamid",
         )
 
 
@@ -59,9 +61,15 @@ class TeamSerializer(serializers.ModelSerializer):
 
 class TournamentSerializer(serializers.ModelSerializer):
     teams = TeamSerializer(many=True, read_only=True)  # Return full team objects
-    users = TournamentUserSerializer(
-        many=True, read_only=True
-    )  # Return full user objects
+    users = TournamentUserSerializer(many=True, read_only=True)
+
+    user_ids = serializers.PrimaryKeyRelatedField(
+        source="users",
+        many=True,
+        queryset=CustomUser.objects.all(),
+        write_only=True,
+        required=False,
+    )
 
     class Meta:
         model = Tournament
@@ -73,6 +81,7 @@ class TournamentSerializer(serializers.ModelSerializer):
             "teams",  # Include full team objects
             "winning_team",
             "state",
+            "user_ids",  # Allow setting user IDs for the tournament
         )
 
 
