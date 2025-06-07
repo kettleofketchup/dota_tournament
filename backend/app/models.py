@@ -22,12 +22,12 @@ class DiscordInfo(models.Model):
 
 
 class CustomUser(AbstractUser):
-    steamid = models.IntegerField(null=True)
+    steamid = models.IntegerField(null=True, unique=True)
     nickname = models.TextField(null=True)
     mmr = models.IntegerField(null=True)
     position = models.TextField(null=True)
     avatar = models.TextField(null=True)
-    discordId = models.TextField(null=True)
+    discordId = models.TextField(null=True, unique=True)
     discordUsername = models.TextField(null=True)
     discordNickname = models.TextField(null=True)
     guildNickname = models.TextField(null=True)

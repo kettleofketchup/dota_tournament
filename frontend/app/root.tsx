@@ -7,6 +7,7 @@ import {
   Scripts,
   ScrollRestoration,
 } from 'react-router';
+import { Toaster } from '~/components/ui/sonner';
 
 import type { Route } from './+types/root';
 import './app.css';
@@ -43,6 +44,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
         {/* Your component tree. Now you can override Material UI's styles. */}
 
         {children}
+        <Toaster richColors closeButton position="top-center" />
 
         <ScrollRestoration />
         <Scripts />
@@ -55,7 +57,7 @@ export default function App() {
   const [inputId, setInputId] = useState<string>('');
   const currentUser = useUserStore((state) => state.currentUser); // Zustand setter
   const getCurrentUser = useUserStore((state) => state.getCurrentUser); // Zustand setter
-  const setUser = useUserStore((state) => state.setUser); // Zustand setter
+  const setUser = useUserStore((state) => state.setCurrentUser); // Zustand setter
   const hasHydrated = useUserStore((state) => state.hasHydrated); // Zustand setter
 
   useEffect(() => {

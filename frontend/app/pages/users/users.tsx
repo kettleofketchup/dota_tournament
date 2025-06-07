@@ -17,7 +17,7 @@ import {
 import Footer from '~/components/footer';
 import DiscordUserDropdown from '~/components/user/DiscordUserDropdown';
 import { User } from '~/components/user/user';
-import { CreateUserButton } from '~/components/user/createUserModal';
+import { UserCreateModal } from '~/components/user/userCard/createModal';
 import { SearchUserDropdown } from '~/components/user/searchUser';
 
 export function UsersPage() {
@@ -50,17 +50,15 @@ export function UsersPage() {
     setSearchedPerson(new User(user));
   };
 
-  const openCreateModal = () => {
-    setCreateModal(true);
-  };
-  const closeCreateModal = () => {
-    setCreateModal(false);
-  };
   useEffect(() => {
     if (!users || users.length === 0) {
       getUsers();
     }
   }, []);
+
+  useEffect(() => {
+    console.log(`UsersPage: users updated`);
+  }, [users]);
   if (!user || !user.is_staff)
     return (
       <div className="flex justify-center h-full content-center mb-0 mt-0 p-0">
@@ -87,7 +85,7 @@ export function UsersPage() {
             />
           </div>
           <div className="flex col-start-4 align-end content-end justify-end">
-            <CreateUserButton />
+            <UserCreateModal />
           </div>
         </div>
         <div
@@ -97,8 +95,12 @@ export function UsersPage() {
          mb-0 mt-0 p-0 bg-base-900  w-full"
         >
           {filteredUsers?.map((u: UserType) => (
-            <div className="grid   " key={`div-${u.pk}`}>
-              <UserCard user={u} saveFunc={'save'} key={`UserCard-${u.pk}`} />
+            <div className="grid" key={`div-${u.pk}`}>
+              <UserCard
+                user={u as UserClassType}
+                saveFunc={'save'}
+                key={`UserCard-${u.pk}`}
+              />
             </div>
           ))}
         </div>

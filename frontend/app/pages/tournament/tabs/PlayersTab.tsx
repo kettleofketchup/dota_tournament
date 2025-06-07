@@ -33,6 +33,7 @@ import { Label } from '~/components/ui/label';
 import { Input } from '~/components/ui/input';
 import { LucidePlus } from 'lucide-react';
 import { AddPlayerModal } from './addPlayer/addPlayerModal';
+import { toast } from 'sonner';
 export default function PlayersTab({
   tournament,
 }: {
@@ -63,18 +64,23 @@ export default function PlayersTab({
       console.error('Tournament primary key is missing');
       return;
     }
-    try {
-      await updateTournament(tournament.pk, updatedTournament);
-      tournament.users = tournament.users?.filter(
-        (u) => u.username !== user.username,
-      );
-      setTournamentUsers(tournament.users as UserType[]);
-    } catch (error) {
-      console.error('Error updating tournament:', error);
-      // Handle the error appropriately, e.g., show an error message
-    } finally {
-      setQuery(''); // Reset query after adding user
-    }
+
+    toast.promise(updateTournament(tournament.pk, updatedTournament), {
+      loading: `Creating User ${user.username}.`,
+      success: () => {
+        tournament.users = tournament.users?.filter(
+          (u) => u.username !== user.username,
+        );
+        setTournamentUsers(tournament.users as UserType[]);
+        return `${user.username} has been removed`;
+      },
+      error: (err: any) => {
+        console.error('Failed to update tournament', err);
+        return `${user.username} has been removed`;
+
+      },
+    });
+    setQuery(''); // Reset query after adding user
   };
 
   const addUserCallback = async (user: UserType) => {
@@ -99,20 +105,25 @@ export default function PlayersTab({
       console.error('Tournament primary key is missing');
       return;
     }
-    try {
-      await updateTournament(
+    toast.promise(
+      updateTournament(
         tournament.pk,
         updatedTournament as Partial<TournamentType>,
-      );
+      ),
+      {
+        loading: `Creating User ${user.username}.`,
+        success: () => {
+          tournament.users?.push(user);
+          setTournamentUsers(tournament.users as UserType[]);
+          return `${user.username} has been added`;
+        },
+        error: (err: any) => {
+          console.error('Failed to update tournament', err);
+        },
+      },
+    );
 
-      tournament.users?.push(user);
-      setTournamentUsers(tournament.users as UserType[]);
-    } catch (error) {
-      console.error('Error updating tournament:', error);
-      // Handle the error appropriately, e.g., show an error message
-    } finally {
-      setQuery(''); // Reset query after adding user
-    }
+    setQuery(''); // Reset query after adding user
   };
   const filteredUsers =
     query === ''

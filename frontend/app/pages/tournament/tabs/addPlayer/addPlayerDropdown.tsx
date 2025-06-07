@@ -150,7 +150,7 @@ export const AddPlayerDropdown: React.FC<Props> = ({
                   value={user.username}
                   className={({ active }) =>
                     `cursor-pointer select-none p-2 ${
-                      active ? 'bg-base-100 text-primary-content' : ''
+                      active ? 'bg-purple-900 text-primary-content' : ''
                     }`
                   }
                 >
@@ -159,7 +159,7 @@ export const AddPlayerDropdown: React.FC<Props> = ({
                       src={
                         user.avatar
                           ? `https://cdn.discordapp.com/avatars/${user.discordId}/${user.avatar}`
-                          : 'https://via.placeholder.com/32'
+                          : `https://ui-avatars.com/api/?rounded=True?name=${user.username}`
                       }
                       alt={user.username}
                       className="w-8 h-8 rounded-full"

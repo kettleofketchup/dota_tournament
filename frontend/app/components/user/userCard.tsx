@@ -5,17 +5,18 @@ import axios from '../api/axios';
 import { deleteUser } from '../api/api';
 import { useNavigate } from 'react-router';
 import { useUserStore } from '~/store/userStore';
-import { User } from './user';
+import { User } from '~/components/user/user';
 import { DeleteButton } from '~/components/reusable/deleteButton';
+import UserEditModal from './userCard/editModal';
 interface Props {
-  user: User;
+  user: UserClassType;
   edit?: boolean;
   saveFunc?: string;
   compact?: boolean;
   removeCallBack?: (e: FormEvent, user: UserType) => void;
   removeToolTip?: string;
 }
-
+import { Badge } from '~/components/ui/badge';
 export const UserCard: React.FC<Props> = ({
   user,
   edit,
@@ -25,64 +26,25 @@ export const UserCard: React.FC<Props> = ({
   removeToolTip = 'Delete the user',
 }) => {
   const [editMode, setEditMode] = useState(edit || false);
-  const [form, setForm] = useState<User>(user ?? new User({} as UserType));
+
+  const [form, setForm] = useState<UserType>(user ?? ({} as UserType));
   const currentUser: UserType = useUserStore((state) => state.currentUser); // Zustand setter
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState(false);
   const [errorMessage, setErrorMessage] = useState<
     Partial<Record<keyof UserType, string>>
   >({});
-  const getUsers = useUserStore((state) => state.getUsers);
 
-  const addUser = useUserStore((state) => state.addUser); // Zustand setter
   const delUser = useUserStore((state) => state.delUser); // Zustand setter
 
-  const handleChange = (field: keyof UserClassType, value: any) => {
-    setForm((prev) => ({ ...prev, [field]: value }));
-  };
-
-  const handleSave = async (e: FormEvent) => {
-    e.stopPropagation();
-    setErrorMessage({}); // clear old errors
-
-    if (saveFunc === 'create') {
-      setIsSaving(true);
-      try {
-        await axios.post(`/register`, form);
-        addUser(form);
-        setForm({ username: 'Success!' } as UserType);
-        // Close the modal
-        const modalCheckbox = document.getElementById(
-          'create_user_modal',
-        ) as HTMLInputElement;
-        if (modalCheckbox) modalCheckbox.checked = false;
-      } catch (err) {
-        console.error('Failed to create user', err);
-        setErrorMessage(err.response.data);
-        setError(true);
-      } finally {
-        setIsSaving(false);
-      }
-    } else if (saveFunc === 'save') {
-      if (!form.pk) return;
-      setIsSaving(true);
-      try {
-        await axios.patch(`/users/${user.pk}/`, form);
-        setEditMode(false);
-        setError(false);
-        getUsers(); // Triggers fetch and repopulates store
-      } catch (err) {
-        setError(true);
-        setErrorMessage(err.response.data);
-
-        console.error('Failed to update user', err);
-      } finally {
-        setIsSaving(false);
-      }
+  useEffect(() => {
+    if (user) {
+      console.log(`UserCard: user updated ${user.username}`);
     }
-    getUsers();
-  };
-
+  }, [user.mmr]);
+  useEffect(() => {
+    console.log(`UserCard: user updated ${user.username}`);
+  }, [user]);
   const handleDelete = async (e: FormEvent) => {
     if (removeCallBack !== undefined) {
       removeCallBack(e, user);
@@ -113,11 +75,8 @@ export const UserCard: React.FC<Props> = ({
   };
   const [saveCallback, setSaveCallBack] = useState(saveFunc || 'save');
 
-  useEffect(() => {}, [user, isSaving]);
-
   useEffect(() => {
-    console.log('reset form', user);
-    setForm(user);
+    console.log(`user updated ${user}`);
   }, [user.username, user.nickname, user.mmr, user.position, user.avatar]);
 
   const avatar = () => {
@@ -139,61 +98,21 @@ export const UserCard: React.FC<Props> = ({
       <>
         {!editMode && (
           <div className="flex-1">
-            <h2 className="card-title text-lg">{user.username}</h2>
+            <h2 className="card-title text-lg">
+              {user.nickname || user.username}
+            </h2>
             {!compact && (
               <div className="flex gap-2 mt-1">
                 {user.is_staff && (
-                  <span className="p-1 badge badge-warning">Staff</span>
+                  <Badge className="bg-blue-700 text-white">Staff</Badge>
                 )}
                 {user.is_superuser && (
-                  <span className="p-1 badge badge-error">Admin</span>
+                  <Badge className="bg-red-700 text-white">Admin</Badge>
                 )}
               </div>
             )}
           </div>
         )}
-      </>
-    );
-  };
-
-  const editModeView = () => {
-    const inputView = (key: string, label: string, type: string = 'text') => {
-      return (
-        <div>
-          <label className="font-semibold">{label}</label>
-          <input
-            type={type}
-            value={form[key] ?? ''}
-            onChange={(e) => handleChange(key, e.target.value)}
-            className={`input input-bordered w-full mt-1 ${errorMessage[key] ? 'input-error' : ''}`}
-          />
-          {errorMessage[key] && (
-            <p className="text-error text-sm mt-1">{errorMessage[key]}</p>
-          )}
-        </div>
-      );
-    };
-    return (
-      <>
-        {inputView('username', 'Username: ')}
-        {inputView('nickname', 'Nickname: ')}
-        {inputView('mmr', 'MMR: ', 'number')}
-        {inputView('position', 'Position: ')}
-        {inputView('steam_id', 'Steam ID: ', 'number')}
-        {inputView('discordId', 'Discord ID: ', 'number')}
-        {inputView('guildNickname', 'Discord Guild Nickname: ')}
-        <div className="flex flex-row items-start gap-4">
-          <button
-            onClick={handleSave}
-            className="btn btn-primary btn-sm mt-3"
-            disabled={isSaving}
-          >
-            {saveCallback === 'create' &&
-              (isSaving ? 'Saving...' : 'Create User')}
-            {saveCallback === 'save' &&
-              (isSaving ? 'Saving...' : 'Save Changes')}
-          </button>
-        </div>
       </>
     );
   };
@@ -218,13 +137,13 @@ export const UserCard: React.FC<Props> = ({
     }
     return (
       <>
-        {user.nickname !== undefined && (
+        {user.nickname && (
           <div>
             <span className="font-semibold">Nickname:</span> {user.nickname}
           </div>
         )}
 
-        {user.mmr !== undefined && (
+        {user.mmr && (
           <div>
             <span className="font-semibold">MMR:</span> {user.mmr}
           </div>
@@ -287,24 +206,15 @@ export const UserCard: React.FC<Props> = ({
             focus:outline-offset-2 active:bg-violet-900
             delay-700 duration-900 ease-in-out"
       >
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 justify-start">
           {avatar()}
           {userHeader()}
           {(currentUser.is_staff || currentUser.is_superuser) && (
-            <>
-              {saveCallback !== 'create' && (
-                <button
-                  className="self-center btn btn-sm btn ml-auto bg-blue-950 outline-red-500"
-                  onClick={() => setEditMode(!editMode)}
-                >
-                  {editMode ? 'Cancel' : 'Edit'}
-                </button>
-              )}
-            </>
+            <UserEditModal user={new User(user)} />
           )}
         </div>
-        <div className="mt-4 space-y-2 text-sm">
-          {editMode ? editModeView() : viewMode()}
+        <div className="mt-2 space-y-2 text-sm">
+          {viewMode()}
           <div className="flex flex-col ">
             <div className="flex items-center justify-start gap-6">
               {userDotabuff()}

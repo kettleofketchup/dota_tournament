@@ -31,6 +31,10 @@ export declare interface UserType {
 export declare interface UserClassType extends UserType {
   setFromGuildMember: (member: GuildMember) => void;
   getAvatarUrl: () => string;
+  dbFetch: () => Promise<void>;
+  dbUpdate: (data: Partial<UserType>) => Promise<void>;
+  dbCreate: () => Promise<void>;
+  dbDelete: () => Promise<void>;
 }
 
 export declare type UsersType = UserType[];

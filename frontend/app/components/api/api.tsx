@@ -18,14 +18,28 @@ export async function fetchUsers(): Promise<UsersType> {
   const response = await axios.get<UsersType>(`/users`);
   return response.data;
 }
+
+export async function fetchUser(pk: number): Promise<UserType> {
+  const response = await axios.get<UserType>(`/users/${pk}`);
+  return response.data as UserType;
+}
 export async function deleteUser(userId: number): Promise<void> {
   await axios.delete(`/users/${userId}/`);
 }
+
+export async function createUser(data: Partial<UserType>): Promise<UserType> {
+  const response = await axios.post(`/register`, data);
+  return response.data as UserType;
+}
+
+'use client';
+
+
 export async function updateUser(
   userId: number,
   data: Partial<UserType>,
 ): Promise<UserType> {
-  const response = await axios.patch<UserType>(`/users/${userId}`, data);
+  const response = await axios.patch<UserType>(`/users/${userId}/`, data);
   return response.data;
 }
 export async function get_dtx_members(): Promise<GuildMembers> {

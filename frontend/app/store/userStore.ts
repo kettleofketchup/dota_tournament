@@ -29,7 +29,7 @@ interface UserState {
   selectedUser: UserType;
   hasHydrated: boolean;
   setHasHydrated: (hydrated: boolean) => void;
-  setUser: (user: UserType) => void;
+  setCurrentUser: (user: UserType) => void;
   clearUser: () => void;
   isStaff: () => boolean;
   selectedDiscordUser: GuildMember;
@@ -37,9 +37,12 @@ interface UserState {
   discordUsers: GuildMembers;
   setDiscordUsers: (users: GuildMembers) => void;
   users: UserType[];
-  setUsers: (uses: UserType[]) => void;
+  setUsers: (users: UserType[]) => void;
+  setUser: (user: UserType) => void;
   addUser: (user: UserType) => void;
   delUser: (user: UserType) => void;
+  getUsers: () => Promise<void>;
+  createUser: (user: UserType) => Promise<void>;
 
   clearUsers: () => void;
   game: GameType;
@@ -48,7 +51,7 @@ interface UserState {
   teams: TeamType[];
   tournament: TournamentType;
   tournaments: TournamentType[];
-  getUsers: () => Promise<void>;
+
   resetSelection: () => void;
   setGames: (games: GameType[]) => void;
   setTeams: (teams: TeamType[]) => void;
@@ -58,7 +61,6 @@ interface UserState {
   setTournament: (tournament: TournamentType) => void;
   tournamentsByUser: (user: UserType) => TournamentType[];
   getCurrentUser: () => Promise<void>;
-  createUser: (user: UserType) => Promise<void>;
   userAPIError: any;
 
   getTournaments: () => Promise<void>;
@@ -85,10 +87,31 @@ export const useUserStore = create<UserState>()(
         set({ selectedDiscordUser: discordUser }),
       discordUsers: [] as GuildMembers,
       setDiscordUsers: (discordUsers: GuildMembers) => set({ discordUsers }),
-      setUser: (user) => {
+      setCurrentUser: (user) => {
         console.log('User set:', user);
 
         set({ currentUser: user });
+      },
+      setUser: (user: UserType) => {
+        console.log('User set:', user);
+        if (!user) {
+          console.error('Attempted to set user to null or undefined');
+          return;
+        }
+        if (user.pk === undefined) {
+          console.error('User pk is undefined:', user);
+          return;
+        }
+        const users = get().users;
+        const userIndex = users.findIndex((u) => u.pk === user.pk);
+        if (userIndex !== -1) {
+          const updatedUsers = [...users];
+          updatedUsers[userIndex] = user;
+          set({ users: updatedUsers });
+          console.log('userUserStore updated User', user);
+        } else {
+          get().addUser(user);
+        }
       },
       clearUser: () => set({ currentUser: {} as UserType }),
       isStaff: () => !!get().currentUser?.is_staff,

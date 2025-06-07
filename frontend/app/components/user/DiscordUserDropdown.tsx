@@ -6,14 +6,15 @@ import {
   ComboboxOptions,
 } from '@headlessui/react';
 import { get_dtx_members } from '../api/api';
-import type { GuildMembers, GuildMember } from '../user/types';
+import type { GuildMembers, GuildMember, UsersType } from '../user/types';
 import { useUserStore } from '../../store/userStore';
 
 interface Props {
   onSelect: (user: GuildMember) => void;
+  discrimUsers?: UsersType;
 }
 
-const DiscordUserDropdown: React.FC<Props> = ({ onSelect }) => {
+const DiscordUserDropdown: React.FC<Props> = ({ onSelect, discrimUsers }) => {
   const [query, setQuery] = useState('');
   const [error, setError] = useState<Error | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
@@ -47,11 +48,19 @@ const DiscordUserDropdown: React.FC<Props> = ({ onSelect }) => {
   const filteredUsers =
     query === ''
       ? discordUsers
-      : discordUsers.filter((person) => {
+      : discordUsers.filter((person: GuildMember) => {
           return person.user.username
             .toLowerCase()
             .includes(query.toLowerCase());
         });
+
+  // Remove users that have a discordId in discrimUsers
+  const filteredWithoutDiscrim: GuildMember[] = discrimUsers
+    ? filteredUsers.filter(
+        (user: GuildMember) =>
+          !discrimUsers.some((du) => du?.discordId === user.user.id),
+      )
+    : filteredUsers;
 
   return (
     <div className="w-full max-w-md">
@@ -60,18 +69,19 @@ const DiscordUserDropdown: React.FC<Props> = ({ onSelect }) => {
           className="input input-bordered w-full"
           placeholder="Search DTX members..."
           onChange={(event) => setQuery(event.target.value)}
+          autoComplete="off"
         />
         <ComboboxOptions className="border bg-base-100 shadow-lg rounded-lg max-h-60 overflow-y-auto mt-2">
-          {filteredUsers &&
-          filteredUsers.length > 0 &&
-          filteredUsers.length < 20 ? (
-            filteredUsers.map((user) => (
+          {filteredWithoutDiscrim &&
+          filteredWithoutDiscrim.length > 0 &&
+          filteredWithoutDiscrim.length < 100 ? (
+            filteredWithoutDiscrim.map((user) => (
               <ComboboxOption
                 key={user.user.id}
                 value={user}
                 className={({ active }) =>
                   `cursor-pointer select-none p-2 ${
-                    active ? 'bg-primary text-primary-content' : ''
+                    active ? 'bg-purple-900 text-primary-content' : ''
                   }`
                 }
               >
@@ -80,7 +90,7 @@ const DiscordUserDropdown: React.FC<Props> = ({ onSelect }) => {
                     src={
                       user.user.avatar
                         ? `https://cdn.discordapp.com/avatars/${user.user.id}/${user.user.avatar}`
-                        : 'https://via.placeholder.com/32'
+                        : `https://ui-avatars.com/api/?rounded=True?name=${user.user.username}`
                     }
                     alt={user.user.username}
                     className="w-8 h-8 rounded-full"
