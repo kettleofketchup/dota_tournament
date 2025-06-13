@@ -1,3 +1,5 @@
+import { scan } from 'react-scan';
+
 import {
   data,
   isRouteErrorResponse,
@@ -32,9 +34,27 @@ export const links: Route.LinksFunction = () => [
 ];
 
 export function Layout({ children }: { children: React.ReactNode }) {
+  useEffect(() => {
+    // Make sure to run react-scan only after hydration
+    // if (import.meta.env.DEV) {
+    scan({
+      enabled: process.env.NODE_ENV === 'development',
+      trackUnnecessaryRenders: true,
+      showToolbar: true,
+      showNotificationCount: true,
+    });
+    // }
+  }, []);
+
+  if (import.meta.env.DEV) {
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+  }
   return (
     <html lang="en" className="dark">
       <head>
+        {/* {import.meta.env.DEV && (
+          <script src="https://unpkg.com/react-scan/dist/auto.global.js" />
+        )} */}
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <Meta />
@@ -59,11 +79,18 @@ export default function App() {
   const getCurrentUser = useUserStore((state) => state.getCurrentUser); // Zustand setter
   const setUser = useUserStore((state) => state.setCurrentUser); // Zustand setter
   const hasHydrated = useUserStore((state) => state.hasHydrated); // Zustand setter
+  const discordUsers = useUserStore((state) => state.discordUsers); // Zustand setter
+
+  useEffect(() => {
+    console.log('test');
+    console.log(discordUsers);
+  }, []);
 
   useEffect(() => {
     console.log(hasHydrated);
     if (hasHydrated && currentUser.username === undefined) {
       console.log('fetching user');
+
       getCurrentUser();
     }
   }, [hasHydrated]);

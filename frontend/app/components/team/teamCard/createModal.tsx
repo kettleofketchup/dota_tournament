@@ -5,7 +5,6 @@ import type {
   UserType,
   UserClassType,
 } from '~/components/user/types';
-
 import {
   Tooltip,
   TooltipContent,
@@ -35,7 +34,7 @@ import { UserEditForm } from '~/components/user/userCard/editForm';
 import DiscordUserDropdown from '~/components/user/DiscordUserDropdown';
 
 interface Props {}
-export const UserCreateModal: React.FC<Props> = (props) => {
+export const TeamCreateModal: React.FC<Props> = (props) => {
   const currentUser: UserType = useUserStore((state) => state.currentUser); // Zustand setter
   const users: UserType[] = useUserStore((state) => state.users); // Zustand setter
 
@@ -45,12 +44,8 @@ export const UserCreateModal: React.FC<Props> = (props) => {
   const [form, setForm] = useState<UserType>({} as UserType);
 
   const handleDiscordUserSelect = (user: GuildMember) => {
-    if (!user) {
-      console.error('No user selected');
-      return;
-    }
     setForm({} as UserType);
-
+    console.log(selectedDiscordUser);
     selectedDiscordUser.setFromGuildMember(user);
     //This is necessary because we need a new instance of user to trigger a re-render
     setSelectedDiscordUser(new User(selectedDiscordUser as UserType));
@@ -74,13 +69,13 @@ export const UserCreateModal: React.FC<Props> = (props) => {
                     ' hover:shadow-sm hover:shadow-green-500/50'
                   }
                 >
-                  <PlusCircleIcon color="white" className="" />
-                  Create User
+                  <PlusCircleIcon size="lg" color="white" className="p-2" />
+                  Create Team
                 </Button>
               </DialogTrigger>
             </TooltipTrigger>
             <TooltipContent>
-              <p>Create a new user from discord </p>
+              <p>Create Team </p>
             </TooltipContent>
           </Tooltip>
         </TooltipProvider>
@@ -89,7 +84,7 @@ export const UserCreateModal: React.FC<Props> = (props) => {
           <DialogHeader>
             <DialogTitle>Create User</DialogTitle>
             <DialogDescription>
-              Please fill in the details below to create a new user.
+              Please fill in the details below to create a new teamzs.
             </DialogDescription>
           </DialogHeader>
           <DiscordUserDropdown
@@ -113,4 +108,4 @@ export const UserCreateModal: React.FC<Props> = (props) => {
   );
 };
 
-export default UserCreateModal;
+export default TeamCreateModal;

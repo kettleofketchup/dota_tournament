@@ -35,6 +35,7 @@ interface UserState {
   selectedDiscordUser: GuildMember;
   setDiscordUser: (discordUser: GuildMember) => void;
   discordUsers: GuildMembers;
+  getDiscordUsers: () => Promise<void>;
   setDiscordUsers: (users: GuildMembers) => void;
   users: UserType[];
   setUsers: (users: UserType[]) => void;
@@ -56,6 +57,8 @@ interface UserState {
   setGames: (games: GameType[]) => void;
   setTeams: (teams: TeamType[]) => void;
   setTeam: (teams: TeamType) => void;
+  addTournament: (tourn: TournamentType) => void;
+  delTournament: (tourn: TournamentType) => void;
 
   setTournaments: (tournaments: TournamentType[]) => void;
   setTournament: (tournament: TournamentType) => void;
@@ -82,6 +85,24 @@ export const useUserStore = create<UserState>()(
         set({ selectedUser: {} as UserType });
         set({ selectedDiscordUser: {} as GuildMember });
       },
+      getDiscordUsers: async () => {
+        try {
+          console.log('User fetching');
+          get_dtx_members()
+            .then((response) => {
+              get().setDiscordUsers(response);
+            })
+            .catch((error) => {
+              console.error('Error fetching user:', error);
+
+              get().setDiscordUsers([] as GuildMembers);
+            });
+        } catch (err) {
+          get().setDiscordUsers([] as GuildMembers);
+        } finally {
+        }
+      },
+
       selectedDiscordUser: {} as GuildMember,
       setDiscordUser: (discordUser) =>
         set({ selectedDiscordUser: discordUser }),
@@ -117,6 +138,14 @@ export const useUserStore = create<UserState>()(
       isStaff: () => !!get().currentUser?.is_staff,
       users: [] as UserType[],
       addUser: (user) => set({ users: [...get().users, user] }),
+
+      addTournament: (tourn: TournamentType) =>
+        set({ tournaments: [...get().tournaments, tourn] }),
+      delTournament: (tourn: TournamentType) =>
+        set({
+          tournaments: get().tournaments.filter((t) => t.pk !== tourn.pk),
+        }),
+
       delUser: (user) =>
         set({ users: get().users.filter((u) => u.pk !== user.pk) }),
 
@@ -170,10 +199,10 @@ export const useUserStore = create<UserState>()(
       getTournaments: async () => {
         try {
           const response = await getTournaments();
-          set({ tournaments: response as TeamType[] });
-          console.log('Games fetched successfully:', response);
+          set({ tournaments: response as TournamentType[] });
+          console.log('Tournaments fetched successfully:', response);
         } catch (error) {
-          console.error('Error fetching games:', error);
+          console.error('Error fetching tournaments:', error);
         }
       },
 
@@ -198,8 +227,10 @@ export const useUserStore = create<UserState>()(
     }),
     {
       name: 'dtx-storage', // key in localStorage
-      partialize: (state) => ({ currentUser: state.currentUser }), // optionally limit what's stored
+      // partialize: (state) => ({ currentUser: state.currentUser }), // optionally limit what's stored
       onRehydrateStorage: () => (state) => {
+        console.log('Rehydrating user store...');
+        console.log('Current user:', state?.currentUser);
         state?.setHasHydrated(true);
       },
       storage: createJSONStorage(() => sessionStorage), // (optional) by default, 'localStorage' is used

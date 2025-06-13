@@ -1,22 +1,25 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import type { FormEvent } from 'react';
 import type {
   GuildMember,
   UserType,
   UserClassType,
 } from '~/components/user/types';
-
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '~/components/ui/tooltip'; // Adjust path as needed
-
+import { UserCard } from '~/components/user/userCard';
+import axios from '~/components/api/axios';
 import { useUserStore } from '~/store/userStore';
-
-import { Edit2, Plus, PlusCircle, PlusCircleIcon } from 'lucide-react';
-
+import {
+  Combobox,
+  ComboboxInput,
+  ComboboxOption,
+  ComboboxOptions,
+} from '@headlessui/react';
+import Footer from '~/components/footer';
+import DiscordUserDropdown from '~/components/user/DiscordUserDropdown';
+import { User } from '~/components/user/user';
+import type { TournamentClassType, TournamentType } from '../types';
+import { Button } from '~/components/ui/button';
+import { PlusCircleIcon } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import {
   Dialog,
@@ -28,34 +31,24 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '~/components/ui/dialog';
-import { Button } from '~/components/ui/button';
-import { User } from '~/components/user/user';
-
-import { UserEditForm } from '~/components/user/userCard/editForm';
-import DiscordUserDropdown from '~/components/user/DiscordUserDropdown';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '~/components/ui/tooltip'; // Adjust path as needed
+import { TournamentEditForm } from './editForm';
 
 interface Props {}
-export const UserCreateModal: React.FC<Props> = (props) => {
+
+export const TournamentCreateModal: React.FC<Props> = (props) => {
   const currentUser: UserType = useUserStore((state) => state.currentUser); // Zustand setter
   const users: UserType[] = useUserStore((state) => state.users); // Zustand setter
 
-  const [selectedDiscordUser, setSelectedDiscordUser] = useState<User>(
-    new User({} as UserClassType),
+  const [form, setForm] = useState<TournamentClassType>(
+    {} as TournamentClassType,
   );
-  const [form, setForm] = useState<UserType>({} as UserType);
 
-  const handleDiscordUserSelect = (user: GuildMember) => {
-    if (!user) {
-      console.error('No user selected');
-      return;
-    }
-    setForm({} as UserType);
-
-    selectedDiscordUser.setFromGuildMember(user);
-    //This is necessary because we need a new instance of user to trigger a re-render
-    setSelectedDiscordUser(new User(selectedDiscordUser as UserType));
-    setForm(selectedDiscordUser as UserType);
-  };
   if (!currentUser || (!currentUser.is_staff && !currentUser.is_superuser)) {
     return <></>;
   }
@@ -75,30 +68,26 @@ export const UserCreateModal: React.FC<Props> = (props) => {
                   }
                 >
                   <PlusCircleIcon color="white" className="" />
-                  Create User
+                  Create Tournament
                 </Button>
               </DialogTrigger>
             </TooltipTrigger>
             <TooltipContent>
-              <p>Create a new user from discord </p>
+              <p>Create a new tournament </p>
             </TooltipContent>
           </Tooltip>
         </TooltipProvider>
 
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
-            <DialogTitle>Create User</DialogTitle>
+            <DialogTitle>Create Tournament</DialogTitle>
             <DialogDescription>
-              Please fill in the details below to create a new user.
+              Please fill in the details below to create a new tournament.
             </DialogDescription>
           </DialogHeader>
-          <DiscordUserDropdown
-            discrimUsers={users}
-            onSelect={handleDiscordUserSelect}
-          />
 
-          <UserEditForm
-            user={selectedDiscordUser}
+          <TournamentEditForm
+            tourn={{} as TournamentClassType}
             form={form}
             setForm={setForm}
           />
@@ -113,4 +102,4 @@ export const UserCreateModal: React.FC<Props> = (props) => {
   );
 };
 
-export default UserCreateModal;
+export default TournamentCreateModal;

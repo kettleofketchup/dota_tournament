@@ -7,9 +7,9 @@ import { useNavigate } from 'react-router';
 import { useUserStore } from '~/store/userStore';
 import { User } from '~/components/user/user';
 import { DeleteButton } from '~/components/reusable/deleteButton';
-import UserEditModal from './userCard/editModal';
+import UserEditModal, { TeamEditModal } from './teamCard/editModal';
 interface Props {
-  user: UserClassType;
+  team: TeamType;
   edit?: boolean;
   saveFunc?: string;
   compact?: boolean;
@@ -17,8 +17,9 @@ interface Props {
   removeToolTip?: string;
 }
 import { Badge } from '~/components/ui/badge';
-export const UserCard: React.FC<Props> = ({
-  user,
+import type { TeamType } from '~/components/tournament/types';
+export const TeamCard: React.FC<Props> = ({
+  team,
   edit,
   saveFunc,
   compact,
@@ -27,7 +28,7 @@ export const UserCard: React.FC<Props> = ({
 }) => {
   const [editMode, setEditMode] = useState(edit || false);
 
-  const [form, setForm] = useState<UserType>(user ?? ({} as UserType));
+  const [form, setForm] = useState<UserType>(team ?? ({} as TeamType));
   const currentUser: UserType = useUserStore((state) => state.currentUser); // Zustand setter
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState(false);
@@ -38,24 +39,24 @@ export const UserCard: React.FC<Props> = ({
   const delUser = useUserStore((state) => state.delUser); // Zustand setter
 
   useEffect(() => {
-    if (user) {
-      console.log(`UserCard: user updated ${user.username}`);
+    if (team) {
+      console.log(`UserCard: user updated ${team.name}`);
     }
-  }, [user.mmr, user.position, user.nickname, user.username, user.avatar]);
+  }, [team]);
 
-  const hasHydrated = useUserStore((state) => state.hasHydrated); // Zustand setter
-  const [saveCallback, setSaveCallBack] = useState(saveFunc || 'save');
-
+  useEffect(() => {
+    console.log(`TeamCard: team updated ${team.name}`);
+  }, [team]);
   const handleDelete = async (e: FormEvent) => {
     if (removeCallBack !== undefined) {
-      removeCallBack(e, user);
+      removeCallBack(e, team);
       return;
     }
     e.stopPropagation();
     setErrorMessage({}); // clear old errors
     setIsSaving(true);
     try {
-      await deleteUser(user?.pk);
+      await deleteUser(team?.pk);
       console.log('User deleted successfully');
       setError(false);
       setForm({ username: 'Success!' } as UserType);
@@ -74,118 +75,65 @@ export const UserCard: React.FC<Props> = ({
       setIsSaving(false);
     }
   };
+  const [saveCallback, setSaveCallBack] = useState(saveFunc || 'save');
 
-  const avatar = () => {
-    return (
-      <>
-        {user.avatar && (
-          <img
-            src={user.avatarUrl}
-            alt={`${user.username}'s avatar`}
-            className="w-16 h-16 rounded-full border border-primary"
-          />
-        )}
-      </>
-    );
-  };
+  useEffect(() => {
+    console.log(`team updated ${team.name}`);
+  }, [team]);
 
-  const userHeader = () => {
+  const teamHeader = () => {
     return (
       <>
         {!editMode && (
           <div className="flex-1">
-            <h2 className="card-title text-lg">
-              {user.nickname || user.username}
-            </h2>
-            {!compact && (
-              <div className="flex gap-2 mt-1">
-                {user.is_staff && (
-                  <Badge className="bg-blue-700 text-white">Staff</Badge>
-                )}
-                {user.is_superuser && (
-                  <Badge className="bg-red-700 text-white">Admin</Badge>
-                )}
-              </div>
-            )}
+            <h2 className="card-title text-lg">{team.name}</h2>
           </div>
         )}
       </>
+    );
+  };
+  const showTeamMembers = () => {
+    if (!team.members || team.members.length === 0) return <></>;
+    return (
+      <div className="flex items-center gap-2">
+        {team.members.map((member) => (
+          <>
+            <Badge
+              key={member.pk}
+              className="badge badge-sm badge-primary"
+              title={member.username}
+            >
+              {member.username}
+            </Badge>
+            {member.mmr && (
+              <Badge
+                key={member.pk}
+                className="badge badge-sm badge-primary"
+                title={member.username}
+              >
+                {member.mmr}
+              </Badge>
+            )}
+          </>
+        ))}
+      </div>
     );
   };
 
   const viewMode = () => {
     if (compact) {
-      return (
-        <>
-          {user.mmr && (
-            <div>
-              <span className="font-semibold">MMR:</span> {user.mmr}
-            </div>
-          )}
-
-          {user.position && (
-            <div>
-              <span className="font-semibold">Position:</span> {user.position}
-            </div>
-          )}
-        </>
-      );
+      return <>{team.members && showTeamMembers()}</>;
     }
-    return (
-      <>
-        {user.nickname && (
-          <div>
-            <span className="font-semibold">Nickname:</span> {user.nickname}
-          </div>
-        )}
-
-        {user.mmr && (
-          <div>
-            <span className="font-semibold">MMR:</span> {user.mmr}
-          </div>
-        )}
-
-        {user.position && (
-          <div>
-            <span className="font-semibold">Position:</span> {user.position}
-          </div>
-        )}
-        {user.steamid && (
-          <div>
-            <span className="font-semibold">Steam ID:</span> {user.steamid}
-          </div>
-        )}
-      </>
-    );
+    return <>{team.members && showTeamMembers()}</>;
   };
 
-  const userDotabuff = () => {
-    const goToDotabuff = () => {
-      return `https://www.dotabuff.com/players/${user.steamid}`;
-    };
-    if (!user.steamid) return <></>;
-    return (
-      <>
-        <a className="self-center btn btn-sm btn-outline" href={goToDotabuff()}>
-          <span className="flex items-center">
-            <img
-              src="https://cdn.brandfetch.io/idKrze_WBi/w/96/h/96/theme/dark/logo.png?c=1dxbfHSJFAPEGdCLU4o5B"
-              alt="Dotabuff Logo"
-              className="w-4 h-4 mr-2"
-            />
-            Dotabuff Profile
-          </span>
-        </a>
-      </>
-    );
-  };
   const getKeyName = () => {
     let result = '';
-    if (user.pk) {
-      result += user.pk.toString();
+    if (team.pk) {
+      result += team.pk.toString();
     }
-    if (user.username) {
-      result += user.username;
+    if (team.name) {
+      result += team.name;
     }
     return result;
   };
@@ -203,18 +151,15 @@ export const UserCard: React.FC<Props> = ({
             delay-700 duration-900 ease-in-out"
       >
         <div className="flex items-center gap-2 justify-start">
-          {avatar()}
-          {userHeader()}
+          {teamHeader()}
           {(currentUser.is_staff || currentUser.is_superuser) && (
-            <UserEditModal user={new User(user)} />
+            <TeamEditModal team={team} />
           )}
         </div>
         <div className="mt-2 space-y-2 text-sm">
           {viewMode()}
           <div className="flex flex-col ">
-            <div className="flex items-center justify-start gap-6">
-              {userDotabuff()}
-            </div>
+            <div className="flex items-center justify-start gap-6"></div>
             <div className="flex items-center justify-end gap-6">
               {currentUser.is_staff && saveCallback === 'save' && (
                 <DeleteButton

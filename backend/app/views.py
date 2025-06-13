@@ -1,9 +1,10 @@
 import json
 
+import requests
 from django.contrib.auth import login
 from django.contrib.auth import logout as auth_logout
 from django.contrib.auth.decorators import login_required
-from django.http import HttpResponse, HttpResponseBadRequest
+from django.http import HttpResponse, HttpResponseBadRequest, JsonResponse
 from django.shortcuts import redirect, render
 from rest_framework import generics, permissions, status, viewsets
 from rest_framework.decorators import api_view, permission_classes
@@ -18,10 +19,17 @@ from social_django.models import USER_MODEL  # fix: skip
 from social_django.models import AbstractUserSocialAuth, DjangoStorage
 from social_django.utils import load_strategy, psa
 
+from backend import settings
+
 from .decorators import render_to
 from .models import CustomUser, Team, Tournament
 from .permissions import IsStaff
-from .serializers import TeamSerializer, TournamentSerializer, UserSerializer
+from .serializers import (
+    GameSerializer,
+    TeamSerializer,
+    TournamentSerializer,
+    UserSerializer,
+)
 
 
 def logout(request):
@@ -218,11 +226,6 @@ def current_user(request):
         )
 
 
-import requests
-from django.conf import settings
-from django.http import JsonResponse
-
-
 @api_view(["GET"])
 @permission_classes([IsStaff])
 def get_discord_members(request):
@@ -273,3 +276,104 @@ def get_user_guilds(request):
         return JsonResponse({"guilds": guilds}, safe=False)
     except requests.exceptions.RequestException as e:
         return JsonResponse({"error": str(e)}, status=500)
+
+
+@api_view(["GET"])
+@permission_classes([IsStaff])
+def get_discord_voice_channel_activity(request):
+    """
+    Fetches all voice channels in the configured Discord guild that have active members.
+    Returns a list of voice channels, each with its name, ID, and a list of member objects.
+    """
+    try:
+        guild_id = settings.DISCORD_GUILD_ID
+        bot_token = settings.DISCORD_BOT_TOKEN
+        api_base_url = settings.DISCORD_API_BASE_URL
+    except AttributeError as e:
+        return JsonResponse(
+            {"error": f"Discord API setting missing in Django settings: {e.name}"},
+            status=500,
+        )
+
+    headers = {"Authorization": f"Bot {bot_token}"}
+
+    active_channels_data = []
+    voice_channels_map = {}  # To store {channel_id: channel_name}
+
+    try:
+        # 1. Fetch all guild channels to identify voice channels and their names
+        channels_url = f"{api_base_url}/guilds/{guild_id}/channels"
+        response_channels = requests.get(channels_url, headers=headers)
+        response_channels.raise_for_status()
+        all_channels = response_channels.json()
+        print(all_channels)
+        for channel in all_channels:
+            if channel.get("type") == 2:  # GUILD_VOICE type
+                voice_channels_map[channel.get("id")] = channel.get(
+                    "name", "Unknown Voice Channel"
+                )
+
+        # 2. Fetch guild resource, which includes the 'voice_states' array
+        # The 'voice_states' array contains information about users in voice channels,
+        # including their 'member' object.
+        guild_url = f"{api_base_url}/guilds/{guild_id}"
+        response_guild = requests.get(guild_url, headers=headers)
+        response_guild.raise_for_status()
+        guild_data = response_guild.json()
+        print("Voice Channels Map:")
+        print(voice_channels_map)
+        # 3. Process voice_states to group members by channel
+        # This temporary dictionary will hold {channel_id: [member_obj1, member_obj2]}
+        members_in_channel_temp = {}
+        print(f"guild_data: {guild_data.keys()}")
+
+        for voice_state in guild_data.get("voice_states", []):
+            channel_id = voice_state.get("channel_id")
+            # The 'member' field in voice_state is a Guild Member object
+            member_object = voice_state.get("member")
+            print(member_object)
+            # Ensure the user is in a voice channel we know and member data is present
+            if channel_id and member_object and channel_id in voice_channels_map:
+                if channel_id not in members_in_channel_temp:
+                    members_in_channel_temp[channel_id] = []
+                members_in_channel_temp[channel_id].append(member_object)
+        print(f"members: {members_in_channel_temp}")
+        # 4. Format the final output list
+        for channel_id, members_list in members_in_channel_temp.items():
+            # Only include channels that actually have members in them
+            if members_list:
+                active_channels_data.append(
+                    {
+                        "channel_id": channel_id,
+                        "channel_name": voice_channels_map[channel_id],
+                        "members": members_list,
+                    }
+                )
+
+        return JsonResponse({"active_voice_channels": active_channels_data}, safe=True)
+
+    except requests.exceptions.RequestException as e:
+        return JsonResponse(
+            {"error": f"Error communicating with Discord API: {str(e)}"}, status=500
+        )
+    except Exception as e:
+
+        # Catch any other unexpected errors during processing
+        return JsonResponse(
+            {"error": f"An unexpected error occurred: {str(e)}"}, status=500
+        )
+
+
+class GameCreateView(generics.CreateAPIView):
+    serializer_class = GameSerializer
+    permission_classes = [IsStaff]
+
+
+class TeamCreateView(generics.CreateAPIView):
+    serializer_class = TeamSerializer
+    permission_classes = [IsStaff]
+
+
+class TournamentCreateView(generics.CreateAPIView):
+    serializer_class = TournamentSerializer
+    permission_classes = [IsStaff]

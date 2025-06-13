@@ -8,6 +8,8 @@ import {
 import { get_dtx_members } from '../api/api';
 import type { GuildMembers, GuildMember, UsersType } from '../user/types';
 import { useUserStore } from '../../store/userStore';
+import { Button } from '~/components/ui/button';
+import { PlusCircleIcon } from 'lucide-react';
 
 interface Props {
   onSelect: (user: GuildMember) => void;
@@ -62,6 +64,57 @@ const DiscordUserDropdown: React.FC<Props> = ({ onSelect, discrimUsers }) => {
       )
     : filteredUsers;
 
+  const isUserAlreadyAdded = useCallback((user: GuildMember) => {
+    return discrimUsers
+      ? discrimUsers.some((du) => du?.discordId === user.user.id)
+      : false;
+  });
+
+  const filteredUserComboOption = (user: GuildMember) => {
+    return (
+      <ComboboxOption
+        key={user.user.id}
+        value={user}
+        disabled={isUserAlreadyAdded(user)}
+        className={({ focus, disabled }) =>
+          `cursor-pointer select-none p-2
+       ${focus ? 'bg-purple-900 text-primary-content' : ''}
+        ${disabled ? 'opacity-50  bg-grey-100 hover:bg-gray-500' : ''}`
+        }
+      >
+        <div className="flex items-center gap-2">
+          <img
+            src={
+              user.user.avatar
+                ? `https://cdn.discordapp.com/avatars/${user.user.id}/${user.user.avatar}`
+                : `https://ui-avatars.com/api/?rounded=True?name=${user.user.username}`
+            }
+            alt={user.user.username}
+            className="w-8 h-8 rounded-full"
+          />
+
+          <span>{user.user.username}</span>
+
+          {isUserAlreadyAdded(user) && (
+            <span className="rounded-full text-center bg-gray-900 text-sm text-gray-200">
+              Already Added
+            </span>
+          )}
+
+          {/* TODO add a quickadd button*/}
+          {/* {!isUserAlreadyAdded(user) && (
+            <Button
+              size="sm"
+              className="justify-end btn bg-green-500 text-white hover:bg-green-600 disabled:bg-gray-300 disabled:text-gray-500"
+            >
+              <PlusCircleIcon color="green" />
+              <p className="text-sm"> Quick Add</p>
+            </Button>
+          )} */}
+        </div>
+      </ComboboxOption>
+    );
+  };
   return (
     <div className="w-full max-w-md">
       <Combobox value={discordUser} onChange={onSelect}>
@@ -72,36 +125,16 @@ const DiscordUserDropdown: React.FC<Props> = ({ onSelect, discrimUsers }) => {
           autoComplete="off"
         />
         <ComboboxOptions className="border bg-base-100 shadow-lg rounded-lg max-h-60 overflow-y-auto mt-2">
-          {filteredWithoutDiscrim &&
-          filteredWithoutDiscrim.length > 0 &&
-          filteredWithoutDiscrim.length < 100 ? (
-            filteredWithoutDiscrim.map((user) => (
-              <ComboboxOption
-                key={user.user.id}
-                value={user}
-                className={({ active }) =>
-                  `cursor-pointer select-none p-2 ${
-                    active ? 'bg-purple-900 text-primary-content' : ''
-                  }`
-                }
-              >
-                <div className="flex items-center gap-2">
-                  <img
-                    src={
-                      user.user.avatar
-                        ? `https://cdn.discordapp.com/avatars/${user.user.id}/${user.user.avatar}`
-                        : `https://ui-avatars.com/api/?rounded=True?name=${user.user.username}`
-                    }
-                    alt={user.user.username}
-                    className="w-8 h-8 rounded-full"
-                  />
-                  <span>{user.user.username}</span>
-                </div>
-              </ComboboxOption>
-            ))
+          {filteredUsers &&
+          filteredUsers.length > 0 &&
+          filteredUsers.length < 100 ? (
+            filteredUsers.map((user) => {
+              return filteredUserComboOption(user);
+            })
           ) : (
             <div className="p-2 text-sm text-gray-500">
-              No users or too many users found
+              {`${filteredUsers.length}`} users found. Results will show when
+              less than 100 users are found.
             </div>
           )}
         </ComboboxOptions>

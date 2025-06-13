@@ -58,7 +58,7 @@ export function UsersPage() {
 
   useEffect(() => {
     console.log(`UsersPage: users updated`);
-  }, [users]);
+  }, [users.length]);
   if (!user || !user.is_staff)
     return (
       <div className="flex justify-center h-full content-center mb-0 mt-0 p-0">

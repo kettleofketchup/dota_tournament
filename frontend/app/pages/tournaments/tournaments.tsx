@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react';
-import { CreateTournamentButton } from '~/components/tournament/createTournamentModal';
+import { TournamentCreateModal } from '~/components/tournament/create/createModal';
 import { TournamentCard } from '~/components/tournament/TournamentCard';
 
 import type {
   TournamentType,
   TeamType,
   GameType,
+  TournamentClassType,
 } from '~/components/tournament/types';
 import { useUserStore } from '~/store/userStore';
 export default function Tournament() {
@@ -62,7 +63,7 @@ export default function Tournament() {
     return (
       <div className={cssClassNames} key={tournamentData.pk}>
         <TournamentCard
-          tournament={tournamentData}
+          tournament={tournamentData as TournamentClassType}
           saveFunc={'save'}
           onEditModeChange={setIsCardEditing} // Pass the setter
         />
@@ -80,7 +81,7 @@ export default function Tournament() {
            w-full "
         >
           <div className="flex col-start-4 align-end content-end justify-end">
-            <CreateTournamentButton />
+            <TournamentCreateModal />
           </div>
         </div>
         <div

@@ -57,7 +57,7 @@ export const UserEditModal: React.FC<Props> = ({ user }) => {
                     ' hover:shadow-sm hover:shadow-green-500/50'
                   }
                 >
-                  <Edit2 size="lg" color="white" className="pzs-2" />
+                  <Edit2 color="white" className="pzs-2" />
                 </Button>
               </DialogTrigger>
             </TooltipTrigger>

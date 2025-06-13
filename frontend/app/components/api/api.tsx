@@ -2,12 +2,14 @@ import type { UserType, UsersType } from '../user/types';
 import axios from './axios';
 import type { GuildMember, GuildMembers } from '../user/types';
 import type {
-  GamesTypes,
+  GamesType,
   GameType,
   TeamsType,
   TeamType,
   TournamentType,
 } from '../tournament/types';
+import { useCallback } from 'react';
+import { useUserStore } from '~/store/userStore';
 
 export async function fetchCurrentUser(): Promise<UserType> {
   const response = await axios.get<UserType>(`/current_user`);
@@ -28,12 +30,11 @@ export async function deleteUser(userId: number): Promise<void> {
 }
 
 export async function createUser(data: Partial<UserType>): Promise<UserType> {
-  const response = await axios.post(`/register`, data);
+  const response = await axios.post(`/user/register`, data);
   return response.data as UserType;
 }
 
-'use client';
-
+('use client');
 
 export async function updateUser(
   userId: number,
@@ -62,11 +63,21 @@ export async function getTeams(): Promise<TeamsType> {
   return response.data as TeamsType;
 }
 
-export async function getGames(): Promise<GamesTypes> {
-  const response = await axios.get<GamesTypes>(`/games`);
+export async function getGames(): Promise<GamesType> {
+  const response = await axios.get<GamesType>(`/games`);
   return response.data;
 }
 
+export async function deleteTournament(pk: number): Promise<void> {
+  await axios.delete(`/tournament/${pk}/`);
+}
+
+export async function createTournament(
+  data: Partial<TournamentType>,
+): Promise<TournamentType> {
+  const response = await axios.post(`/tournament/register`, data);
+  return response.data as TournamentType;
+}
 export async function updateTournament(
   pk: number,
   data: Partial<TournamentType>,

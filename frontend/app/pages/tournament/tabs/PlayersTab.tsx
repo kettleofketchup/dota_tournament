@@ -9,7 +9,7 @@ import {
   useState,
   type FormEvent,
 } from 'react';
-import type { UserType } from '~/components/user/types';
+import type { UserClassType, UserType } from '~/components/user/types';
 import DiscordUserDropdown from '~/components/user/DiscordUserDropdown';
 import { UsersDropdown } from '~/components/user/UsersDropdown';
 import { SearchUserDropdown } from '~/components/user/searchUser';
@@ -34,18 +34,25 @@ import { Input } from '~/components/ui/input';
 import { LucidePlus } from 'lucide-react';
 import { AddPlayerModal } from './addPlayer/addPlayerModal';
 import { toast } from 'sonner';
+import TournamentDetailPage from '../TournamentDetailPage';
 export default function PlayersTab({
   tournament,
 }: {
   tournament: TournamentType;
 }) {
   const allUsers = useUserStore((state) => state.users); // Zustand setter
-  const [tournamentUsers, setTournamentUsers] = useState(
-    tournament.users as UserType[],
-  );
+  const [tournamentUsers, setTournamentUsers] = useState([] as UserType[]);
   const [query, setQuery] = useState('');
   const [addUserQuery, setAddUserQuery] = useState('');
+  useEffect(() => {
+    console.log('Tournament users:', tournament.users);
+  }, [tournamentUsers, tournament.users]);
 
+  useEffect(() => {
+    if (!allUsers || allUsers.length === 0) {
+      useUserStore.getState().getUsers();
+    }
+  }, [allUsers]);
   const removeUser = async (e: FormEvent, user: UserType) => {
     e.preventDefault();
     e.stopPropagation();
@@ -71,13 +78,13 @@ export default function PlayersTab({
         tournament.users = tournament.users?.filter(
           (u) => u.username !== user.username,
         );
+        //Trigger rerender of tournament users
         setTournamentUsers(tournament.users as UserType[]);
         return `${user.username} has been removed`;
       },
       error: (err: any) => {
         console.error('Failed to update tournament', err);
         return `${user.username} has been removed`;
-
       },
     });
     setQuery(''); // Reset query after adding user
@@ -114,6 +121,7 @@ export default function PlayersTab({
         loading: `Creating User ${user.username}.`,
         success: () => {
           tournament.users?.push(user);
+          //Trigger rerender of tournament users
           setTournamentUsers(tournament.users as UserType[]);
           return `${user.username} has been added`;
         },
@@ -136,9 +144,6 @@ export default function PlayersTab({
           );
         });
 
-  useEffect(() => {
-    console.log('Tournament users:', tournament.users);
-  }, [tournament, filteredUsers]);
   if (!tournament || !tournament.users || tournament.users.length === 0) {
     return (
       <>
@@ -161,12 +166,6 @@ export default function PlayersTab({
     );
   }
 
-  let navigate = useNavigate();
-  useEffect(() => {
-    if (!allUsers || allUsers.length === 0) {
-      useUserStore.getState().getUsers();
-    }
-  }, [allUsers]);
   return (
     <>
       <div className="flex flex-col items-start p-4 h-full">
@@ -192,7 +191,7 @@ export default function PlayersTab({
         <div className="w-full content-center grid gap-2 mt-4 grid-cols-2 xl:grid-cols-3 justify-center ">
           {filteredUsers?.map((user) => (
             <UserCard
-              user={user as User}
+              user={user as UserClassType}
               saveFunc={'save'}
               key={`UserCard-${user.pk}`}
               removeCallBack={removeUser}

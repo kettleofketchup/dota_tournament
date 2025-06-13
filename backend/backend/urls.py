@@ -4,12 +4,16 @@ from rest_framework import routers
 
 from app import views as app_views
 from app.views import (
+    GameCreateView,
+    TeamCreateView,
     TeamView,
+    TournamentCreateView,
     TournamentView,
     UserCreateView,
     UserView,
     current_user,
     get_discord_members,
+    get_discord_voice_channel_activity,
     get_user_guilds,
 )
 
@@ -35,6 +39,16 @@ urlpatterns = [
     path("", include("social_django.urls")),
     path("api/", include(router.urls)),
     path("api/current_user", current_user),
-    path("api/register", UserCreateView.as_view()),
+    path("api/user/register", UserCreateView.as_view()),
+    path("api/tournament/register", TournamentCreateView.as_view()),
+    path("api/team/register", TeamCreateView.as_view()),
+    path("api/game/register", GameCreateView.as_view()),
     path("api/dtx_members", get_discord_members, name="dtx_members"),
+    path("api/discord-members/", get_discord_members, name="discord-members"),
+    path("api/discord-user-guilds/", get_user_guilds, name="discord-user-guilds"),
+    path(
+        "api/discord-voice-activity/",
+        get_discord_voice_channel_activity,
+        name="discord-voice-activity",
+    ),
 ]

@@ -6,7 +6,8 @@ import type {
   TeamType,
 } from '~/components/tournament/types';
 import type { UserType } from '~/components/user/types'; // Corrected import path for UserType
-import { STATE_CHOICES } from '~/components/tournament/tournament';
+import { TOURNAMENT_TYPE, STATE_CHOICES } from './constants';
+
 import axios from '../api/axios';
 import { useNavigate } from 'react-router';
 import { useUserStore } from '~/store/userStore';
@@ -76,15 +77,9 @@ export const TournamentCard: React.FC<Props> = ({
         await axios.post(`/tournament`, payload);
         setError(false);
         setForm({} as TournamentType);
-        const modalCheckbox = document.getElementById(
-          'create_tournament_modal',
-        ) as HTMLInputElement;
-        if (modalCheckbox) modalCheckbox.checked = false;
-        fetchAllUsers(); // Refresh user list in case of changes
       } catch (err: any) {
         console.error('Failed to create tournament', err);
         setErrorMessage(err.response.data);
-        setError(true);
       } finally {
         setIsSaving(false);
       }

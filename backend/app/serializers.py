@@ -43,7 +43,47 @@ class TournamentUserSerializer(serializers.ModelSerializer):
 class TeamSerializer(serializers.ModelSerializer):
     tournament = TeamTournamentSerializer(
         many=False,
-        read_only=False,
+        read_only=True,
+    )
+    members = TournamentUserSerializer(many=True, read_only=True)
+    dropin_members = TournamentUserSerializer(many=True, read_only=True)
+
+    member_ids = serializers.PrimaryKeyRelatedField(
+        source="members",
+        many=True,
+        queryset=CustomUser.objects.all(),
+        write_only=True,
+        required=False,
+    )
+
+    dropin_member_ids = serializers.PrimaryKeyRelatedField(
+        source="dropin_members",
+        many=True,
+        queryset=CustomUser.objects.all(),
+        write_only=True,
+        required=False,
+    )
+
+    left_member_ids = serializers.PrimaryKeyRelatedField(
+        source="left_members",
+        many=True,
+        queryset=CustomUser.objects.all(),
+        write_only=True,
+        required=False,
+    )
+    captain_id = serializers.PrimaryKeyRelatedField(
+        source="captain",
+        many=False,
+        queryset=CustomUser.objects.all(),
+        write_only=True,
+        required=False,
+    )
+    tournament_id = serializers.PrimaryKeyRelatedField(
+        source="tournament",
+        many=False,
+        queryset=Tournament.objects.all(),
+        write_only=True,
+        required=False,
     )
 
     class Meta:
@@ -51,7 +91,13 @@ class TeamSerializer(serializers.ModelSerializer):
         fields = (
             "pk",
             "name",
+            "left_members",
+            "left_member_ids",
             "captain",
+            "captain_id",  # Allow setting captain by ID
+            "member_ids",  # Allow setting member IDs
+            "dropin_member_ids",  # Allow setting drop-in member IDs
+            "tournament_id",  # Allow setting tournament by ID
             "members",
             "dropin_members",
             "current_points",

@@ -5,7 +5,6 @@ import type {
   UserType,
   UserClassType,
 } from '~/components/user/types';
-
 import {
   Tooltip,
   TooltipContent,
@@ -15,9 +14,8 @@ import {
 
 import { useUserStore } from '~/store/userStore';
 
-import { Edit2, Plus, PlusCircle, PlusCircleIcon } from 'lucide-react';
+import { Edit2, Plus, PlusCircle } from 'lucide-react';
 
-import { useNavigate } from 'react-router-dom';
 import {
   Dialog,
   DialogClose,
@@ -29,33 +27,20 @@ import {
   DialogTrigger,
 } from '~/components/ui/dialog';
 import { Button } from '~/components/ui/button';
-import { User } from '~/components/user/user';
 
 import { UserEditForm } from '~/components/user/userCard/editForm';
-import DiscordUserDropdown from '~/components/user/DiscordUserDropdown';
+import type { TeamType } from '~/components/tournament/types';
+import { TeamEditForm } from './editTeam';
 
-interface Props {}
-export const UserCreateModal: React.FC<Props> = (props) => {
+interface Props {
+  team: TeamType;
+}
+export const TeamEditModal: React.FC<Props> = ({ team }) => {
   const currentUser: UserType = useUserStore((state) => state.currentUser); // Zustand setter
-  const users: UserType[] = useUserStore((state) => state.users); // Zustand setter
 
-  const [selectedDiscordUser, setSelectedDiscordUser] = useState<User>(
-    new User({} as UserClassType),
-  );
   const [form, setForm] = useState<UserType>({} as UserType);
 
-  const handleDiscordUserSelect = (user: GuildMember) => {
-    if (!user) {
-      console.error('No user selected');
-      return;
-    }
-    setForm({} as UserType);
-
-    selectedDiscordUser.setFromGuildMember(user);
-    //This is necessary because we need a new instance of user to trigger a re-render
-    setSelectedDiscordUser(new User(selectedDiscordUser as UserType));
-    setForm(selectedDiscordUser as UserType);
-  };
+  useEffect(() => {}, [team]);
   if (!currentUser || (!currentUser.is_staff && !currentUser.is_superuser)) {
     return <></>;
   }
@@ -67,41 +52,31 @@ export const UserCreateModal: React.FC<Props> = (props) => {
             <TooltipTrigger asChild>
               <DialogTrigger asChild>
                 <Button
-                  size="lg"
+                  size="icon"
                   variant="default"
                   className={
                     'bg-green-950 hover:bg-green-800 text-white' +
                     ' hover:shadow-sm hover:shadow-green-500/50'
                   }
                 >
-                  <PlusCircleIcon color="white" className="" />
-                  Create User
+                  <Edit2 size="lg" color="white" className="pzs-2" />
                 </Button>
               </DialogTrigger>
             </TooltipTrigger>
             <TooltipContent>
-              <p>Create a new user from discord </p>
+              <p>Edit User </p>
             </TooltipContent>
           </Tooltip>
         </TooltipProvider>
 
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
-            <DialogTitle>Create User</DialogTitle>
+            <DialogTitle>Edit User</DialogTitle>
             <DialogDescription>
-              Please fill in the details below to create a new user.
+              Please fill in the details below to edit the user.
             </DialogDescription>
           </DialogHeader>
-          <DiscordUserDropdown
-            discrimUsers={users}
-            onSelect={handleDiscordUserSelect}
-          />
-
-          <UserEditForm
-            user={selectedDiscordUser}
-            form={form}
-            setForm={setForm}
-          />
+          <TeamEditForm team={team} form={form} setForm={setForm} />
           <DialogFooter>
             <DialogClose asChild>
               <Button variant="outline">Cancel</Button>
@@ -113,4 +88,4 @@ export const UserCreateModal: React.FC<Props> = (props) => {
   );
 };
 
-export default UserCreateModal;
+export default TeamEditModal;

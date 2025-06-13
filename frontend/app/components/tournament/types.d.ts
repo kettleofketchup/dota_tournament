@@ -1,13 +1,9 @@
 import type { UserType, UsersType } from '../user/types';
-import { STATE_CHOICES } from './tournament';
+import type { TOURNAMENT_TYPE, STATE_CHOICES} from './constants';
 
-export enum TOURNAMENT_TYPE {
-  single_elimination = 'Single Elimination',
-  double_elimination = 'Double Elimination',
-  swiss = 'Swiss',
-}
 
 export declare interface TeamType {
+  [key: string]: any;
   name?: string;
   date?: string;
   members?: UserType[];
@@ -15,12 +11,19 @@ export declare interface TeamType {
   captain?: UserType;
   dropin_members?: UserType[];
   left_members?: UserType[];
-  user_ids?: number[];
 
   tournament?: number;
   current_points?: number;
+
+  // for writing to the database
+  members_ids?: number[];
+  dropin_member_ids?: number[];
+  left_member_ids?: number[];
+  captain_id?: number;
 }
 export declare interface GameType {
+  [key: string]: any;
+
   tournament?: pk;
   round?: number;
   date_played?: string;
@@ -34,17 +37,29 @@ export declare interface GameType {
 }
 
 export declare interface TournamentType {
+  [key: string]: any;
+
   name?: string;
   date_played?: string;
   users?: UserType[];
-  user_ids?: number[];
 
   teams?: Team[];
+
   pk?: number;
   winning_team?: number;
   state?: STATE_CHOICES;
   tournament_type?: TOURNAMENT_TYPE;
   games?: Game[];
+  // for writing to the database
+  user_ids?: number[];
+  team_ids?: number[];
+}
+
+export declare interface TournamentClassType extends TournamentType {
+  dbFetch: () => Promise<void>;
+  dbUpdate: (data: Partial<TournamentType>) => Promise<void>;
+  dbCreate: () => Promise<void>;
+  dbDelete: () => Promise<void>;
 }
 
 export type TournamentsType = TournamentType[];
