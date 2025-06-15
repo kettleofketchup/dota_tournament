@@ -61,7 +61,13 @@ interface UserState {
   setTeam: (teams: TeamType) => void;
   addTournament: (tourn: TournamentType) => void;
   delTournament: (tourn: TournamentType) => void;
+  userQuery: string;
+  addUserQuery: string;
 
+  discordUserQuery: string;
+  setUserQuery: (query: string) => void;
+  setAddUserQuery: (query: string) => void;
+  setDiscordUserQuery: (query: string) => void;
   setTournaments: (tournaments: TournamentType[]) => void;
   setTournament: (tournament: TournamentType) => void;
   tournamentsByUser: (user: UserType) => TournamentType[];
@@ -83,6 +89,12 @@ export const useUserStore = create<UserState>()(
       teams: [] as TeamType[],
       team: {} as TeamType,
       currentUser: new User({} as UserType),
+      userQuery: '',
+      addUserQuery: '',
+      setAddUserQuery: (query: string) => set({ addUserQuery: query }),
+      discordUserQuery: '',
+      setUserQuery: (query: string) => set({ userQuery: query }),
+      setDiscordUserQuery: (query: string) => set({ discordUserQuery: query }),
       selectedUser: {} as UserType,
       resetSelection: () => {
         set({ selectedUser: {} as UserType });

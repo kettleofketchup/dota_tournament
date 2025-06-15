@@ -1,45 +1,21 @@
-import { Tab, TabGroup, TabList, TabPanel, TabPanels } from '@headlessui/react';
-import { Button } from '~/components/ui/button';
-import type { GameType, TournamentType } from '~/components/tournament/types'; // Adjust the import path as necessary
-import { Plus, Users } from 'lucide-react';
 import {
-  Fragment,
-  useCallback,
+  memo,
   useEffect,
   useState,
-  type FormEvent,
+  type FormEvent
 } from 'react';
-import type { UserClassType, UserType } from '~/components/user/types';
-import DiscordUserDropdown from '~/components/user/DiscordUserDropdown';
-import { UsersDropdown } from '~/components/user/UsersDropdown';
-import { SearchUserDropdown } from '~/components/user/searchUser';
 import { useNavigate } from 'react-router-dom';
-import { UserCard } from '~/components/user/userCard';
-import type { User } from '~/components/user/user';
-import { updateTournament } from '~/components/api/api';
-import axios from '~/components/api/axios';
-import {
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '~/components/ui/dialog';
-import { useUserStore } from '~/store/userStore';
-import { Label } from '~/components/ui/label';
-import { Input } from '~/components/ui/input';
-import { LucidePlus } from 'lucide-react';
-import { AddPlayerModal } from './addPlayer/addPlayerModal';
 import { toast } from 'sonner';
+import { updateTournament } from '~/components/api/api';
 import { TeamCard } from '~/components/team/teamCard';
-import type { TeamType } from '~/components/tournament/types';
+import type { TournamentType } from '~/components/tournament/types'; // Adjust the import path as necessary
+import { SearchUserDropdown } from '~/components/user/searchUser';
+import type { UserType } from '~/components/user/types';
 import { hasErrors } from '~/pages/tournament/hasErrors';
-import { Tournament } from '~/components/tournament/tournament';
+import { useUserStore } from '~/store/userStore';
+import { AddPlayerModal } from './players/addPlayerModal';
 
-export default function TeamsTab() {
+export const TeamsTab: React.FC = memo(() => {
   const tournament = useUserStore((state) => state.tournament);
 
   const setTournament = useUserStore((state) => state.setTournament);
@@ -141,16 +117,16 @@ export default function TeamsTab() {
     query === ''
       ? tournament.teams
       : tournament.teams?.filter((team) => {
-          const q = query.toLowerCase();
-          return (
-            team.name?.toLowerCase().includes(q) ||
-            team.users?.some(
-              (user: UserType) =>
-                user.username?.toLowerCase().includes(q) ||
-                user.nickname?.toLowerCase().includes(q),
-            )
-          );
-        });
+        const q = query.toLowerCase();
+        return (
+          team.name?.toLowerCase().includes(q) ||
+          team.users?.some(
+            (user: UserType) =>
+              user.username?.toLowerCase().includes(q) ||
+              user.nickname?.toLowerCase().includes(q),
+          )
+        );
+      });
 
   useEffect(() => {
     console.log('Tournament users:', tournament.users);
@@ -185,8 +161,8 @@ export default function TeamsTab() {
   }, [allUsers]);
   return (
     <>
-      <div className="flex flex-col items-start p-4 h-full">
-        {hasErrors(tournament.users)}
+    <div className='p-5 container bg-base-300 rounded-lg shadow-lg hover:bg-base-400 transition-shadow duration-300 ease-in-out'>
+    {hasErrors()}
         <div className="self-end p-5 pb-2 pt-2">
           {
             <AddPlayerModal
@@ -221,4 +197,4 @@ export default function TeamsTab() {
       </div>
     </>
   );
-}
+});

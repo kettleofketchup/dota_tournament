@@ -1,22 +1,11 @@
-import { useEffect, useState } from 'react';
-import type { FormEvent } from 'react';
+import { useState } from 'react';
+import DiscordUserDropdown from '~/components/user/DiscordUserDropdown';
 import type {
   GuildMember,
-  UserType,
-  UserClassType,
+  UserClassType
 } from '~/components/user/types';
-import { UserCard } from '~/components/user/userCard';
-import axios from '~/components/api/axios';
-import { useUserStore } from '~/store/userStore';
-import {
-  Combobox,
-  ComboboxInput,
-  ComboboxOption,
-  ComboboxOptions,
-} from '@headlessui/react';
-import Footer from '~/components/footer';
-import DiscordUserDropdown from '~/components/user/DiscordUserDropdown';
 import { User } from '~/components/user/user';
+import { UserCard } from '~/components/user/userCard';
 
 interface Props {}
 

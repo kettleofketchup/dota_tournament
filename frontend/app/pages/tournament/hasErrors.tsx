@@ -1,4 +1,3 @@
-import { User } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
 import type { UserClassType, UserType } from '~/components/user';
 import UserEditModal from '~/components/user/userCard/editModal';
@@ -32,7 +31,8 @@ export const hasErrors = () => {
   return (
     <>
       {badUsers.length > 0 && (
-        <>
+        <div className="flex flex-col items-start justify-center align-centerzs p-4 h-full">
+
           <div className="flex flex-row gap-5 w-full ">
             <div className="text-red-500 font-bold text-center w-full pb-5">
               <span className="text-lg">⚠️</span> Some players have no MMR.
@@ -71,7 +71,7 @@ export const hasErrors = () => {
               ))}
             </div>
           </div>
-        </>
+        </div>
       )}
     </>
   );

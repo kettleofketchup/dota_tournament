@@ -1,26 +1,6 @@
-import { useEffect, useState } from 'react';
-import type { FormEvent } from 'react';
-import type {
-  GuildMember,
-  UserType,
-  UserClassType,
-} from '~/components/user/types';
-import { UserCard } from '~/components/user/userCard';
-import axios from '~/components/api/axios';
-import { useUserStore } from '~/store/userStore';
-import {
-  Combobox,
-  ComboboxInput,
-  ComboboxOption,
-  ComboboxOptions,
-} from '@headlessui/react';
-import Footer from '~/components/footer';
-import DiscordUserDropdown from '~/components/user/DiscordUserDropdown';
-import { User } from '~/components/user/user';
-import type { TournamentClassType, TournamentType } from '../types';
-import { Button } from '~/components/ui/button';
 import { PlusCircleIcon } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { useState } from 'react';
+import { Button } from '~/components/ui/button';
 import {
   Dialog,
   DialogClose,
@@ -37,6 +17,11 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '~/components/ui/tooltip'; // Adjust path as needed
+import type {
+  UserType
+} from '~/components/user/types';
+import { useUserStore } from '~/store/userStore';
+import type { TournamentClassType } from '../types';
 import { TournamentEditForm } from './editForm';
 
 interface Props {}

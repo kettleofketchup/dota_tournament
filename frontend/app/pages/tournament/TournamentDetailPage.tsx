@@ -1,24 +1,15 @@
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
+import { useShallow } from 'zustand/react/shallow';
 import axios from '~/components/api/axios'; // Assuming axios is configured for your API
-import type { TournamentType } from '~/components/tournament/types';
-import { TournamentCard } from '~/components/tournament/TournamentCard'; // Re-using TournamentCard for display
-import TournamentTabs from './tabs/TournamentTabs';
 import { useUserStore } from '~/store/userStore';
-import { Users } from 'lucide-react';
-
+import TournamentTabs from './tabs/TournamentTabs';
 export const TournamentDetailPage: React.FC = () => {
   const { pk } = useParams<{ pk: string }>();
-
-  const tournament = useUserStore((state) => state.tournament);
+  const tournament = useUserStore(useShallow((state) => state.tournament));
   const setTournament = useUserStore((state) => state.setTournament);
-  const allUsers = useUserStore((state) => state.users);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-  const getDiscordUsers = useUserStore((state) => state.getDiscordUsers);
-  useEffect(() => {
-    getDiscordUsers();
-  }, []);
 
   useEffect(() => {
     if (pk) {

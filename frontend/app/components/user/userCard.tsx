@@ -1,25 +1,20 @@
-import React, { use, useEffect, useState } from 'react';
-import type { FormEvent } from 'react';
-import type { UserClassType, UserType } from './types';
-import axios from '../api/axios';
-import { deleteUser } from '../api/api';
-import { useNavigate } from 'react-router';
-import { useUserStore } from '~/store/userStore';
+import { motion } from 'framer-motion';
+import React, { memo, useEffect, useState } from 'react';
+import { Badge } from '~/components/ui/badge';
 import { User } from '~/components/user/user';
-import { DeleteButton } from '~/components/reusable/deleteButton';
+import { PlayerRemoveButton } from '~/pages/tournament/tabs/players/playerRemoveButton';
+import { useUserStore } from '~/store/userStore';
+import type { UserClassType, UserType } from './types';
+import { UserRemoveButton } from './userCard/deleteButton';
 import UserEditModal from './userCard/editModal';
 interface Props {
   user: UserClassType;
   edit?: boolean;
   saveFunc?: string;
   compact?: boolean;
-  removeCallBack?: (e: FormEvent, user: UserType) => void;
-  removeToolTip?: string;
+  deleteButtonType: 'tournament' | 'normal';
+
 }
-import { motion } from 'framer-motion';
-import { Badge } from '~/components/ui/badge';
-import { memo } from 'react';
-import { toast } from 'sonner';
 
 export const UserCard: React.FC<Props> = memo(
   ({
@@ -27,8 +22,7 @@ export const UserCard: React.FC<Props> = memo(
     edit,
     saveFunc,
     compact,
-    removeCallBack,
-    removeToolTip = 'Delete the user',
+    deleteButtonType
   }) => {
     const [editMode, setEditMode] = useState(edit || false);
 
@@ -50,34 +44,8 @@ export const UserCard: React.FC<Props> = memo(
         getUsers();
       }
     }, [user, user.mmr, user.pk, user.username, user.nickname, user.position]);
-    const handleDelete = async (e: FormEvent) => {
-      if (removeCallBack !== undefined) {
-        removeCallBack(e, user);
-        return;
-      }
 
-      e.stopPropagation();
-      setErrorMessage({}); // clear old errors
-      setIsSaving(true);
-      let thisUser = new User(user as UserType);
-      toast.promise(thisUser.dbDelete(), {
-        loading: `Deleting User ${user.username}.`,
-        success: (data) => {
-          console.log('User deleted successfully');
-          setError(false);
-          setForm({ username: 'Success!' } as UserType);
-          delUser(thisUser);
-          return `${user.username} has been Delete`;
-        },
-        error: (err) => {
-          console.error('Failed to delete user', err);
-          setErrorMessage(err.response.data);
-          setError(true);
-          return `${user.username} could not be deleted`;
-        },
-      });
-      setIsSaving(false);
-    };
+
     const hasError = () => {
       if (!user.mmr) {
         return true;
@@ -239,7 +207,7 @@ export const UserCard: React.FC<Props> = memo(
     return (
       <div
         key={`usercard:${getKeyName()} base`}
-        className="px-6 py-4 content-center"
+        className="px-6 py-4 content-center [content-visibility: auto] [contain-intrinsic-size: 400px 220px]"
       >
         <motion.div
           initial={{ opacity: 0 }}
@@ -274,14 +242,9 @@ export const UserCard: React.FC<Props> = memo(
               </div>
               <div className="flex items-center justify-end gap-6">
                 {errorInfo()}
-                {currentUser.is_staff && saveCallback === 'save' && (
-                  <DeleteButton
-                    onClick={handleDelete}
-                    tooltipText={removeToolTip}
-                    className="self-center btn-sm mt-3"
-                    disabled={isSaving}
-                  />
-                )}
+                {currentUser.is_staff && saveCallback === 'save' && deleteButtonType === 'normal' && <UserRemoveButton user={user} />}
+                {currentUser.is_staff && saveCallback === 'save' && deleteButtonType === 'tournament' && <PlayerRemoveButton user={user} />}
+
               </div>
             </div>
           </div>

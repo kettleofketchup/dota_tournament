@@ -1,46 +1,66 @@
-import { Tab, TabGroup, TabList, TabPanel, TabPanels } from '@headlessui/react';
-import type { TournamentType } from '~/components/tournament/types'; // Adjust the import path as necessary
+// import { Tab, TabGroup, TabList, TabPanel, TabPanels } from '@headlessui/react';
 
-import { Fragment } from 'react';
-import GamesTab from './GamesTab';
-import TeamsTab from './TeamsTab';
-import PlayersTab from './PlayersTab';
-import { useUserStore } from '~/store/userStore';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs";
+import { GamesTab } from './GamesTab';
+import { PlayersTab } from './PlayersTab';
+import { TeamsTab } from './TeamsTab';
+
+
+import { useMemo } from "react";
+import { useShallow } from "zustand/react/shallow";
+import { useUserStore } from "~/store/userStore";
+
 
 export default function TournamentTabs() {
-  const tournament = useUserStore((state) => state.tournament);
-  const setTournament = useUserStore((state) => state.setTournament);
   const tabClass =
     () => `rounded-full px-3 py-1 bg-gray-900 text-sm/6 font-semibold text-white
                         focus:not-data-focus:outline-none data-focus:outline data-focus:outline-white
                         data-hover:bg-cyan/5 data-selected:bg-purple-950 data-selected:data-hover:bg-cyan/10`;
   const tabPanelClass = () => `rounded-xl bg-base-300  p-3"`;
+  const tournament = useUserStore(useShallow((state) => state.tournament)); // Zustand setter
 
+  const playerCount = useMemo(() => {
+    // Assuming you have a way to get the players array, e.g., from props or context
+    if (!tournament || !tournament.users) {
+      return 0; // Return 0 if tournament or users is not defined
+    }
+    return tournament.users.length;
+  }, [tournament.users]);
+
+
+  const teamCount = useMemo(() => {
+    // Assuming you have a way to get the players array, e.g., from props or context
+    if (!tournament || !tournament.teams) {
+      return 0; // Return 0 if tournament or users is not defined
+    }
+    return tournament.teams.length;
+  }, [tournament.teams]);
+
+
+  const gameCount = useMemo(() => {
+    // Assuming you have a way to get the players array, e.g., from props or context
+    if (!tournament || !tournament.games) {
+      return 0; // Return 0 if tournament or users is not defined
+    }
+    return tournament.games.length;
+  }, [tournament.games]);
   return (
     <div className="flex w-full justify-center px-4 pt-2">
       <div className="w-full max-w-xxl">
-        <TabGroup as={Fragment}>
-          <TabList className="flex w-full justify-center gap-2 rounded-full p-1">
-            <Tab className={tabClass()}>Games</Tab>
-            <Tab className={tabClass()}>
-              Teams ({tournament?.teams?.length})
-            </Tab>
-            <Tab className={tabClass()}>
-              Players ({tournament?.users?.length})
-            </Tab>
-          </TabList>
-          <TabPanels className="mt-3">
-            <TabPanel className={tabPanelClass()}>
-              <GamesTab  />
-            </TabPanel>
-            <TabPanel className={tabPanelClass()}>
-              <TeamsTab  />
-            </TabPanel>
-            <TabPanel className={tabPanelClass()}>
-              <PlayersTab />
-            </TabPanel>
-          </TabPanels>
-        </TabGroup>
+
+
+      <Tabs defaultValue="players" className="flex w-full justify-center gap-2 rounded-full p-1 align-middle">
+        <TabsList className="content-center flex w-full justify-center gap-2 rounded-full p-1 align-middle">
+          <TabsTrigger value="players">Players ({playerCount})</TabsTrigger>
+          <TabsTrigger value="teams">Teams ({teamCount})</TabsTrigger>
+          <TabsTrigger value="games">Games ({gameCount})</TabsTrigger>
+        </TabsList>
+        <TabsContent value="players"> <PlayersTab /></TabsContent>
+        <TabsContent value="teams"> <TeamsTab /></TabsContent>
+        <TabsContent value="games"> <GamesTab /></TabsContent>
+        </Tabs>
+
+
       </div>
     </div>
   );

@@ -1,10 +1,9 @@
-import { Tab, TabGroup, TabList, TabPanel, TabPanels } from '@headlessui/react';
-import type { GameType, TournamentType } from '~/components/tournament/types'; // Adjust the import path as necessary
+import { memo } from 'react';
+import type { GameType } from '~/components/tournament/types'; // Adjust the import path as necessary
 
-import { Fragment } from 'react';
 import { useUserStore } from '~/store/userStore';
 
-export default function GamesTab() {
+export const GamesTab: React.FC = memo(() => {
   const tournament = useUserStore((state) => state.tournament);
   const setTournament = useUserStore((state) => state.setTournament);
   if (!tournament || !tournament.games || tournament.games.length === 0) {
@@ -17,6 +16,9 @@ export default function GamesTab() {
     );
   }
   return (
+
+    <div className='p-5 container bg-base-300 rounded-lg shadow-lg hover:bg-base-400 transition-shadow duration-300 ease-in-out'>
+
     <ul>
       {tournament.games.map((game: GameType) => (
         <li
@@ -34,6 +36,7 @@ export default function GamesTab() {
           </ul>
         </li>
       ))}
-    </ul>
+      </ul>
+      </div>
   );
-}
+})

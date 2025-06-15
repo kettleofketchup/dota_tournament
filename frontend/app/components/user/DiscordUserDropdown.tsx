@@ -1,23 +1,23 @@
-import React, { useState, useEffect, useCallback } from 'react';
 import {
   Combobox,
   ComboboxInput,
   ComboboxOption,
   ComboboxOptions,
 } from '@headlessui/react';
-import { get_dtx_members } from '../api/api';
-import type { GuildMembers, GuildMember, UsersType } from '../user/types';
+import React, { useCallback, useEffect, useState } from 'react';
 import { useUserStore } from '../../store/userStore';
-import { Button } from '~/components/ui/button';
-import { PlusCircleIcon } from 'lucide-react';
+import { get_dtx_members } from '../api/api';
+import type { GuildMember, GuildMembers, UsersType } from '../user/types';
 
 interface Props {
+  query?: string;
+  setQuery?: React.Dispatch<React.SetStateAction<string>>;
   onSelect: (user: GuildMember) => void;
   discrimUsers?: UsersType;
 }
 
-const DiscordUserDropdown: React.FC<Props> = ({ onSelect, discrimUsers }) => {
-  const [query, setQuery] = useState('');
+const DiscordUserDropdown: React.FC<Props> = ({ query, setQuery, onSelect, discrimUsers }) => {
+
   const [error, setError] = useState<Error | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
   const setDiscordUsers = useUserStore((state) => state.setDiscordUsers); // Zustand setter
@@ -42,6 +42,9 @@ const DiscordUserDropdown: React.FC<Props> = ({ onSelect, discrimUsers }) => {
     }
   }, []);
   useEffect(() => {
+    if (discordUsers.length > 0) {
+      return;
+    }
     getDiscordUsers();
   }, []);
 

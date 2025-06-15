@@ -1,15 +1,10 @@
-import { Tab, TabGroup, TabList, TabPanel, TabPanels } from '@headlessui/react';
-import type { GameType, TournamentType } from '~/components/tournament/types'; // Adjust the import path as necessary
+import type { TournamentType } from '~/components/tournament/types'; // Adjust the import path as necessary
 
-import { Fragment, useState } from 'react';
-import type { UserType } from '~/components/user/types';
-import DiscordUserDropdown from '~/components/user/DiscordUserDropdown';
-import { UsersDropdown } from '~/components/user/UsersDropdown';
-import { SearchUserDropdown } from '~/components/user/searchUser';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { UserCard } from '~/components/user/userCard';
+import { SearchUserDropdown } from '~/components/user/searchUser';
 import type { User } from '~/components/user/user';
-import { UserCreateModal } from '~/components/user/userCard/createModal';
+import { UserCard } from '~/components/user/userCard';
 export default function PlayersTab({
   tournament,
 }: {

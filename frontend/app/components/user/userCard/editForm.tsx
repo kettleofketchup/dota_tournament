@@ -1,29 +1,23 @@
-import React, { use, useEffect, useState } from 'react';
 import type { FormEvent } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import type {
-  GuildMember,
-  UserType,
   UserClassType,
+  UserType
 } from '~/components/user/types';
 
 import { useUserStore } from '~/store/userStore';
 
-import { Button } from '~/components/ui/button';
-import { Label } from '~/components/ui/label';
-import { Input } from '~/components/ui/input';
 import { User } from '~/components/user/user';
 
+import { UserRoundPlusIcon } from 'lucide-react';
+import { toast } from 'sonner';
 import { DialogClose } from '~/components/ui/dialog';
-import { Toaster } from '~/components/ui/sonner';
 
 interface Props {
   user: UserClassType; // Accepts both UserClassType and UserType
   form: UserType;
   setForm: React.Dispatch<React.SetStateAction<UserType>>;
 }
-import { toast } from 'sonner';
-import { UserRoundPlusIcon } from 'lucide-react';
-import { getTournaments } from '~/components/api/api';
 export const UserToast = (title: string) => {
   const toastTitle = () => {
     return (
@@ -143,11 +137,28 @@ export const UserEditForm: React.FC<Props> = ({ user, form, setForm }) => {
       </div>
     );
   };
+
+  const title = useMemo(() => {
+    var msg = "Status: ";
+
+
+    if (statusMsg && statusMsg !== null && statusMsg !== "null") msg = statusMsg;
+    else {
+      msg += "Editing ...";
+    }
+    console.log("title", msg);
+
+    return msg
+
+  }, [statusMsg, user.username]);
+
   return (
     <>
-      <div>
-        <label className="font-semibold">Username: {user.username}</label>
+
+      <div className='font-bold text-center bg-gray-900 rounded-lg p-2 mb-4'>
+        <label>{title}</label>
       </div>
+
       {inputView('nickname', 'Nickname: ')}
       {inputView('mmr', 'MMR: ', 'number')}
       {inputView('position', 'Position: ')}

@@ -1,21 +1,16 @@
-import React, { useEffect, useState } from 'react';
-import type { FormEvent } from 'react';
-import type {
-  GuildMember,
-  UserType,
-  UserClassType,
-} from '~/components/user/types';
-import { UserCard } from '~/components/user/userCard';
-import axios from '~/components/api/axios';
-import { useUserStore } from '~/store/userStore';
 import {
   Combobox,
   ComboboxInput,
   ComboboxOption,
   ComboboxOptions,
 } from '@headlessui/react';
-import Footer from '~/components/footer';
+import React, { useState } from 'react';
+import type {
+  UserClassType,
+  UserType
+} from '~/components/user/types';
 import { User } from '~/components/user/user';
+import { useUserStore } from '~/store/userStore';
 interface Props {
   users: UserType[];
   query: string;
@@ -87,7 +82,7 @@ export const SearchUserDropdown: React.FC<Props> = ({
                   value={user.username}
                   className={({ active }) =>
                     `cursor-pointer select-none p-2 ${
-                      active ? 'bg-purple-100 text-primary-content' : ''
+                      active ? 'bg-purple-900 text-primary-content' : ''
                     }`
                   }
                 >

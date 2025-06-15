@@ -1,22 +1,21 @@
-import React, { useEffect, useState } from 'react';
-import type { FormEvent } from 'react';
-import type {
-  GuildMember,
-  UserType,
-  UserClassType,
-} from '~/components/user/types';
+import React, { useState } from 'react';
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from '~/components/ui/tooltip'; // Adjust path as needed
+import type {
+  GuildMember,
+  UserClassType,
+  UserType,
+} from '~/components/user/types';
 
 import { useUserStore } from '~/store/userStore';
 
-import { Edit2, Plus, PlusCircle, PlusCircleIcon } from 'lucide-react';
+import { PlusCircleIcon } from 'lucide-react';
 
-import { useNavigate } from 'react-router-dom';
+import { Button } from '~/components/ui/button';
 import {
   Dialog,
   DialogClose,
@@ -27,11 +26,10 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '~/components/ui/dialog';
-import { Button } from '~/components/ui/button';
 import { User } from '~/components/user/user';
 
-import { UserEditForm } from '~/components/user/userCard/editForm';
 import DiscordUserDropdown from '~/components/user/DiscordUserDropdown';
+import { UserEditForm } from '~/components/user/userCard/editForm';
 
 interface Props {}
 export const TeamCreateModal: React.FC<Props> = (props) => {

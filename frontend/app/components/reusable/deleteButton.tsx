@@ -1,4 +1,5 @@
-import React from 'react';
+import { Trash2 } from 'lucide-react'; // Or your preferred icon library
+import React, { memo } from 'react';
 import { Button } from '~/components/ui/button'; // Adjust path as needed
 import {
   Tooltip,
@@ -6,8 +7,6 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '~/components/ui/tooltip'; // Adjust path as needed
-import { Trash2 } from 'lucide-react'; // Or your preferred icon library
-import { memo } from 'react';
 
 interface DeleteButtonProps {
   onClick: (event: React.MouseEvent<HTMLButtonElement>) => void;
@@ -16,6 +15,23 @@ interface DeleteButtonProps {
   ariaLabel?: string;
   className?: string; // Optional className prop for additional styling
 }
+
+interface DeleteTooltipProps {
+  tooltipText?: string;
+}
+export const DeleteButtonTooltip: React.FC<DeleteTooltipProps> = memo(
+  ({
+    tooltipText = 'Delete item',
+  }) => {
+    return (
+      <TooltipContent>
+        <p>{tooltipText}</p>
+      </TooltipContent>
+
+    );
+  },
+);
+
 export const DeleteButton: React.FC<DeleteButtonProps> = memo(
   ({
     onClick,
@@ -39,9 +55,7 @@ export const DeleteButton: React.FC<DeleteButtonProps> = memo(
               <Trash2 className="h-4 w-4" color="red" />
             </Button>
           </TooltipTrigger>
-          <TooltipContent>
-            <p>{tooltipText}</p>
-          </TooltipContent>
+          <DeleteButtonTooltip tooltipText={tooltipText} />
         </Tooltip>
       </TooltipProvider>
     );

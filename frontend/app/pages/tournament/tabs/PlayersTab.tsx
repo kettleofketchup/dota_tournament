@@ -1,50 +1,33 @@
-import { Tab, TabGroup, TabList, TabPanel, TabPanels } from '@headlessui/react';
-import { Button } from '~/components/ui/button';
-import type { GameType, TournamentType } from '~/components/tournament/types'; // Adjust the import path as necessary
-import { Plus } from 'lucide-react';
 import {
-  Fragment,
-  useCallback,
+  memo,
   useEffect,
   useState,
-  type FormEvent,
+  type FormEvent
 } from 'react';
-import type { UserClassType, UserType } from '~/components/user/types';
-import DiscordUserDropdown from '~/components/user/DiscordUserDropdown';
-import { UsersDropdown } from '~/components/user/UsersDropdown';
-import { SearchUserDropdown } from '~/components/user/searchUser';
-import { useNavigate } from 'react-router-dom';
-import { UserCard } from '~/components/user/userCard';
-import { User } from '~/components/user/user';
-import { updateTournament } from '~/components/api/api';
-import axios from '~/components/api/axios';
-import {
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '~/components/ui/dialog';
-import { useUserStore } from '~/store/userStore';
-import { Label } from '~/components/ui/label';
-import { Input } from '~/components/ui/input';
-import { LucidePlus } from 'lucide-react';
-import { AddPlayerModal } from './addPlayer/addPlayerModal';
 import { toast } from 'sonner';
-import TournamentDetailPage from '../TournamentDetailPage';
+import { updateTournament } from '~/components/api/api';
+import type { TournamentType } from '~/components/tournament/types'; // Adjust the import path as necessary
+import { ScrollArea } from '~/components/ui/scroll-area';
+import { SearchUserDropdown } from '~/components/user/searchUser';
+import type { UserClassType, UserType } from '~/components/user/types';
+import { User } from '~/components/user/user';
+import { UserCard } from '~/components/user/userCard';
+import { useUserStore } from '~/store/userStore';
 import { hasErrors } from '../hasErrors';
-import { Tournament } from '~/components/tournament/tournament';
-export default function PlayersTab() {
-  const allUsers = useUserStore((state) => state.users); // Zustand setter
+import { AddPlayerModal } from './players/addPlayerModal';
 
+
+export const PlayersTab: React.FC = memo(() => {
+
+
+  const allUsers = useUserStore((state) => state.users); // Zustand setter
+  const [addPlayerQuery, setAddPlayerQuery] = useState('');
+  const addUserQuery = useUserStore((state) => state.addUserQuery);
+  const setAddUserQuery = useUserStore((state) => state.setAddUserQuery); // Zustand setter
   const tournament = useUserStore((state) => state.tournament);
   const setTournament = useUserStore((state) => state.setTournament); // Zustand settera
-  const [tournamentUsers, setTournamentUsers] = useState([] as UserType[]);
-  const [query, setQuery] = useState('');
-  const [addUserQuery, setAddUserQuery] = useState('');
+  const query = useUserStore((state) => state.userQuery);
+  const setQuery = useUserStore((state) => state.setUserQuery); // Zustand setter
   const getCurrentTournament = useUserStore(
     (state) => state.getCurrentTournament,
   ); // Zustand setter
@@ -122,11 +105,7 @@ export default function PlayersTab() {
       {
         loading: `Adding User ${thisUser.username}.`,
         success: (data) => {
-          tournament.users?.push(thisUser);
-          //Trigger rerender of tournament users
-          setTournamentUsers(tournament.users as UserType[]);
           setTournament(data);
-
           return `${thisUser.username} has been added`;
         },
         error: (err: any) => {
@@ -142,17 +121,14 @@ export default function PlayersTab() {
     query === ''
       ? tournament.users
       : tournament.users?.filter((person) => {
-          const q = query.toLowerCase();
-          return (
-            person.username?.toLowerCase().includes(q) ||
-            person.nickname?.toLowerCase().includes(q)
-          );
-        });
+        const q = query.toLowerCase();
+        return (
+          person.username?.toLowerCase().includes(q) ||
+          person.nickname?.toLowerCase().includes(q)
+        );
+      });
 
-  useEffect(() => {
-    console.log('Tournament users:', tournament.users);
-    getCurrentTournament();
-  }, [tournament.users]);
+
   useEffect(() => {
     console.log('TournamentPageUsers: updated users');
   }, [allUsers]);
@@ -164,8 +140,8 @@ export default function PlayersTab() {
           <div className="self-end p-5 pb-2 pt-2">
             <AddPlayerModal
               users={allUsers}
-              query={query}
-              setQuery={setQuery}
+              query={addPlayerQuery}
+              setQuery={setAddPlayerQuery}
               addPlayerCallback={addUserCallback}
             />
           </div>
@@ -180,42 +156,44 @@ export default function PlayersTab() {
   }
 
   return (
-    <>
-      <div className="flex flex-col items-start p-4 h-full">
-        {hasErrors(tournament.users)}
+    <div className='p-5 container bg-base-300 rounded-lg shadow-lg hover:bg-base-400 transition-shadow duration-300 ease-in-out'>
+      {hasErrors()}
 
-        <div className="self-end p-5 pb-2 pt-2">
-          {
-            <AddPlayerModal
-              users={allUsers}
-              query={query}
-              setQuery={setQuery}
-              addPlayerCallback={addUserCallback}
-              addedUsers={tournament.users}
-            />
-          }
-        </div>
-        <div className="w-full">
+
+      <div className="grid grid-cols-2 gap-5 items-start pt-5 ">
+
+
+        <div className="flex self-center place-self-stretch">
           <SearchUserDropdown
             users={tournament.users}
             query={query}
             setQuery={setQuery}
-            className="w-full"
+          />
+          </div>
+        <div className="flex pr-5 place-self-end">
+          <AddPlayerModal
+            users={allUsers}
+            query={addPlayerQuery}
+            setQuery={setAddPlayerQuery}
+            addPlayerCallback={addUserCallback}
+            addedUsers={tournament.users}
           />
         </div>
-        <div className="w-full content-center grid gap-2 mt-4 grid-cols-2 xl:grid-cols-3 justify-center ">
+      </div>
+
+      <ScrollArea className=" h-30%  [content-visibility: auto] whitespace-nowrap p-5">
+        <div className="w-full content-center grid gap-2 mt-4 grid-cols-2 xl:grid-cols-3 justify-center [content-visibility: auto]">
           {filteredUsers?.map((user) => (
             <UserCard
               user={user as UserClassType}
               saveFunc={'save'}
               key={`UserCard-${user.pk}`}
-              removeCallBack={removeUser}
-              removeToolTip={'Delete from tournament'}
               compact={true}
+              deleteButtonType='tournament'
             />
           ))}
         </div>
-      </div>
-    </>
+      </ScrollArea>
+    </div>
   );
-}
+});

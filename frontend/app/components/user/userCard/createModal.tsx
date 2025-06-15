@@ -1,9 +1,8 @@
-import React, { useEffect, useState } from 'react';
-import type { FormEvent } from 'react';
+import React, { useState } from 'react';
 import type {
   GuildMember,
-  UserType,
   UserClassType,
+  UserType,
 } from '~/components/user/types';
 
 import {
@@ -15,9 +14,9 @@ import {
 
 import { useUserStore } from '~/store/userStore';
 
-import { Edit2, Plus, PlusCircle, PlusCircleIcon } from 'lucide-react';
+import { PlusCircleIcon } from 'lucide-react';
 
-import { useNavigate } from 'react-router-dom';
+import { Button } from '~/components/ui/button';
 import {
   Dialog,
   DialogClose,
@@ -28,11 +27,11 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '~/components/ui/dialog';
-import { Button } from '~/components/ui/button';
 import { User } from '~/components/user/user';
 
-import { UserEditForm } from '~/components/user/userCard/editForm';
+import { useShallow } from 'zustand/react/shallow';
 import DiscordUserDropdown from '~/components/user/DiscordUserDropdown';
+import { UserEditForm } from '~/components/user/userCard/editForm';
 
 interface Props {
   query?: string;
@@ -40,7 +39,7 @@ interface Props {
 }
 export const UserCreateModal: React.FC<Props> = ({ query, setQuery }) => {
   const currentUser: UserType = useUserStore((state) => state.currentUser); // Zustand setter
-  const users: UserType[] = useUserStore((state) => state.users); // Zustand setter
+  const users: UserType[] = useUserStore(useShallow((state) => state.users)); // Zustand setter
 
   const [selectedDiscordUser, setSelectedDiscordUser] = useState<User>(
     new User({} as UserClassType),

@@ -1,21 +1,20 @@
-import React, { useEffect, useState, memo } from 'react';
-import type { FormEvent } from 'react';
-import type {
-  GuildMember,
-  UserType,
-  UserClassType,
-} from '~/components/user/types';
+import React, { memo, useEffect, useState } from 'react';
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from '~/components/ui/tooltip'; // Adjust path as needed
+import type {
+  UserClassType,
+  UserType
+} from '~/components/user/types';
 
 import { useUserStore } from '~/store/userStore';
 
-import { Edit2, Plus, PlusCircle } from 'lucide-react';
+import { Edit2 } from 'lucide-react';
 
+import { Button } from '~/components/ui/button';
 import {
   Dialog,
   DialogClose,
@@ -26,50 +25,23 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '~/components/ui/dialog';
-import { Button } from '~/components/ui/button';
 
 import { UserEditForm } from '~/components/user/userCard/editForm';
 
 interface Props {
   user: UserClassType;
 }
-export const UserEditModal: React.FC<Props> = memo(({ user }) => {
-  const currentUser: UserType = useUserStore((state) => state.currentUser);
+interface DialogProps {
+  user: UserClassType;
+  form: UserType;
+  setForm: React.Dispatch<React.SetStateAction<UserType>>;
+}
+export const UserEditModalDialog: React.FC<DialogProps> = memo( ({ user, form, setForm }) => {
 
-  const [form, setForm] = useState<UserType>({} as UserType);
-
-  useEffect(() => {}, [user]);
-  if (!currentUser || (!currentUser.is_staff && !currentUser.is_superuser)) {
-    return <></>;
-  }
   return (
-    <Dialog>
-      <form>
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <DialogTrigger asChild>
-                <Button
-                  size="icon"
-                  variant="default"
-                  className={
-                    'bg-green-950 hover:bg-green-800 text-white' +
-                    ' hover:shadow-sm hover:shadow-green-500/50'
-                  }
-                >
-                  <Edit2 color="white" className="pzs-2" />
-                </Button>
-              </DialogTrigger>
-            </TooltipTrigger>
-            <TooltipContent>
-              <p>Edit User </p>
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
-
-        <DialogContent className="sm:max-w-[425px]">
+    <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
-            <DialogTitle>Edit User</DialogTitle>
+            <DialogTitle>Edit User:</DialogTitle>
             <DialogDescription>
               Please fill in the details below to edit the user.
             </DialogDescription>
@@ -80,7 +52,55 @@ export const UserEditModal: React.FC<Props> = memo(({ user }) => {
               <Button variant="outline">Cancel</Button>
             </DialogClose>
           </DialogFooter>
-        </DialogContent>
+    </DialogContent>
+
+    )
+
+})
+
+export const UserEditModalButton: React.FC = memo( () => {
+
+  return (
+    <TooltipProvider>
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <DialogTrigger asChild>
+          <Button
+            size="icon"
+            variant="default"
+            className={
+              'bg-green-950 hover:bg-green-800 text-white' +
+              ' hover:shadow-sm hover:shadow-green-500/50'
+            }
+          >
+            <Edit2 color="white" className="pzs-2" />
+          </Button>
+        </DialogTrigger>
+      </TooltipTrigger>
+      <TooltipContent>
+        <p>Edit User </p>
+      </TooltipContent>
+    </Tooltip>
+  </TooltipProvider>
+  )
+})
+export const UserEditModal: React.FC<Props> = memo(({ user }) => {
+  const currentUser: UserType = useUserStore((state) => state.currentUser);
+
+  const [form, setForm] = useState<UserType>({} as UserType);
+
+  useEffect(() => {}, [user]);
+  if (!currentUser || (!currentUser.is_staff && !currentUser.is_superuser)) {
+    return <></>;
+  }
+
+
+  return (
+    <Dialog key={`user-edit-modal-${user.id}`}>
+      <form>
+       < UserEditModalButton />
+        <UserEditModalDialog user={user} form={form}  setForm={setForm}/>
+
       </form>
     </Dialog>
   );

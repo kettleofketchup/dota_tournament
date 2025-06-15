@@ -1,25 +1,13 @@
-import { use, useEffect, useState } from 'react';
-import type { FormEvent } from 'react';
-import type {
-  GuildMember,
-  UserType,
-  UserClassType,
-} from '~/components/user/types';
-import { UserCard } from '~/components/user/userCard';
-import axios from '~/components/api/axios';
-import { useUserStore } from '~/store/userStore';
-import {
-  Combobox,
-  ComboboxInput,
-  ComboboxOption,
-  ComboboxOptions,
-} from '@headlessui/react';
-import Footer from '~/components/footer';
-import DiscordUserDropdown from '~/components/user/DiscordUserDropdown';
-import { User } from '~/components/user/user';
-import { UserCreateModal } from '~/components/user/userCard/createModal';
+import { useEffect, useState } from 'react';
 import { SearchUserDropdown } from '~/components/user/searchUser';
-import { motion, AnimatePresence } from 'framer-motion';
+import type {
+  UserClassType,
+  UserType
+} from '~/components/user/types';
+import { User } from '~/components/user/user';
+import { UserCard } from '~/components/user/userCard';
+import { UserCreateModal } from '~/components/user/userCard/createModal';
+import { useUserStore } from '~/store/userStore';
 
 // Animation for each card
 const card = {
@@ -31,10 +19,13 @@ export function UsersPage() {
   const getUsers = useUserStore((state) => state.getUsers); // Zustand setter
   const users = useUserStore((state) => state.users); // Zustand setter
   const getDiscordUsers = useUserStore((state) => state.getDiscordUsers); // Zustand setter
+  const discordUsers = useUserStore((state) => state.discordUsers); // Zustand setter
 
-  const [createModal, setCreateModal] = useState<boolean>(false);
+
 
   const [query, setQuery] = useState('');
+  const [createModalQuery, setCreateModalQuery] = useState('');
+
   const [selectedDiscordUser, setSelectedDiscordUser] = useState(
     new User({} as UserClassType),
   );
@@ -42,7 +33,9 @@ export function UsersPage() {
     new User({} as UserClassType),
   );
   useEffect(() => {
-    getDiscordUsers();
+    if (!discordUsers || discordUsers.length === 0) {
+      getDiscordUsers();
+    }
   }, []);
   const filteredUsers =
     query === ''
@@ -81,7 +74,7 @@ export function UsersPage() {
             />
           </div>
           <div className="flex col-start-4 align-end content-end justify-end">
-            <UserCreateModal query={query} setQuery={setQuery} />
+            <UserCreateModal query={createModalQuery} setQuery={setCreateModalQuery} />
           </div>
         </div>
         <div
@@ -95,6 +88,7 @@ export function UsersPage() {
               user={u as UserClassType}
               saveFunc={'save'}
               key={`UserCard-${u.pk}`}
+              deleteButtonType='normal'
             />
           ))}
         </div>

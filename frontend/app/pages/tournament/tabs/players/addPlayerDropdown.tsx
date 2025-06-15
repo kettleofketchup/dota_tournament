@@ -1,64 +1,21 @@
-import type {
-  GuildMember,
-  UserType,
-  UserClassType,
-} from '~/components/user/types';
 import {
   Combobox,
   ComboboxInput,
   ComboboxOption,
   ComboboxOptions,
 } from '@headlessui/react';
-import Footer from '~/components/footer';
-import DiscordUserDropdown from '~/components/user/DiscordUserDropdown';
+import type {
+  UserClassType,
+  UserType
+} from '~/components/user/types';
 import { User } from '~/components/user/user';
 
 import {
-  Button,
-  Tab,
-  TabGroup,
-  TabList,
-  TabPanel,
-  TabPanels,
-} from '@headlessui/react';
-import type {
-  GameType,
-  TournamentClassType,
-  TournamentType,
-} from '~/components/tournament/types'; // Adjust the import path as necessary
-import { Plus } from 'lucide-react';
-import {
-  Fragment,
-  use,
-  useCallback,
-  useEffect,
-  useState,
-  type FormEvent,
+  type FormEvent
 } from 'react';
-import { UsersDropdown } from '~/components/user/UsersDropdown';
-import { SearchUserDropdown } from '~/components/user/searchUser';
-import { useNavigate } from 'react-router-dom';
-import { UserCard } from '~/components/user/userCard';
-import axios from '~/components/api/axios';
-import {
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '~/components/ui/dialog';
 import { useUserStore } from '~/store/userStore';
-import { Label } from '~/components/ui/label';
-import { Input } from '~/components/ui/input';
-import { LucidePlus } from 'lucide-react';
 
-import { AddButton } from '~/components/reusable/addButton';
-import Tournament from '~/pages/tournaments/tournaments';
 interface Props {
-  users: UserType[];
   addedUsers?: UserType[];
   query: string;
   setQuery: React.Dispatch<React.SetStateAction<string>>;
@@ -67,24 +24,13 @@ interface Props {
 }
 
 export const AddPlayerDropdown: React.FC<Props> = ({
-  users,
   addedUsers,
   query,
   setQuery,
   addPlayerCallback,
   removePlayerCallback,
 }) => {
-  const allUsers = useUserStore((state) => state.users); // Zustand setter
-
-  const user: UserType = useUserStore((state) => state.currentUser); // Zustand setter
-  const getUsers = useUserStore((state) => state.getUsers); // Zustand setter
-
-  const [selectedDiscordUser, setSelectedDiscordUser] = useState(
-    new User({} as UserClassType),
-  );
-  const [searchedPerson, setSearchedPerson] = useState(
-    new User({} as UserClassType),
-  );
+  const users = useUserStore((state) => state.users); // Zustand setter
 
   const filteredUsers =
     query === ''
