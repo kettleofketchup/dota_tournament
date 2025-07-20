@@ -85,6 +85,7 @@ class TeamSerializer(serializers.ModelSerializer):
         many=False,
         queryset=Tournament.objects.all(),
         write_only=True,
+        read_only=False,
         required=False,
     )
 

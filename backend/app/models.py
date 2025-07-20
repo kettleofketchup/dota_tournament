@@ -67,7 +67,7 @@ class Tournament(models.Model):
     name = models.CharField(max_length=255)
     date_played = models.DateField()
     users = models.ManyToManyField(User, related_name="tournaments")
-    teams = models.ManyToManyField("Team", related_name="tournament")
+    # Removed teams field; handled by ForeignKey in Team
     winning_team = models.ForeignKey(
         "Team",
         null=True,
@@ -85,6 +85,13 @@ class Tournament(models.Model):
 
 
 class Team(models.Model):
+    tournament = models.ForeignKey(
+        Tournament,
+        related_name="teams",
+        on_delete=models.CASCADE,
+        null=True,  # Allow null for legacy data/migrations
+        blank=True,
+    )
     name = models.CharField(max_length=255)
     captain = models.ForeignKey(
         User, related_name="teams_captained", on_delete=models.CASCADE
