@@ -12,7 +12,7 @@ NGINX_DOCKERFILE_PATH: Path = NGINX_PATH / "Dockerfile"
 PYPROJECT_PATH = PROJECT_PATH / "pyproject.toml"
 
 
-REGISTRY: str = "ghcr.io/dtx-dota/website"
+REGISTRY: str = "ghcr.io/kettleofketchup/dtx_website"
 BACKEND_TAG: str = f"{REGISTRY}/backend"
 FRONTEND_TAG: str = f"{REGISTRY}/frontend"
 NGINX_TAG: str = f"{REGISTRY}/nginx"

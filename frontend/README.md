@@ -12,21 +12,21 @@ You can use the Dockerfiles and tags defined in `paths.py` to build images:
 
 ```sh
 # Example for backend
-docker build -f backend/Dockerfile -t ghcr.io/dtx-dota/website/backend .
+docker build -f backend/Dockerfile -t ghcr.io/kettleofketchup/dtx_website/backend .
 
 # Example for frontend
-docker build -f frontend/Dockerfile -t ghcr.io/dtx-dota/website/frontend .
+docker build -f frontend/Dockerfile -t ghcr.io/kettleofketchup/dtx_website/frontend .
 
 # Example for nginx
-docker build -f nginx/Dockerfile -t ghcr.io/dtx-dota/website/nginx .
+docker build -f nginx/Dockerfile -t ghcr.io/kettleofketchup/dtx_website/nginx .
 ```
 
 ### 3. Push Docker Images
 
 ```sh
-docker push ghcr.io/dtx-dota/website/backend
-docker push ghcr.io/dtx-dota/website/frontend
-docker push ghcr.io/dtx-dota/website/nginx
+docker push ghcr.io/kettleofketchup/dtx_website/backend
+docker push ghcr.io/kettleofketchup/dtx_website/frontend
+docker push ghcr.io/kettleofketchup/znx
 ```
 
 ### 4. Using the invoke script

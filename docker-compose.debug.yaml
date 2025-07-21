@@ -1,7 +1,7 @@
 services:
   frontend:
     container_name: frontend
-    image: ghcr.io/dtx-dota/website/frontend:latest
+    image: ghcr.io/kettleofketchup/dtx_website/frontend:latest
     env_file: "./.env.dev"
 
     ports:
@@ -16,7 +16,7 @@ services:
   backend:
     container_name: backend
     env_file: "./.env.dev"
-    image: ghcr.io/dtx-dota/website/backend:latest
+    image: ghcr.io/kettleofketchup/dtx_website/backend:latest
     ports:
       - "8000:8000"
     restart: always
@@ -25,7 +25,7 @@ services:
       - ./poetry.lock/:/app/poetry.lock
       - ./pyproject.toml/:/app/pyproject.toml
   nginx:
-    image: ghcr.io/dtx-dota/website/nginx:latest
+    image: ghcr.io/kettleofketchup/dtx_website/nginx:latest
     container_name: nginx
     restart: always
     env_file: "./.env.dev"
