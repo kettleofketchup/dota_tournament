@@ -181,7 +181,7 @@ def docker_pull_all(c):
 
 ns_docker_frontend.add_task(docker_frontend_build, "build")
 ns_docker_backend.add_task(docker_backend_build, "build")
-ns_docker_nginx.add_task(docker_frontend_build, "build")
+ns_docker_nginx.add_task(docker_nginx_build, "build")
 
 ns_docker_backend.add_task(docker_backend_push, "push")
 ns_docker_frontend.add_task(docker_frontend_push, "push")

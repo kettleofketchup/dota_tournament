@@ -5,6 +5,10 @@ tmux*.log
 __pycache__/
 *.py[cod]
 *$py.class
+nginx/data/certbot/configs/*
+nginx/data/certbot/logs/*
+nginx/data/certbot/webroot/*
+nginx/data/certbot/work/*
 
 # C extensions
 *.so
