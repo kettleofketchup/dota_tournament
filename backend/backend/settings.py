@@ -47,8 +47,6 @@ SECRET_KEY = "v*kswpdyi3+*-=q4a)7&_!xwb%@udm1vi56r690!!j6e*p3^mn"
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ["myapp.com", "localhost"]
-
 
 # Application definition
 
@@ -236,7 +234,7 @@ SESSION_COOKIE_SAMESITE = None
 # https://docs.djangoproject.com/en/1.10/howto/static-files/
 
 STATIC_URL = "/static/"
-ALLOWED_HOSTS = ["dota.kettle.sh", "localhost"]
+ALLOWED_HOSTS = ["dota.kettle.sh", "www.dota.kettle.sh", "localhost"]
 
 
 with contextlib.suppress(ImportError):
