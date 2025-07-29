@@ -1,12 +1,12 @@
-import React, { useState, useEffect, useMemo, memo, Suspense } from 'react';
 import { useClickAway } from '@uidotdev/usehooks';
+import React, { memo, useEffect, useState } from 'react';
+import { useNavigate } from 'react-router';
 
 import type { UserType } from '../user/types';
 
 import { useUserStore } from '../../store/userStore';
-import { useRouteLoaderData } from 'react-router';
-import type { User } from '../user/user';
 
+import { Button } from '~/components/ui/button';
 type UserProps = {
   user: UserType;
 };
@@ -39,12 +39,14 @@ export const UserAvatarImg: React.FC<UserProps> = memo(({ user }) => {
 });
 export const ProfileButton: React.FC = () => {
   const currentUser = useUserStore((state) => state.currentUser); // Zustand user state
+  const navigate = useNavigate();
 
   const [showPopover, setShowPopover] = useState(false);
   const clearUser = useUserStore((state) => state.clearUser); // Zustand setter
-
+  useEffect(() => {}, [currentUser.username]);
   const handleClick = () => {
     setShowPopover((prev) => !prev);
+    console.log('Show popover');
   };
   const hidePopover = () => {
     setShowPopover(false);
@@ -53,7 +55,11 @@ export const ProfileButton: React.FC = () => {
   const ref = useClickAway(() => {
     setShowPopover(false);
   });
-
+  const logoutClick = () => {
+    console.log('Logout clicked');
+    clearUser();
+    navigate('/logout');
+  };
   const showPopoverOver = () => {
     return (
       <>
@@ -64,9 +70,9 @@ export const ProfileButton: React.FC = () => {
               //  popover="auto" id="popover-3" style={{ positionAnchor: "--anchor-3" }  as React.CSSProperties  }
             >
               <li>
-                <a onClick={clearUser} href="/logout">
-                  Logout{' '}
-                </a>
+                <Button ref={ref} onClick={logoutClick}>
+                  Logout
+                </Button>
               </li>
             </ul>
           </div>
@@ -77,13 +83,14 @@ export const ProfileButton: React.FC = () => {
 
   return (
     <>
-      <div className="flex justify p-3" ref={ref}>
+      <div className="flex justify p-3">
         <div className="dropdown dropdown-end">
           <div
             className=" m-0 btn-circle avatar flex p-0 "
             popoverTarget="popover-3"
             style={{ anchorName: '--anchor-3' } as React.CSSProperties}
             onClick={handleClick}
+            onFocusCapture={handleClick}
           >
             <AvatarContainer>
               <UserAvatarImg user={currentUser} />

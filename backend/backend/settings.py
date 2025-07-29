@@ -31,6 +31,7 @@ SOCIAL_AUTH_DJANGO_EXTRA_DATA = [
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 EXTRA_DATA = [
+    "username",
     "avatar",
     "id",
     "global_name",
@@ -158,6 +159,8 @@ SOCIAL_AUTH_PIPELINE = (
     "social_core.pipeline.user.get_username",
     "social_core.pipeline.mail.mail_validation",
     "social_core.pipeline.social_auth.associate_by_email",
+    "app.pipelines.associate_by_discord_id",
+    "app.pipelines.associate_by_discord_username",
     "social_core.pipeline.user.create_user",
     "social_core.pipeline.social_auth.associate_user",
     "social_core.pipeline.debug.debug",
