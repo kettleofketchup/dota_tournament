@@ -46,6 +46,7 @@ urlpatterns = [
     path("api/dtx_members", get_discord_members, name="dtx_members"),
     path("api/discord-members/", get_discord_members, name="discord-members"),
     path("api/discord-user-guilds/", get_user_guilds, name="discord-user-guilds"),
+    path("api/logout", app_views.logout),
     path(
         "api/discord-voice-activity/",
         get_discord_voice_channel_activity,

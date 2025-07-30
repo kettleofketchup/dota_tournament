@@ -7,6 +7,7 @@ import type { UserType } from '../user/types';
 import { useUserStore } from '../../store/userStore';
 
 import { Button } from '~/components/ui/button';
+import { fetchCurrentUser } from '../api/api';
 type UserProps = {
   user: UserType;
 };
@@ -40,7 +41,6 @@ export const UserAvatarImg: React.FC<UserProps> = memo(({ user }) => {
 export const ProfileButton: React.FC = () => {
   const currentUser = useUserStore((state) => state.currentUser); // Zustand user state
   const navigate = useNavigate();
-
   const [showPopover, setShowPopover] = useState(false);
   const clearUser = useUserStore((state) => state.clearUser); // Zustand setter
   useEffect(() => {}, [currentUser.username]);
@@ -55,10 +55,11 @@ export const ProfileButton: React.FC = () => {
   const ref = useClickAway(() => {
     setShowPopover(false);
   });
-  const logoutClick = () => {
+  const logoutClick = async () => {
     console.log('Logout clicked');
     clearUser();
-    navigate('/logout');
+    navigate('/api/logout');
+    fetchCurrentUser();
   };
   const showPopoverOver = () => {
     return (

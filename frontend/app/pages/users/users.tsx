@@ -44,15 +44,6 @@ export function UsersPage() {
           );
         });
 
-  if (!user || !user.is_staff)
-    return (
-      <div className="flex justify-center h-full content-center mb-0 mt-0 p-0">
-        <div className="justify-self-center content-center align-middle">
-          <span> You are not authorized to view this page</span>
-        </div>
-      </div>
-    );
-
   return (
     <>
       <div className="flex flex-col items-start p-4 h-full  ">

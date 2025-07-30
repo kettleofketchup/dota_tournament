@@ -4,10 +4,10 @@ export default [
   index('routes/home.tsx'),
   route('tournaments', 'routes/tournaments.tsx'),
   route('tournament/:pk', 'routes/tournament.tsx'),
-
   route('about', 'routes/about.tsx'),
   route('blog', 'routes/blog.tsx'),
-  route('done', 'routes/login.tsx'),
   route('users', 'routes/users.tsx'),
   route('user/:pk', 'routes/user.tsx'),
+  route('logout', 'routes/logoutRedirect.tsx'),
+  route('done', 'routes/doneRedirect.tsx'),
 ] satisfies RouteConfig;

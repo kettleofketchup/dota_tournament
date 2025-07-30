@@ -1,7 +1,8 @@
 import * as React from 'react';
-import { LoginWithDiscordButton } from './login';
-import type { UserType } from '../user/types';
+import { memo } from 'react';
 import { useUserStore } from '../../store/userStore';
+import type { UserType } from '../user/types';
+import { LoginWithDiscordButton } from './login';
 
 const dtxLogo = () => {
   return (
@@ -29,23 +30,20 @@ const menuItems = () => {
       <li>
         <a href="/tournaments"> Tournaments</a>
       </li>
+
       <li>
-        <a href="/blog">Blog</a>
+        <a href="/users">Users</a>
       </li>
       {currentUser?.is_staff && (
         <>
           <li>
             <a href="/admin">Admin</a>
           </li>
-          <li>
-            <a href="/users">Users</a>
-          </li>
         </>
       )}
     </>
   );
 };
-import { memo, Suspense, useEffect } from 'react';
 export const ResponsiveAppBar: React.FC = memo(() => {
   const currentUser = useUserStore((state) => state.currentUser); // Zustand setter
 
