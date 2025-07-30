@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 import {
   fetchCurrentUser,
+  fetchDraft,
   fetchUsers,
   get_dtx_members,
   getGames,
@@ -9,6 +10,7 @@ import {
   getTournaments,
 } from '~/components/api/api';
 import axios from '~/components/api/axios';
+import type { DraftType } from '~/components/draft/types';
 import type {
   GameType,
   TeamType,
@@ -49,6 +51,10 @@ interface UserState {
   teams: TeamType[];
   tournament: TournamentType;
   tournaments: TournamentType[];
+  curDraftRound: number;
+  setCurDraftRound: (round: number) => void;
+  curDraft: DraftType;
+  setCurDraft: (draft: DraftType) => void;
 
   resetSelection: () => void;
   setGames: (games: GameType[]) => void;
@@ -83,6 +89,19 @@ export const useUserStore = create<UserState>()(
       games: [] as GameType[],
       teams: [] as TeamType[],
       team: {} as TeamType,
+      curDraft: {} as DraftType,
+
+      curDraftRound: 0,
+      setCurDraft: (draft: DraftType) => set({ curDraft: draft }),
+      updateCurrentDraft: async () => {
+        if (!get().curDraft.pk) {
+          console.debug('Current draft does not have a primary key (pk).');
+          return;
+        }
+        const draft = await fetchDraft(get().curDraft.pk);
+        set({ curDraft: draft });
+      },
+      setCurDraftRound: (round: number) => set({ curDraftRound: round }),
       currentUser: new User({} as UserType),
       userQuery: '',
       addUserQuery: '',
@@ -123,6 +142,7 @@ export const useUserStore = create<UserState>()(
 
         set({ currentUser: user });
       },
+
       setUser: (user: UserType) => {
         console.log('User set:', user);
         if (!user) {
@@ -142,6 +162,22 @@ export const useUserStore = create<UserState>()(
           console.log('userUserStore updated User', user);
         } else {
           get().addUser(user);
+        }
+        const tournaments = get().tournamentsByUser(user);
+        if (tournaments.length > 0) {
+          console.log('User has tournaments:', tournaments);
+          return;
+        }
+        tournaments.map((tournament) => {
+          tournament.users = tournament.users.map((u) => {
+            if (u.pk === user.pk) {
+              return user;
+            }
+            return u;
+          });
+        });
+        for (const tournament of tournaments) {
+          get().setTournament(tournament);
         }
       },
       clearUser: () => set({ currentUser: {} as UserType }),

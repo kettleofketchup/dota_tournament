@@ -1,7 +1,7 @@
 import { scan } from 'react-scan';
 
+import { useEffect } from 'react';
 import {
-  data,
   isRouteErrorResponse,
   Links,
   Meta,
@@ -10,14 +10,10 @@ import {
   ScrollRestoration,
 } from 'react-router';
 import { Toaster } from '~/components/ui/sonner';
-
 import type { Route } from './+types/root';
 import './app.css';
 import ResponsiveAppBar from './components/navbar/navbar';
-import Footer from './components/footer';
-import { useEffect, useMemo, useState } from 'react';
 import { useUserStore } from './store/userStore';
-import type { UserType } from './components/user/types';
 
 export const links: Route.LinksFunction = () => [
   { rel: 'preconnect', href: 'https://fonts.googleapis.com' },

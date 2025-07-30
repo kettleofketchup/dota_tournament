@@ -1,17 +1,10 @@
-import type {
-  UserType,
-  GuildMember,
-  GuildMembers,
-  UserClassType,
-} from './types';
-import axios from '~/components/api/axios';
 import {
   createUser,
   deleteUser,
   fetchUser,
   updateUser,
 } from '~/components/api/api';
-import { useUserStore } from '~/store/userStore';
+import type { GuildMember, UserClassType, UserType } from './types';
 
 export class User implements UserClassType {
   username!: string;
@@ -88,18 +81,21 @@ export class User implements UserClassType {
   }
   // Mutates the current instance with values from a GuildMember
   setFromGuildMember(member: GuildMember): void {
+    if (!member) {
+      throw new Error('Guild member is not defined.');
+    }
     if (!member.user) {
       throw new Error('Guild member is missing user info.');
     }
 
-    if (!this.nickname) {
-      this.nickname = member.nick ?? member.user.global_name ?? null;
-    }
+    this.nickname = member.nick ?? member.user.global_name ?? null;
+
     this.discordId = member.user.id;
     this.username = member.user.username;
     this.avatar = member.user.avatar ?? undefined;
     this.discordNickname = member.user.global_name ?? null;
     this.guildNickname = member.nick ?? null;
+    console.log('User set from GuildMember:', this, member);
   }
   getAvatarUrl(): string {
     if (!this.avatar) {

@@ -73,6 +73,18 @@ class Tournament(models.Model):
     def __str__(self):
         return self.name
 
+    @property
+    def captains(self):
+        """
+        Returns all users who are captains in this tournament.
+        This is used to populate the draft choices.
+        """
+        if not self.users.exists():
+            return []
+        if not self.teams.exists():
+            return []
+        return self.users.filter(teams_as_captain__tournament=self).distinct()
+
 
 class Team(models.Model):
     tournament = models.ForeignKey(
@@ -254,7 +266,9 @@ class Draft(models.Model):
 
 class DraftRound(models.Model):
     draft = models.ForeignKey(
-        Draft, related_name="draft_rounds", on_delete=models.CASCADE, 
+        Draft,
+        related_name="draft_rounds",
+        on_delete=models.CASCADE,
     )
     captain = models.ForeignKey(
         User, related_name="draft_rounds_captained", on_delete=models.CASCADE
@@ -282,8 +296,6 @@ class DraftRound(models.Model):
         return Team.objects.filter(
             tournament=self.draft.tournament, captain=self.captain
         ).first()
-
-
 
     def __str__(self):
         return f"{self.picker.username} picked {self.choice.username} in {self.tournament.name}"

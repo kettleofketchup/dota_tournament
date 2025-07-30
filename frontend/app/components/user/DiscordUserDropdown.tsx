@@ -77,6 +77,15 @@ const DiscordUserDropdown: React.FC<Props> = ({
   });
 
   const filteredUserComboOption = (user: GuildMember) => {
+    const getNickname = () => {
+      if (user.nick) {
+        return user.nick;
+      }
+      if (user.user.global_name) {
+        return user.user.global_name;
+      }
+      return user.user.username;
+    };
     return (
       <ComboboxOption
         key={user.user.id}
@@ -99,10 +108,11 @@ const DiscordUserDropdown: React.FC<Props> = ({
             className="w-8 h-8 rounded-full"
           />
 
-          <span>{user.user.username}</span>
+          <span>{getNickname()}</span>
 
+       
           {isUserAlreadyAdded(user) && (
-            <span className="rounded-full text-center bg-gray-900 text-sm text-gray-200">
+            <span className="rounded-full text-center bg-gray-900 text-sm text-red-200 p-1">
               Already Added
             </span>
           )}

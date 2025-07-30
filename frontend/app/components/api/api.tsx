@@ -128,6 +128,15 @@ export async function deleteTeam(pk: number): Promise<void> {
   await axios.delete(`/teams/${pk}/`);
 }
 
+export async function fetchDraft(pk: number): Promise<DraftType> {
+  const response = await axios.get<DraftType>(`/drafts/${pk}/`);
+  return response.data;
+}
+export async function fetchDraftRound(pk: number): Promise<DraftRoundType> {
+  const response = await axios.get<DraftRoundType>(`/draftrounds/${pk}/`);
+  return response.data;
+}
+
 export async function createDraft(
   pk: number,
   data: Partial<DraftType>,
@@ -140,12 +149,14 @@ export async function deleteDraft(pk: number): Promise<void> {
   await axios.delete(`/drafts/${pk}/`);
 }
 
-
 export async function createDraftRound(
   pk: number,
   data: Partial<DraftRoundType>,
 ): Promise<DraftRoundType> {
-  const response = await axios.post<DraftRoundType>(`/draftrounds/register`, data);
+  const response = await axios.post<DraftRoundType>(
+    `/draftrounds/register`,
+    data,
+  );
   return response.data;
 }
 

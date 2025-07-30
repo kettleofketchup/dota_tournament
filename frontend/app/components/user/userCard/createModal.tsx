@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import type {
   GuildMember,
   UserClassType,
@@ -32,30 +32,60 @@ import { User } from '~/components/user/user';
 import { useShallow } from 'zustand/react/shallow';
 import DiscordUserDropdown from '~/components/user/DiscordUserDropdown';
 import { UserEditForm } from '~/components/user/userCard/editForm';
+import { handleSave } from './handleSaveHook';
 
 interface Props {
   query?: string;
   setQuery?: React.Dispatch<React.SetStateAction<string>>;
 }
 export const UserCreateModal: React.FC<Props> = ({ query, setQuery }) => {
-  const currentUser: UserType = useUserStore((state) => state.currentUser); // Zustand setter
-  const users: UserType[] = useUserStore(useShallow((state) => state.users)); // Zustand setter
+  const currentUser: UserType = useUserStore((state) => state.currentUser);
+  const users: UserType[] = useUserStore(useShallow((state) => state.users));
 
   const [selectedDiscordUser, setSelectedDiscordUser] = useState<User>(
     new User({} as UserClassType),
   );
   const [form, setForm] = useState<UserType>({} as UserType);
+  const [errorMessage, setErrorMessage] = useState<
+    Partial<Record<keyof UserType, string>>
+  >({});
+  const [isSaving, setIsSaving] = useState(false);
+  const [statusMsg, setStatusMsg] = useState<string | null>('null');
+  const setUser = useUserStore((state) => state.setUser);
+
   const handleDiscordUserSelect = (user: GuildMember) => {
     setForm({} as UserType);
     setSelectedDiscordUser(new User({} as UserClassType));
     selectedDiscordUser.setFromGuildMember(user);
-    //This is necessary because we need a new instance of user to trigger a re-render
-    setSelectedDiscordUser(new User(selectedDiscordUser as UserType));
+    setSelectedDiscordUser(new User(selectedDiscordUser as UserClassType));
     setForm(selectedDiscordUser as UserType);
+    console.log('Selected Discord User:', selectedDiscordUser);
   };
+
+  useEffect(() => {
+    console.log('Form updated:', form);
+  }, [form, selectedDiscordUser]);
+
   if (!currentUser || (!currentUser.is_staff && !currentUser.is_superuser)) {
     return <></>;
   }
+
+  const onSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    handleSave(e, {
+      user: selectedDiscordUser,
+      form,
+      setForm,
+      setErrorMessage,
+      setIsSaving,
+      setStatusMsg,
+      setUser,
+      setDiscordUser: setSelectedDiscordUser,
+    });
+    setForm({} as UserType); // Reset form after submission
+    setSelectedDiscordUser(new User({} as UserClassType));
+  };
+
   return (
     <Dialog>
       <form>
@@ -89,23 +119,51 @@ export const UserCreateModal: React.FC<Props> = ({ query, setQuery }) => {
               Please fill in the details below to create a new user.
             </DialogDescription>
           </DialogHeader>
-          <DiscordUserDropdown
-            query={query}
-            setQuery={setQuery}
-            discrimUsers={users}
-            onSelect={handleDiscordUserSelect}
-          />
-
-          <UserEditForm
-            user={selectedDiscordUser}
-            form={form}
-            setForm={setForm}
-          />
-          <DialogFooter>
-            <DialogClose asChild>
-              <Button variant="outline">Cancel</Button>
-            </DialogClose>
-          </DialogFooter>
+          <form onSubmit={onSubmit}>
+            <DiscordUserDropdown
+              query={query}
+              setQuery={setQuery}
+              discrimUsers={users}
+              onSelect={handleDiscordUserSelect}
+            />
+            <UserEditForm
+              user={selectedDiscordUser}
+              form={form}
+              setForm={setForm}
+              setDiscordUser={setSelectedDiscordUser}
+            />
+            <DialogFooter>
+              <DialogClose asChild>
+                <Button variant="outline">Cancel</Button>
+              </DialogClose>
+              <Button
+                type="submit"
+                className="btn btn-primary btn-sm mt-3"
+                disabled={isSaving}
+                onClick={(e) => {
+                  e.preventDefault();
+                  handleSave(e, {
+                    user: selectedDiscordUser,
+                    form,
+                    setForm,
+                    setErrorMessage,
+                    setIsSaving,
+                    setStatusMsg,
+                    setUser,
+                    setDiscordUser: setSelectedDiscordUser,
+                  });
+                }}
+              >
+                {selectedDiscordUser && selectedDiscordUser.pk
+                  ? isSaving
+                    ? 'Saving...'
+                    : 'Save Changes'
+                  : isSaving
+                    ? 'Saving...'
+                    : 'Create User'}
+              </Button>
+            </DialogFooter>
+          </form>
         </DialogContent>
       </form>
     </Dialog>

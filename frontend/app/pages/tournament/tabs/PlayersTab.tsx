@@ -1,4 +1,4 @@
-import { memo, useState, type FormEvent } from 'react';
+import { memo, useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import { updateTournament } from '~/components/api/api';
 import type { TournamentType } from '~/components/tournament/types'; // Adjust the import path as necessary
@@ -24,45 +24,7 @@ export const PlayersTab: React.FC = memo(() => {
     (state) => state.getCurrentTournament,
   ); // Zustand setter
 
-  const removeUser = async (e: FormEvent, user: UserType) => {
-    e.preventDefault();
-    e.stopPropagation();
-    // Implement the logic to remove the user from the tournament
-    console.log(`Removing user: ${user.username}`);
-    const updatedUsers = tournament.users
-      ?.filter((u) => u.username !== user.username)
-      .map((u) => u.pk);
-
-    console.log('Updated users:', updatedUsers);
-
-    const updatedTournament = {
-      user_ids: updatedUsers,
-    };
-    if (tournament.pk === undefined) {
-      console.error('Tournament primary key is missing');
-      return;
-    }
-
-    toast.promise(updateTournament(tournament.pk, updatedTournament), {
-      loading: `Creating User ${user.username}.`,
-      success: (data) => {
-        tournament.users = tournament.users?.filter(
-          (u) => u.username !== user.username,
-        );
-        //Trigger rerender of tournament users
-        setTournament(data);
-        return `${user.username} has been removed`;
-      },
-      error: (err: any) => {
-        console.error('Failed to update tournament', err);
-        return `${user.username} has been removed`;
-      },
-    });
-    await getCurrentTournament();
-
-    setQuery(''); // Reset query after adding user
-  };
-
+  useEffect(() => {}, [tournament.users]);
   const addUserCallback = async (user: UserType) => {
     console.log(`Adding user: ${user.username}`);
     // Implement the logic to remove the user from the tournament

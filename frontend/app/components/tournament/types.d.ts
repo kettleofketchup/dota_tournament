@@ -43,7 +43,7 @@ export declare interface TournamentType {
   name?: string;
   date_played?: string;
   users?: UserType[];
-
+  
   teams?: Team[];
 
   pk?: number;

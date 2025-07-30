@@ -31,6 +31,7 @@ export function UsersPage() {
     if (!discordUsers || discordUsers.length === 0) {
       getDiscordUsers();
     }
+    
     getUsers();
   }, []);
   const filteredUsers =

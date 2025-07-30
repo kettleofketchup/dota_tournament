@@ -228,7 +228,7 @@ class TeamSerializer(serializers.ModelSerializer):
             "members",
             "dropin_members",
             "current_points",
-            "tournament",  # Include tournament PKs
+            "tournament",
         )
 
 
@@ -243,6 +243,7 @@ class TournamentSerializer(serializers.ModelSerializer):
         write_only=True,
         required=False,
     )
+    captains = TournamentUserSerializer(many=True, read_only=True)
 
     class Meta:
         model = Tournament
@@ -255,6 +256,7 @@ class TournamentSerializer(serializers.ModelSerializer):
             "winning_team",
             "state",
             "user_ids",  # Allow setting user IDs for the tournament
+            "captains",
         )
 
 

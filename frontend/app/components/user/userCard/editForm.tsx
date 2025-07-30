@@ -1,22 +1,21 @@
-import type { FormEvent } from 'react';
 import React, { useEffect, useMemo, useState } from 'react';
 
 import type { UserClassType, UserType } from '~/components/user/types';
 
-import { PositionEnum } from '~/components/user';
+import { PositionEnum, User } from '~/components/user';
 
 import { useUserStore } from '~/store/userStore';
-
-import { User } from '~/components/user/user';
 
 import { UserRoundPlusIcon } from 'lucide-react';
 import { toast } from 'sonner';
 import { DialogClose } from '~/components/ui/dialog';
+import { handleSave } from './handleSaveHook';
 
 interface Props {
   user: UserClassType; // Accepts both UserClassType and UserType
   form: UserType;
   setForm: React.Dispatch<React.SetStateAction<UserType>>;
+  setDiscordUser?: React.Dispatch<React.SetStateAction<User>>;
 }
 export const UserToast = (title: string) => {
   const toastTitle = () => {
@@ -31,7 +30,12 @@ export const UserToast = (title: string) => {
     description: 'Sunday, December 03, 2023 at 9:00 AM',
   });
 };
-export const UserEditForm: React.FC<Props> = ({ user, form, setForm }) => {
+export const UserEditForm: React.FC<Props> = ({
+  user,
+  form,
+  setForm,
+  setDiscordUser,
+}) => {
   const currentUser: UserType = useUserStore((state) => state.currentUser); // Zustand setter
   const [errorMessage, setErrorMessage] = useState<
     Partial<Record<keyof UserType, string>>
@@ -40,17 +44,24 @@ export const UserEditForm: React.FC<Props> = ({ user, form, setForm }) => {
   const [isSaving, setIsSaving] = useState(false);
   const [statusMsg, setStatusMsg] = useState<string | null>('null');
   const setUser = useUserStore((state) => state.setUser); // Zustand setter
+
   const handleChange = (field: keyof UserClassType, value: any) => {
     setForm((prev) => ({ ...prev, [field]: value }) as UserClassType);
   };
   useEffect(() => {
-    setForm(user as UserType); // Initialize form with user data
+    setForm(user as UserClassType); // Initialize form with user data
 
-    if (user.username !== form.username || user.discordId !== form.discordId) {
-      setForm({} as UserType); // Reset form if username or discordId changes
-      setForm(user as UserType); // Ensure form is set to the user data
+    if (
+      user.username !== form.username ||
+      user.discordId !== form.discordId ||
+      user.nickname !== form.nickname
+    ) {
+      console.log('User data changed, resetting form');
+      setForm(user as UserClassType); // Ensure form is set to the user data
     }
-  }, [user]);
+  }, [user, form.discordId, form.username]);
+
+  useEffect(() => {}, [user]);
   if (!currentUser || (!currentUser.is_staff && !currentUser.is_superuser)) {
     return (
       <div className="text-error">
@@ -58,66 +69,6 @@ export const UserEditForm: React.FC<Props> = ({ user, form, setForm }) => {
       </div>
     );
   }
-  const createErrorMessage = (val: Partial<Record<keyof UserType, string>>) => {
-    if (!val || Object.keys(val).length === 0)
-      return <h5>Error creating user:</h5>;
-
-    return (
-      <div className="text-error">
-        <ul>
-          {Object.entries(val).map(([field, message]) => (
-            <li key={field}>{message}</li>
-          ))}
-        </ul>
-      </div>
-    );
-  };
-
-  const handleSave = async (e: FormEvent) => {
-    setErrorMessage({}); // Clear old errors
-
-    const newUser: User = new User(user as UserType); // Create a new User instance
-
-    if (!user.pk) {
-      toast.promise(newUser.dbCreate(), {
-        loading: `Creating User ${user.username}.`,
-        success: (data: UserType) => {
-          setIsSaving(true);
-          setStatusMsg('User created successfully!');
-          setUser(data);
-          return `${user.username} has been Created`;
-        },
-        error: (err) => {
-          const val = err.response.data;
-          setErrorMessage(val);
-          console.error('Failed to create user', err);
-          return <>{createErrorMessage(val)}</>;
-        },
-      });
-      // Reset form after creation
-      setForm({} as UserType);
-      setIsSaving(false);
-    } else {
-      toast.promise(newUser.dbUpdate(form as UserType), {
-        loading: `Updating User ${user.username}.`,
-        success: (data) => {
-          setIsSaving(true);
-          setStatusMsg('User updated successfully!');
-          setUser(data);
-
-          return `${user.username} has been updated`;
-        },
-        error: (err) => {
-          console.error(`Failed to update user ${user.username}`, err);
-          setErrorMessage(err.response.data);
-          return `Failed to update user ${user.username}.`;
-        },
-      });
-      // Reset form after creation
-      setForm({} as UserType);
-      setIsSaving(false);
-    }
-  };
 
   const inputView = (key: string, label: string, type: string = 'text') => {
     return (
@@ -202,8 +153,21 @@ export const UserEditForm: React.FC<Props> = ({ user, form, setForm }) => {
       <div className="flex flex-row items-start gap-4">
         <DialogClose asChild>
           <button
-            onClick={handleSave}
+            onClick={(e) => {
+              e.preventDefault();
+              handleSave(e, {
+                user,
+                form,
+                setForm,
+                setErrorMessage,
+                setIsSaving,
+                setStatusMsg,
+                setUser,
+                setDiscordUser,
+              });
+            }}
             className="btn btn-primary btn-sm mt-3"
+            type="submit"
             disabled={isSaving}
           >
             {user && user.pk && (isSaving ? 'Saving...' : 'Save Changes')}

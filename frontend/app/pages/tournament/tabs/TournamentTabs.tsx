@@ -12,11 +12,9 @@ import { useUserStore } from '~/store/userStore';
 export default function TournamentTabs() {
 
     const users = useUserStore((state) => state.users); // Zustand setter
-    const getDiscordUsers = useUserStore((state) => state.getDiscordUsers); // Zustand setter
 
     const getUsers = useUserStore((state) => state.getUsers); // Zustand setter
     useEffect(() => {
-      getDiscordUsers();
       getUsers();
     }, []);
 
