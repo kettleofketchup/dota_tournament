@@ -39,9 +39,6 @@ export const UserEditForm: React.FC<Props> = ({ user, form, setForm }) => {
 
   const [isSaving, setIsSaving] = useState(false);
   const [statusMsg, setStatusMsg] = useState<string | null>('null');
-  const updateUserStore = useUserStore((state) => state.setUser); // Zustand setter
-  const addUser = useUserStore((state) => state.addUser); // Zustand setter
-  const getUsers = useUserStore((state) => state.getUsers); // Zustand setter
   const setUser = useUserStore((state) => state.setUser); // Zustand setter
   const handleChange = (field: keyof UserClassType, value: any) => {
     setForm((prev) => ({ ...prev, [field]: value }) as UserClassType);
@@ -49,12 +46,12 @@ export const UserEditForm: React.FC<Props> = ({ user, form, setForm }) => {
   useEffect(() => {
     setForm(user as UserType); // Initialize form with user data
 
-    if (user.username !== form.username) {
-      setForm({} as UserType); // Reset form if username changes
+    if (user.username !== form.username || user.discordId !== form.discordId) {
+      setForm({} as UserType); // Reset form if username or discordId changes
       setForm(user as UserType); // Ensure form is set to the user data
     }
   }, [user]);
-  if (!currentUser.is_staff && !currentUser.is_superuser) {
+  if (!currentUser || (!currentUser.is_staff && !currentUser.is_superuser)) {
     return (
       <div className="text-error">
         You do not have permission to edit users.
@@ -97,7 +94,8 @@ export const UserEditForm: React.FC<Props> = ({ user, form, setForm }) => {
           return <>{createErrorMessage(val)}</>;
         },
       });
-
+      // Reset form after creation
+      setForm({} as UserType);
       setIsSaving(false);
     } else {
       toast.promise(newUser.dbUpdate(form as UserType), {
@@ -115,6 +113,8 @@ export const UserEditForm: React.FC<Props> = ({ user, form, setForm }) => {
           return `Failed to update user ${user.username}.`;
         },
       });
+      // Reset form after creation
+      setForm({} as UserType);
       setIsSaving(false);
     }
   };
