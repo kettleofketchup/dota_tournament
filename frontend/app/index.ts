@@ -8,8 +8,7 @@ import type {
 import { User } from '~/components/user';
 import { AvatarUrl } from '~/components/user/avatar';
 
-import { getLogger } from './lib/logger';
-export { AvatarUrl, User, getLogger };
+export { AvatarUrl, User };
 export type { GuildMember, GuildMembers, UserClassType, UserType, UsersType };
 
 import type {

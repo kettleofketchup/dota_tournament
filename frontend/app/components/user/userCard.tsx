@@ -13,7 +13,7 @@ interface Props {
   edit?: boolean;
   saveFunc?: string;
   compact?: boolean;
-  deleteButtonType: 'tournament' | 'normal';
+  deleteButtonType?: 'tournament' | 'normal';
 }
 
 export const UserCard: React.FC<Props> = memo(

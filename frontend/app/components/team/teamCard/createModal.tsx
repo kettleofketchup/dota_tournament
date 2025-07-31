@@ -1,21 +1,26 @@
+import { getLogger } from '~/lib/logger';
+
+import { PlusCircleIcon } from 'lucide-react';
 import React, { useState } from 'react';
+import { Button } from '~/components/ui/button';
+import DiscordUserDropdown from '~/components/user/DiscordUserDropdown';
+import { User } from '~/components/user/user';
+import { UserEditForm } from '~/components/user/userCard/editForm';
+import { useUserStore } from '~/store/userStore';
+
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from '~/components/ui/tooltip'; // Adjust path as needed
+
 import type {
   GuildMember,
   UserClassType,
   UserType,
 } from '~/components/user/types';
 
-import { useUserStore } from '~/store/userStore';
-
-import { PlusCircleIcon } from 'lucide-react';
-
-import { Button } from '~/components/ui/button';
 import {
   Dialog,
   DialogClose,
@@ -26,10 +31,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '~/components/ui/dialog';
-import { User } from '~/components/user/user';
-
-import DiscordUserDropdown from '~/components/user/DiscordUserDropdown';
-import { UserEditForm } from '~/components/user/userCard/editForm';
+const log = getLogger('createModal');
 
 interface Props {}
 export const TeamCreateModal: React.FC<Props> = (props) => {
@@ -43,7 +45,7 @@ export const TeamCreateModal: React.FC<Props> = (props) => {
 
   const handleDiscordUserSelect = (user: GuildMember) => {
     setForm({} as UserType);
-    console.log(selectedDiscordUser);
+    log.debug(selectedDiscordUser);
     selectedDiscordUser.setFromGuildMember(user);
     //This is necessary because we need a new instance of user to trigger a re-render
     setSelectedDiscordUser(new User(selectedDiscordUser as UserType));

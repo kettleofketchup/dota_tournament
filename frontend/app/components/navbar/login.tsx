@@ -7,7 +7,7 @@ import type { UserType } from '../user/types';
 import { useUserStore } from '../../store/userStore';
 
 import { Button } from '~/components/ui/button';
-import { getLogger } from '~/index';
+import { getLogger } from '~/lib/logger';
 const log = getLogger('login');
 type UserProps = {
   user: UserType;

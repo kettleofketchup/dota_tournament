@@ -5,10 +5,13 @@ import {
   ComboboxOptions,
 } from '@headlessui/react';
 import React, { useCallback, useEffect, useState } from 'react';
+import { AvatarUrl } from '~/index';
 import { useUserStore } from '../../store/userStore';
 import { get_dtx_members } from '../api/api';
 import type { GuildMember, GuildMembers, UsersType } from '../user/types';
-import { AvatarUrl } from '~/index';
+import { getLogger } from '~/lib/logger';
+
+const log = getLogger('DiscordUserDropdown');
 interface Props {
   query?: string;
   setQuery?: React.Dispatch<React.SetStateAction<string>>;
@@ -30,7 +33,7 @@ const DiscordUserDropdown: React.FC<Props> = ({
 
   const getDiscordUsers = useCallback(async () => {
     try {
-      console.log('User fetching');
+      log.debug('User fetching');
       get_dtx_members()
         .then((response) => {
           setDiscordUsers(response);
@@ -57,8 +60,8 @@ const DiscordUserDropdown: React.FC<Props> = ({
       ? discordUsers
       : discordUsers.filter((person: GuildMember) => {
           return (
-            person.user.username.toLowerCase().includes(query.toLowerCase()) ||
-            person.user.nick?.toLowerCase().includes(query.toLowerCase())
+            person.user.username.toLowerCase().includes(query?.toLowerCase()) ||
+            person.user.nick?.toLowerCase().includes(query?.toLowerCase())
           );
         });
 
@@ -70,11 +73,14 @@ const DiscordUserDropdown: React.FC<Props> = ({
       )
     : filteredUsers;
 
-  const isUserAlreadyAdded = useCallback((user: GuildMember) => {
-    return discrimUsers
-      ? discrimUsers.some((du) => du?.discordId === user.user.id)
-      : false;
-  });
+  const isUserAlreadyAdded = useCallback(
+    (user: GuildMember) => {
+      return discrimUsers
+        ? discrimUsers.some((du) => du?.discordId === user.user.id)
+        : false;
+    },
+    [discrimUsers],
+  );
 
   const filteredUserComboOption = (user: GuildMember) => {
     const getNickname = () => {

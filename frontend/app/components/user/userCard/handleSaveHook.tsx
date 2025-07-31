@@ -3,6 +3,9 @@ import React from 'react';
 import { toast } from 'sonner';
 import type { UserClassType, UserType } from '~/components/user/types';
 import { User } from '~/components/user/user';
+import { getLogger } from '~/lib/logger';
+
+const log = getLogger('handleSaveHook');
 
 export const createErrorMessage = (
   val: Partial<Record<keyof UserType, string>>,
@@ -50,10 +53,10 @@ export const handleSave = async (
   setErrorMessage({}); // Clear old errors
   const newUser: User = new User(user as UserType); // Create a new User instance
   const resetForm = () => {
-    console.log('resetting form');
+    log.debug('resetting form');
     if (setDiscordUser) {
       // Reset Discord user if setDiscordUser is provided
-      console.log('postSave: resetting Discord user');
+      log.debug('postSave: resetting Discord user');
       setDiscordUser(new User({} as UserClassType));
     }
     setForm({} as UserClassType); // Reset form after submission

@@ -2,12 +2,13 @@ import { motion } from 'framer-motion';
 import type { FormEvent } from 'react';
 import React, { useEffect, useState } from 'react';
 import type { TeamType } from '~/components/tournament/types';
+import { getLogger } from '~/lib/logger';
 import { useUserStore } from '~/store/userStore';
 import { deleteUser } from '../api/api';
 import type { UserType } from '../user/types';
 import TeamEditModal from './teamCard/editModal';
 import { TeamTable } from './teamTable/teamTable';
-
+const log = getLogger('teamCard');
 
 interface Props {
   team: TeamType;
@@ -39,12 +40,12 @@ export const TeamCard: React.FC<Props> = ({
 
   useEffect(() => {
     if (team) {
-      console.log(`UserCard: user updated ${team.name}`);
+      log.debug(`UserCard: user updated ${team.name}`);
     }
   }, [team]);
 
   useEffect(() => {
-    console.log(`TeamCard: team updated ${team.name}`);
+    log.debug(`TeamCard: team updated ${team.name}`);
   }, [team]);
   const handleDelete = async (e: FormEvent) => {
     if (removeCallBack !== undefined) {
@@ -56,7 +57,7 @@ export const TeamCard: React.FC<Props> = ({
     setIsSaving(true);
     try {
       await deleteUser(team?.pk);
-      console.log('User deleted successfully');
+      log.debug('User deleted successfully');
       setError(false);
       setForm({ username: 'Success!' } as UserType);
       delUser(form);
@@ -77,7 +78,7 @@ export const TeamCard: React.FC<Props> = ({
   const [saveCallback, setSaveCallBack] = useState(saveFunc || 'save');
 
   useEffect(() => {
-    console.log(`team updated ${team.name}`);
+    log.debug(`team updated ${team.name}`);
   }, [team]);
   const getAverageMMR = () => {
     if (!team.members || team.members.length === 0) return 'N/A';

@@ -7,9 +7,12 @@ import { SearchUserDropdown } from '~/components/user/searchUser';
 import type { UserClassType, UserType } from '~/components/user/types';
 import { User } from '~/components/user/user';
 import { UserCard } from '~/components/user/userCard';
+import { getLogger } from '~/lib/logger';
 import { useUserStore } from '~/store/userStore';
 import { hasErrors } from '../hasErrors';
 import { AddPlayerModal } from './players/addPlayerModal';
+
+const log = getLogger('PlayersTab');
 
 export const PlayersTab: React.FC = memo(() => {
   const allUsers = useUserStore((state) => state.users); // Zustand setter
@@ -26,7 +29,7 @@ export const PlayersTab: React.FC = memo(() => {
 
   useEffect(() => {}, [tournament.users]);
   const addUserCallback = async (user: UserType) => {
-    console.log(`Adding user: ${user.username}`);
+    log.debug(`Adding user: ${user.username}`);
     // Implement the logic to remove the user from the tournament
     if (user.pk && tournament.user_ids && user.pk in tournament.user_ids) {
       console.error('User already exists in the tournament');
@@ -39,7 +42,7 @@ export const PlayersTab: React.FC = memo(() => {
       thisUser.dbFetch();
     }
     if (updatedUsers?.includes(thisUser.pk)) {
-      console.log();
+      log.debug();
       console.error('User in the  tournament');
       return;
     }

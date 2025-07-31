@@ -10,6 +10,7 @@ import {
 } from '~/components/ui/table';
 import { PositionEnum } from '~/components/user';
 import type { UserType } from '~/components/user/types';
+import { AvatarUrl } from '~/index';
 interface TeamTableProps {
   team: TeamType;
 }
@@ -53,7 +54,7 @@ export const TeamTable: React.FC<TeamTableProps> = ({ team }) => {
               <div className="flex items-center gap-2">
                 <span className="avatar w-8 h-8">
                   <img
-                    src={user.avatarUrl}
+                    src={AvatarUrl(user)}
                     alt={user.username}
                     className="rounded-full"
                   />

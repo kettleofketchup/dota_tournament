@@ -37,14 +37,12 @@ const TeamsView: React.FC<TeamsViewProps> = ({ teams }) => (
          mb-0 mt-0 p-0 bg-base-900  w-full"
   >
     {teams.map((team, idx) => (
-      <>
-        <TeamCard
-          team={team}
-          key={`team-${idx}-${team.name}`}
-          edit={false}
-          compact={true}
-        />
-      </>
+      <TeamCard
+        team={team}
+        key={`team-${idx}-${team.name}`}
+        edit={false}
+        compact={true}
+      />
     ))}
   </div>
 );
@@ -103,7 +101,7 @@ export const AddTeamsModal: React.FC<Props> = ({ users, teamSize = 5 }) => {
           </Button>
         </div>
         <div className="overflow-y-auto max-h-[70vh] pr-2">
-          <TeamsView teams={teams} />
+          <TeamsView teams={teams} key={`teams-${teams.id}`} />
         </div>
         <DialogFooter>
           <CreateTeamsButton

@@ -4,7 +4,11 @@ import {
   fetchUser,
   updateUser,
 } from '~/components/api/api';
-import type { GuildMember, UserClassType, UserType } from './types';
+import type { GuildMember, UserClassType, UserType } from '~/index';
+
+import { getLogger } from '~/lib/logger';
+
+const log = getLogger('user');
 
 export class User implements UserClassType {
   username!: string;
@@ -82,7 +86,7 @@ export class User implements UserClassType {
   // Mutates the current instance with values from a GuildMember
   setFromGuildMember(member: GuildMember): void {
     if (!member) {
-      console.log('Guild member is not defined.');
+      log.debug('Guild member is not defined.');
     }
     if (!member.user) {
       throw new Error('Guild member is missing user info.');
@@ -95,7 +99,7 @@ export class User implements UserClassType {
     this.avatar = member.user.avatar ?? undefined;
     this.discordNickname = member.user.global_name ?? null;
     this.guildNickname = member.nick ?? null;
-    console.log('User set from GuildMember:', this, member);
+    log.debug('User set from GuildMember:', this, member);
   }
   getAvatarUrl(): string {
     if (!this.avatar) {

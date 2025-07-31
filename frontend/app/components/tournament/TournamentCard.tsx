@@ -1,16 +1,15 @@
-import React, { use, useEffect, useState } from 'react';
 import type { FormEvent } from 'react';
-import type {
-  TournamentType,
-  GameType,
-  TeamType,
-} from '~/components/tournament/types';
+import React, { useEffect, useState } from 'react';
+import type { TournamentType } from '~/components/tournament/types';
 import type { UserType } from '~/components/user/types'; // Corrected import path for UserType
-import { TOURNAMENT_TYPE, STATE_CHOICES } from './constants';
+import { getLogger } from '~/lib/logger';
+import { STATE_CHOICES } from './constants';
 
-import axios from '../api/axios';
+const log = getLogger('TournamentCard');
+
 import { useNavigate } from 'react-router';
 import { useUserStore } from '~/store/userStore';
+import axios from '../api/axios';
 import { UsersDropdown } from '../user/UsersDropdown';
 
 interface Props {
@@ -107,7 +106,7 @@ export const TournamentCard: React.FC<Props> = ({
   useEffect(() => {}, [tournament, isSaving]);
 
   useEffect(() => {
-    console.log('reset form', tournament);
+    log.debug('reset form', tournament);
     setForm(tournament);
   }, [tournament]);
 

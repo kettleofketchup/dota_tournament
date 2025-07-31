@@ -32,7 +32,9 @@ import { User } from '~/components/user/user';
 import { useShallow } from 'zustand/react/shallow';
 import DiscordUserDropdown from '~/components/user/DiscordUserDropdown';
 import { UserEditForm } from '~/components/user/userCard/editForm';
+import { getLogger } from '~/lib/logger';
 import { handleSave } from './handleSaveHook';
+const log = getLogger('createModal');
 
 interface Props {
   query?: string;
@@ -59,11 +61,11 @@ export const UserCreateModal: React.FC<Props> = ({ query, setQuery }) => {
     selectedDiscordUser.setFromGuildMember(user);
     setSelectedDiscordUser(new User(selectedDiscordUser as UserClassType));
     setForm(selectedDiscordUser as UserType);
-    console.log('Selected Discord User:', selectedDiscordUser);
+    log.debug('Selected Discord User:', selectedDiscordUser);
   };
 
   useEffect(() => {
-    console.log('Form updated:', form);
+    log.debug('Form updated:', form);
   }, [form, selectedDiscordUser]);
 
   if (!currentUser || (!currentUser.is_staff && !currentUser.is_superuser)) {

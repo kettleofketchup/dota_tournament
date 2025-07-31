@@ -22,6 +22,9 @@ import type {
   UserType,
 } from '~/components/user/types';
 import { User } from '~/components/user/user';
+import { getLogger } from '~/lib/logger';
+
+const log = getLogger('userStore');
 
 interface UserState {
   currentUser: UserType;
@@ -116,7 +119,7 @@ export const useUserStore = create<UserState>()(
       },
       getDiscordUsers: async () => {
         try {
-          console.log('User fetching');
+          log.debug('User fetching');
           get_dtx_members()
             .then((response) => {
               get().setDiscordUsers(response);
@@ -138,13 +141,13 @@ export const useUserStore = create<UserState>()(
       discordUsers: [] as GuildMembers,
       setDiscordUsers: (discordUsers: GuildMembers) => set({ discordUsers }),
       setCurrentUser: (user) => {
-        console.log('User set:', user);
+        log.debug('User set:', user);
 
         set({ currentUser: user });
       },
 
       setUser: (user: UserType) => {
-        console.log('User set:', user);
+        log.debug('User set:', user);
         if (!user) {
           console.error('Attempted to set user to null or undefined');
           return;
@@ -159,7 +162,7 @@ export const useUserStore = create<UserState>()(
           const updatedUsers = [...users];
           updatedUsers[userIndex] = user;
           set({ users: updatedUsers });
-          console.log('userUserStore updated User', user);
+          log.debug('userUserStore updated User', user);
         } else {
           get().addUser(user);
         }
@@ -167,22 +170,22 @@ export const useUserStore = create<UserState>()(
         if (tournaments.length == 0) {
           return;
         }
-        console.log('User tournaments', tournaments);
+        log.debug('User tournaments', tournaments);
         for (const tournament of tournaments) {
           var change = false;
-          console.log('User tournament: ', tournament.pk, user);
+          log.debug('User tournament: ', tournament.pk, user);
 
           tournament.users = tournament.users?.map((u) => {
             if (u.pk === user.pk) {
-              console.log('Updating user in tournament:', tournament.pk, user);
+              log.debug('Updating user in tournament:', tournament.pk, user);
               change = true;
               return user;
             }
             return u;
           });
-          console.log('Updating tournament with user:', tournament.users, user);
+          log.debug('Updating tournament with user:', tournament.users, user);
           if (change) {
-            console.log('Setting tournament with updated user:', tournament);
+            log.debug('Setting tournament with updated user:', tournament);
             get().setTournament(tournament);
           }
         }
@@ -209,7 +212,7 @@ export const useUserStore = create<UserState>()(
         try {
           const response = await fetchUsers();
           set({ users: response });
-          console.log('User fetched successfully:', response);
+          log.debug('User fetched successfully:', response);
         } catch (error) {
           console.error('Error fetching users:', error);
         }
@@ -219,9 +222,9 @@ export const useUserStore = create<UserState>()(
         try {
           const response = await fetchCurrentUser();
           set({ currentUser: response });
-          console.log('User fetched successfully:', response);
+          log.debug('User fetched successfully:', response);
         } catch (error) {
-          console.log('No User logged in:', error);
+          log.debug('No User logged in:', error);
           set({ currentUser: {} as UserType });
         }
       },
@@ -260,7 +263,7 @@ export const useUserStore = create<UserState>()(
         try {
           const response = await getGames();
           set({ games: response as GameType[] });
-          console.log('Games fetched successfully:', response);
+          log.debug('Games fetched successfully:', response);
         } catch (error) {
           console.error('Error fetching games:', error);
         }
@@ -269,7 +272,7 @@ export const useUserStore = create<UserState>()(
         try {
           const response = await getTeams();
           set({ games: response as TeamType[] });
-          console.log('Games fetched successfully:', response);
+          log.debug('Games fetched successfully:', response);
         } catch (error) {
           console.error('Error fetching games:', error);
         }
@@ -292,7 +295,7 @@ export const useUserStore = create<UserState>()(
         try {
           const response = await getTournaments();
           set({ tournaments: response as TournamentType[] });
-          console.log('Tournaments fetched successfully:', response);
+          log.debug('Tournaments fetched successfully:', response);
         } catch (error) {
           console.error('Error fetching tournaments:', error);
         }
@@ -306,7 +309,7 @@ export const useUserStore = create<UserState>()(
       createUser: async (user: UserType) => {
         try {
           //set({ users: response });
-          // console.log('User fetched successfully:', response);
+          // log.debug('User fetched successfully:', response);
         } catch (error) {
           console.error('Error fetching users:', error);
         }
@@ -324,8 +327,8 @@ export const useUserStore = create<UserState>()(
         users: state.users,
       }), // optionally limit what's stored
       onRehydrateStorage: () => (state) => {
-        console.log('Rehydrating user store...');
-        console.log('Current user:', state?.currentUser);
+        log.debug('Rehydrating user store...');
+        log.debug('Current user:', state?.currentUser);
         if (state?.currentUser.username === undefined) {
           state?.getCurrentUser();
         }

@@ -6,9 +6,12 @@ import { SearchTeamsDropdown } from '~/components/team/searchTeams';
 import { TeamCard } from '~/components/team/teamCard';
 import type { TournamentType } from '~/components/tournament/types'; // Adjust the import path as necessary
 import type { UserType } from '~/components/user/types';
+import { getLogger } from '~/lib/logger';
 import { hasErrors } from '~/pages/tournament/hasErrors';
 import { useUserStore } from '~/store/userStore';
 import { AddTeamsModal } from './teams/addTeamsModal';
+
+const log = getLogger('TeamsTab');
 
 export const TeamsTab: React.FC = memo(() => {
   const tournament = useUserStore((state) => state.tournament);
@@ -33,12 +36,12 @@ export const TeamsTab: React.FC = memo(() => {
     e.preventDefault();
     e.stopPropagation();
     // Implement the logic to remove the user from the tournament
-    console.log(`Removing user: ${user.username}`);
+    log.debug(`Removing user: ${user.username}`);
     const updatedUsers = tournament.users
       ?.filter((u) => u.username !== user.username)
       .map((u) => u.pk);
 
-    console.log('Updated users:', updatedUsers);
+    log.debug('Updated users:', updatedUsers);
 
     const updatedTournament = {
       user_ids: updatedUsers,
@@ -66,7 +69,7 @@ export const TeamsTab: React.FC = memo(() => {
   };
 
   const addUserCallback = async (user: UserType) => {
-    console.log(`Adding user: ${user.username}`);
+    log.debug(`Adding user: ${user.username}`);
     // Implement the logic to remove the user from the tournament
     if (user.pk && tournament.user_ids && user.pk in tournament.user_ids) {
       console.error('User already exists in the tournament');
@@ -75,7 +78,7 @@ export const TeamsTab: React.FC = memo(() => {
     const updatedUsers = tournament.users?.map((u) => u.pk);
 
     if (updatedUsers?.includes(user)) {
-      console.log();
+      log.debug();
       console.error('User in the  tournament');
       return;
     }
@@ -129,7 +132,7 @@ export const TeamsTab: React.FC = memo(() => {
           });
 
   useEffect(() => {
-    console.log('Tournament users:', tournament.users);
+    log.debug('Tournament users:', tournament.users);
   }, [tournament, filteredTeams]);
   if (!tournament || !tournament.users || tournament.users.length === 0) {
     return (

@@ -1,11 +1,11 @@
 import { useState } from 'react';
 import DiscordUserDropdown from '~/components/user/DiscordUserDropdown';
-import type {
-  GuildMember,
-  UserClassType
-} from '~/components/user/types';
+import type { GuildMember, UserClassType } from '~/components/user/types';
 import { User } from '~/components/user/user';
 import { UserCard } from '~/components/user/userCard';
+import { getLogger } from '~/lib/logger';
+
+const log = getLogger('archive');
 
 interface Props {}
 
@@ -17,7 +17,7 @@ export const CreateUserButton = () => {
   );
 
   const handleDiscordUserSelect = (user: GuildMember) => {
-    console.log(selectedDiscordUser);
+    log.debug(selectedDiscordUser);
     selectedDiscordUser.setFromGuildMember(user);
     //This is necessary because we need a new instance of user to trigger a re-render
     setSelectedDiscordUser(new User(selectedDiscordUser as UserClassType));

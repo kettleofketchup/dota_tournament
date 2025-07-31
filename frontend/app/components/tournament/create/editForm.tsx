@@ -1,12 +1,19 @@
-import React, { use, useEffect, useState } from 'react';
+import { getLogger } from '~/lib/logger';
+
 import type { FormEvent } from 'react';
-import type {
-  GuildMember,
-  UserType,
-  UserClassType,
-} from '~/components/user/types';
+import React, { useEffect, useState } from 'react';
+import { toast } from 'sonner';
+import { Tournament } from '~/components/tournament/tournament';
+import { DialogClose } from '~/components/ui/dialog';
+import { Label } from '~/components/ui/label';
 import { useUserStore } from '~/store/userStore';
-import { TOURNAMENT_TYPE, STATE_CHOICES } from '../constants';
+import { TOURNAMENT_TYPE } from '../constants';
+import type { TournamentClassType, TournamentType } from '../types';
+
+const log = getLogger('editForm');
+
+import type { UserType } from '~/components/user/types';
+
 import {
   Select,
   SelectContent,
@@ -17,22 +24,11 @@ import {
   SelectValue,
 } from '~/components/ui/select';
 
-import { Button } from '~/components/ui/button';
-import { Label } from '~/components/ui/label';
-import { Input } from '~/components/ui/input';
-import { Tournament } from '~/components/tournament/tournament';
-
-import { DialogClose } from '~/components/ui/dialog';
-import { Toaster } from '~/components/ui/sonner';
-
 interface Props {
   tourn: TournamentClassType; // Accepts both UserClassType and TournamentType
   form: TournamentClassType;
   setForm: React.Dispatch<React.SetStateAction<TournamentClassType>>;
 }
-import { toast } from 'sonner';
-import type { TournamentClassType, TournamentType } from '../types';
-import { updateTournament } from '~/components/api/api';
 
 export const TournamentEditForm: React.FC<Props> = ({
   tourn,
@@ -83,7 +79,7 @@ export const TournamentEditForm: React.FC<Props> = ({
     setErrorMessage({}); // Clear old errors
 
     tourn = new Tournament(form as TournamentType); // Create a new instance of Tournament with the form data
-    console.log(tourn);
+    log.debug(tourn);
     if (!tourn.pk) {
       toast.promise(tourn.dbCreate(), {
         loading: `Creating tournament .`,

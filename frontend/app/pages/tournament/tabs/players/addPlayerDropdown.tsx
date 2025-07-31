@@ -9,7 +9,10 @@ import { User } from '~/components/user/user';
 
 import { useState, type FormEvent } from 'react';
 import { AvatarUrl } from '~/index';
+import { getLogger } from '~/lib/logger';
 import { useUserStore } from '~/store/userStore';
+
+const log = getLogger('addPlayerDropdown');
 interface Props {
   addedUsers?: UserType[];
   query: string;
@@ -44,23 +47,23 @@ export const AddPlayerDropdown: React.FC<Props> = ({
 
   const handleSearchUserSelect = async (userName: UserType | string | null) => {
     if (!userName || userName === undefined || userName === '') {
-      console.log(userName);
+      log.debug(userName);
 
       setSearchedPerson(new User({} as UserClassType));
       return;
     }
 
     if (typeof userName === 'object') {
-      console.log(userName);
+      log.debug(userName);
 
       userName = userName.username || userName.nickname || '';
     }
     if (!userName || userName === undefined || userName === '') {
-      console.log('No user selected, resetting searched person');
+      log.debug('No user selected, resetting searched person');
       setSearchedPerson(new User({} as UserClassType));
       return;
     }
-    console.log(`Selected user: ${userName}`, userName);
+    log.debug(`Selected user: ${userName}`, userName);
 
     const user: UserType | undefined = users.find(
       (user) =>
@@ -70,13 +73,13 @@ export const AddPlayerDropdown: React.FC<Props> = ({
     );
 
     if (user === undefined) {
-      console.log('User not found, resetting searched person');
+      log.debug('User not found, resetting searched person');
       setSearchedPerson(new User({} as UserClassType));
       return;
     }
     setSearchedPerson(new User(user as UserClassType));
     if (addPlayerCallback !== undefined) {
-      console.log('Adding player callback with user:', user);
+      log.debug('Adding player callback with user:', user);
       await addPlayerCallback(user as UserType);
       setQuery(''); // Reset query after selection
     }

@@ -1,15 +1,23 @@
+import { Trash2 } from 'lucide-react';
 import type { FormEvent } from 'react';
 import React, { useCallback } from 'react';
+import { toast } from 'sonner';
+import { useShallow } from 'zustand/react/shallow';
+import { updateTournament } from '~/components/api/api';
+import { DeleteButtonTooltip } from '~/components/reusable/deleteButton';
+import { Button } from '~/components/ui/button';
+import { getLogger } from '~/lib/logger';
+import { useUserStore } from '~/store/userStore';
+
+const log = getLogger('playerRemoveButton');
+
 import {
   Tooltip,
-  TooltipContent,
   TooltipProvider,
-  TooltipTrigger
+  TooltipTrigger,
 } from '~/components/ui/tooltip'; // Adjust path as needed
-import type {
-  UserType
-} from '~/components/user/types';
 
+import type { UserType } from '~/components/user/types';
 
 interface Props {
   users: UserType[];
@@ -17,14 +25,6 @@ interface Props {
   setQuery: React.Dispatch<React.SetStateAction<string>>;
 }
 
-
-import { Trash2 } from 'lucide-react';
-import { toast } from 'sonner';
-import { useShallow } from 'zustand/react/shallow';
-import { updateTournament } from '~/components/api/api';
-import { Button } from '~/components/ui/button';
-import { useUserStore } from '~/store/userStore';
-import { DeleteButtonTooltip } from '~/components/reusable/deleteButton';
 interface Props {
   users: UserType[];
 
@@ -33,77 +33,89 @@ interface Props {
   setQuery: React.Dispatch<React.SetStateAction<string>>;
   addPlayerCallback?: (user: UserType) => Promise<void>;
   removePlayerCallback?: (e: FormEvent, user: UserType) => Promise<void>;
-}interface PropsRemoveButton {
+}
+interface PropsRemoveButton {
   user: UserType;
-  disabled?: boolean;}
+  disabled?: boolean;
+}
 interface DeleteTooltipProps {
   tooltipText?: string;
 }
 
-
-export const PlayerRemoveButton: React.FC<PropsRemoveButton> = ({user, disabled}) => {
+export const PlayerRemoveButton: React.FC<PropsRemoveButton> = ({
+  user,
+  disabled,
+}) => {
   const tournament = useUserStore(useShallow((state) => state.tournament));
-  const setAddUserQuery = useUserStore(useShallow((state) => state.setAddUserQuery));
-  const setDiscordUserQuery = useUserStore(useShallow((state) => state.setDiscordUserQuery));
-  const setTournament = useUserStore(useShallow((state) => state.setTournament));
+  const setAddUserQuery = useUserStore(
+    useShallow((state) => state.setAddUserQuery),
+  );
+  const setDiscordUserQuery = useUserStore(
+    useShallow((state) => state.setDiscordUserQuery),
+  );
+  const setTournament = useUserStore(
+    useShallow((state) => state.setTournament),
+  );
 
-  const removeUser = useCallback( async (e: FormEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    // Implement the logic to remove the user from the tournament
-    console.log(`Removing user: ${user.username}`);
-    const updatedUsers = tournament.users
-      ?.filter((u) => u.username !== user.username)
-      .map((u) => u.pk);
+  const removeUser = useCallback(
+    async (e: FormEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+      // Implement the logic to remove the user from the tournament
+      log.debug(`Removing user: ${user.username}`);
+      const updatedUsers = tournament.users
+        ?.filter((u) => u.username !== user.username)
+        .map((u) => u.pk);
 
-    console.log('Updated users:', updatedUsers);
+      log.debug('Updated users:', updatedUsers);
 
-    const updatedTournament = {
-      user_ids: updatedUsers,
-    };
-    if (tournament.pk === undefined) {
-      console.error('Tournament primary key is missing');
-      return;
-    }
+      const updatedTournament = {
+        user_ids: updatedUsers,
+      };
+      if (tournament.pk === undefined) {
+        console.error('Tournament primary key is missing');
+        return;
+      }
 
-    toast.promise(updateTournament(tournament.pk, updatedTournament), {
-      loading: `Creating User ${user.username}.`,
-      success: (data) => {
-        tournament.users = tournament.users?.filter(
-          (u) => u.username !== user.username,
-        );
-        //Trigger rerender of tournament users
-        setTournament(data);
-        return `${user.username} has been removed`;
-      },
-      error: (err: any) => {
-        console.error('Failed to update tournament', err);
-        return `${user.username} has been removed`;
-      },
-    });
+      toast.promise(updateTournament(tournament.pk, updatedTournament), {
+        loading: `Creating User ${user.username}.`,
+        success: (data) => {
+          tournament.users = tournament.users?.filter(
+            (u) => u.username !== user.username,
+          );
+          //Trigger rerender of tournament users
+          setTournament(data);
+          return `${user.username} has been removed`;
+        },
+        error: (err: any) => {
+          console.error('Failed to update tournament', err);
+          return `${user.username} has been removed`;
+        },
+      });
 
-    setAddUserQuery(''); // Reset query after adding user
-    setDiscordUserQuery(''); // Reset Discord query after adding user
-  }, [tournament, ] );
+      setAddUserQuery(''); // Reset query after adding user
+      setDiscordUserQuery(''); // Reset Discord query after adding user
+    },
+    [tournament],
+  );
   // Find all users not already in the tournament
   return (
     <TooltipProvider>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={removeUser}
-              disabled={disabled}
-              aria-label="Delete"
-              className='bg-red-950 hover:bg-red-600 text-white'
-            >
-              <Trash2 className="h-4 w-4" color="red" />
-            </Button>
-          </TooltipTrigger>
-          <DeleteButtonTooltip tooltipText='Delete item' />
-        </Tooltip>
-      </TooltipProvider>
-
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={removeUser}
+            disabled={disabled}
+            aria-label="Delete"
+            className="bg-red-950 hover:bg-red-600 text-white"
+          >
+            <Trash2 className="h-4 w-4" color="red" />
+          </Button>
+        </TooltipTrigger>
+        <DeleteButtonTooltip tooltipText="Delete item" />
+      </Tooltip>
+    </TooltipProvider>
   );
 };

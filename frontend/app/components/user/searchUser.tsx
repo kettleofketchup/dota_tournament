@@ -5,9 +5,14 @@ import {
   ComboboxOptions,
 } from '@headlessui/react';
 import React, { useState } from 'react';
+import { AvatarUrl } from '~/index';
 import type { UserClassType, UserType } from '~/components/user/types';
 import { User } from '~/components/user/user';
 import { useUserStore } from '~/store/userStore';
+
+import { getLogger } from '~/lib/logger';
+const log = getLogger('searchUser');
+
 interface Props {
   users: UserType[];
   query: string;
@@ -15,7 +20,6 @@ interface Props {
   defaultValue?: string;
 }
 
-import { AvatarUrl } from '~/index';
 
 export const SearchUserDropdown: React.FC<Props> = ({
   users,
@@ -45,14 +49,14 @@ export const SearchUserDropdown: React.FC<Props> = ({
 
   const handleSearchUserSelect = (userName: UserType | string) => {
     if (typeof userName === 'object') {
-      console.log(userName);
+      log.debug(userName);
       userName = userName?.username || userName?.nickname || '';
     }
     if (userName === undefined || userName === '') {
       setSearchedPerson(new User({} as UserClassType));
       return;
     }
-    console.log(`Selected user: ${userName}`, userName);
+    log.debug(`Selected user: ${userName}`, userName);
 
     const user: UserType | undefined = users.find(
       (user) =>
@@ -72,7 +76,7 @@ export const SearchUserDropdown: React.FC<Props> = ({
             className="input input-bordered w-full"
             placeholder={defaultValue}
             onChange={(event) => setQuery(event.target.value)}
-            onClick={(event) => console.log(event.target)}
+            onClick={(event) => log.debug(event.target)}
           />
           <ComboboxOptions className="border bg-gray-900 shadow-lg rounded-lg max-h-60 overflow-y-auto mt-2">
             {filteredUsers &&

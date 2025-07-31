@@ -1,7 +1,9 @@
 import { useCallback, useEffect, useState } from 'react';
 import type { UserClassType, UserType } from '~/components/user';
 import UserEditModal from '~/components/user/userCard/editModal';
+import { getLogger } from '~/lib/logger';
 import { useUserStore } from '~/store/userStore';
+const log = getLogger('hasErrors');
 
 export const hasErrors = () => {
   const allUsers = useUserStore((state) => state.users); // Zustand setter
@@ -15,19 +17,20 @@ export const hasErrors = () => {
     setBadUsers([]); // Reset bad users
 
     var newBadUsers = [] as UserType[];
+
     for (const user of tournament.users || []) {
       if (!user.mmr) {
         newBadUsers.push(user);
       }
     }
     setBadUsers(newBadUsers);
-    console.log('Getting bad users', newBadUsers);
-  }, [tournament]);
+    log.debug('Getting bad users', newBadUsers, tournament.users);
+  }, [tournament.users]);
 
   useEffect(() => {
-    createBadUsers();
-  }, []);
-  useEffect(() => {
+    if (!tournament || !tournament.users) {
+      return;
+    }
     createBadUsers();
   }, [tournament.users]);
 

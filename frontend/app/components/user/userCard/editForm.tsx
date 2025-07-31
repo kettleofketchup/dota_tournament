@@ -9,7 +9,10 @@ import { useUserStore } from '~/store/userStore';
 import { UserRoundPlusIcon } from 'lucide-react';
 import { toast } from 'sonner';
 import { DialogClose } from '~/components/ui/dialog';
+import { getLogger } from '~/lib/logger';
 import { handleSave } from './handleSaveHook';
+
+const log = getLogger('editForm');
 
 interface Props {
   user: UserClassType; // Accepts both UserClassType and UserType
@@ -56,7 +59,7 @@ export const UserEditForm: React.FC<Props> = ({
       user.discordId !== form.discordId ||
       user.nickname !== form.nickname
     ) {
-      console.log('User data changed, resetting form');
+      log.debug('User data changed, resetting form');
       setForm(user as UserClassType); // Ensure form is set to the user data
     }
   }, [user, form.discordId, form.username]);
@@ -99,7 +102,7 @@ export const UserEditForm: React.FC<Props> = ({
     else {
       msg += 'Editing ...';
     }
-    console.log('title', msg);
+    log.debug('title', msg);
 
     return msg;
   }, [statusMsg, user.username]);

@@ -11,8 +11,8 @@ import type {
   UsersType,
   UserType,
 } from '~/index';
+import { getLogger } from '~/lib/logger';
 import axios from './axios';
-import { getLogger } from '~/index';
 const log = getLogger('api');
 
 export async function fetchCurrentUser(): Promise<UserType> {

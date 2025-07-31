@@ -1,5 +1,9 @@
 import type { TeamType } from '~/components/tournament/types';
 import type { UserType } from '~/components/user/types';
+import { getLogger } from '~/lib/logger';
+
+const log = getLogger('createTeams');
+
 interface Props {
   users: UserType[];
   teamSize?: number;
@@ -61,7 +65,7 @@ export function createTeams(users: UserType[], teamSize: number): TeamType[] {
   let curIteration = 0;
   while (improved && curIteration < maxIterations) {
     curIteration++;
-    console.log(`Iteration: ${curIteration}/ ${maxIterations}`);
+    log.debug(`Iteration: ${curIteration}/ ${maxIterations}`);
     improved = false;
     // Find teams with max and min avg MMR
     let maxTeamIdx = 0,
@@ -113,9 +117,9 @@ export function createTeams(users: UserType[], teamSize: number): TeamType[] {
         }
       }
 
-      console.log(`bestSwap: ${bestSwap}, bestDelta: ${bestDelta}`);
+      log.debug(`bestSwap: ${bestSwap}, bestDelta: ${bestDelta}`);
     }
-    console.log(minMembers);
+    log.debug(minMembers);
     if (bestSwap && maxTeam.members && minTeam.members) {
       // Perform the best swap directly on the teams' members arrayss
       const [i, j] = bestSwap;
