@@ -53,3 +53,16 @@ Website that provides a way to help manage DTX, a Dota2 gaming organization.
 - Use try/catch blocks for async operations
 - Implement proper error boundaries in React components
 - Always log errors with contextual information
+
+## Frontend Logging Guidelines
+
+- Use the `getLogger` function to create a logger instance for each module named log
+    - Example: `import {getLogger} from '~/index'; const log = getLogger('<moduleName>');`
+- Frontend: Log messages should include the module name for context
+- Frontend: Use appropriate log levels (debug, info, warn, error)
+- Frontend:  Avoid logging sensitive information (e.g., passwords, tokens)
+- Frontend: Use structured logging where possible (e.g., JSON format)
+- Frontend: Use `log.debug` for detailed debugging information
+- Frontend: Use `log.info` for general information messages
+- Frontend: Use `log.warn` for warnings that do not require immediate attention
+- Frontend: Use `log.error` for error messages that require attention
