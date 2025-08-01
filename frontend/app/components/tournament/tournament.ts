@@ -1,24 +1,19 @@
 import type {
-  TeamType,
   GameType,
-  TournamentType,
-  TournamentClassType,
   STATE_CHOICES,
+  TeamType,
+  TournamentClassType,
+  TournamentType,
 } from './types';
 
-import type { TOURNAMENT_TYPE } from './constants';
 import type { UserType } from '../user/types';
+import type { TOURNAMENT_TYPE } from './constants';
 
-import axios from '~/components/api/axios';
 import {
   createTournament,
-  createUser,
   deleteTournament,
-  deleteUser,
   fetchTournament,
-  fetchUser,
   updateTournament,
-  updateUser,
 } from '~/components/api/api';
 
 export class Tournament implements TournamentClassType {
@@ -45,7 +40,7 @@ export class Tournament implements TournamentClassType {
       const data = await fetchTournament(this.pk);
       Object.assign(this, data);
     } catch (error) {
-      console.error('Error fetching user data:', error);
+      log.error('Error fetching user data:', error);
       throw error;
     }
   }
@@ -59,7 +54,7 @@ export class Tournament implements TournamentClassType {
       const updatedData = await updateTournament(this.pk, data);
       Object.assign(this, updatedData);
     } catch (error) {
-      console.error('Error fetching user data:', error);
+      log.error('Error fetching user data:', error);
       throw error;
     }
   }
@@ -72,7 +67,7 @@ export class Tournament implements TournamentClassType {
       await deleteTournament(this.pk);
       Object.assign({});
     } catch (error) {
-      console.error('Error fetching user data:', error);
+      log.error('Error fetching user data:', error);
       throw error;
     }
   }
@@ -80,7 +75,7 @@ export class Tournament implements TournamentClassType {
     try {
       await createTournament(this as TournamentType);
     } catch (error) {
-      console.error('Error creating user data:', error);
+      log.error('Error creating user data:', error);
       throw error;
     }
   }

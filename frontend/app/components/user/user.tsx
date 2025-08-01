@@ -31,7 +31,7 @@ export class User implements UserClassType {
 
   async dbFetch(): Promise<UserType> {
     if (!this.pk) {
-      console.error('Error fetching user data:', error);
+      log.error('Error fetching user data:', error);
       throw new Error('User primary key (pk) is not set.');
     }
     try {
@@ -39,7 +39,7 @@ export class User implements UserClassType {
       Object.assign(this, data);
       return this as UserType;
     } catch (error) {
-      console.error('Error fetching user data:', error);
+      log.error('Error fetching user data:', error);
       throw error;
     }
   }
@@ -55,7 +55,7 @@ export class User implements UserClassType {
       Object.assign(this, updatedData);
       return updatedData;
     } catch (error) {
-      console.error('Error fetching user data:', error);
+      log.error('Error fetching user data:', error);
       throw error;
     }
   }
@@ -69,7 +69,7 @@ export class User implements UserClassType {
       await deleteUser(this.pk);
       Object.assign({});
     } catch (error) {
-      console.error('Error fetching user data:', error);
+      log.error('Error fetching user data:', error);
       throw error;
     }
   }
@@ -79,7 +79,7 @@ export class User implements UserClassType {
       Object.assign(this, data);
       return data;
     } catch (error) {
-      console.error('Error creating user data:', error);
+      log.error('Error creating user data:', error);
       throw error;
     }
   }

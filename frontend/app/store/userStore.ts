@@ -125,7 +125,7 @@ export const useUserStore = create<UserState>()(
               get().setDiscordUsers(response);
             })
             .catch((error) => {
-              console.error('Error fetching user:', error);
+              log.error('Error fetching user:', error);
 
               get().setDiscordUsers([] as GuildMembers);
             });
@@ -149,11 +149,11 @@ export const useUserStore = create<UserState>()(
       setUser: (user: UserType) => {
         log.debug('User set:', user);
         if (!user) {
-          console.error('Attempted to set user to null or undefined');
+          log.error('Attempted to set user to null or undefined');
           return;
         }
         if (user.pk === undefined) {
-          console.error('User pk is undefined:', user);
+          log.error('User pk is undefined:', user);
           return;
         }
         const users = get().users;
@@ -214,7 +214,7 @@ export const useUserStore = create<UserState>()(
           set({ users: response });
           log.debug('User fetched successfully:', response);
         } catch (error) {
-          console.error('Error fetching users:', error);
+          log.error('Error fetching users:', error);
         }
       },
 
@@ -265,7 +265,7 @@ export const useUserStore = create<UserState>()(
           set({ games: response as GameType[] });
           log.debug('Games fetched successfully:', response);
         } catch (error) {
-          console.error('Error fetching games:', error);
+          log.error('Error fetching games:', error);
         }
       },
       getTeams: async () => {
@@ -274,7 +274,7 @@ export const useUserStore = create<UserState>()(
           set({ games: response as TeamType[] });
           log.debug('Games fetched successfully:', response);
         } catch (error) {
-          console.error('Error fetching games:', error);
+          log.error('Error fetching games:', error);
         }
       },
       setTournamentPK: (pk: number) => set({ tournamentPK: pk }),
@@ -287,7 +287,7 @@ export const useUserStore = create<UserState>()(
             );
             set({ tournament: response.data });
           } catch (err) {
-            console.error('Failed to fetch tournament:', err);
+            log.error('Failed to fetch tournament:', err);
           }
         }
       },
@@ -297,7 +297,7 @@ export const useUserStore = create<UserState>()(
           set({ tournaments: response as TournamentType[] });
           log.debug('Tournaments fetched successfully:', response);
         } catch (error) {
-          console.error('Error fetching tournaments:', error);
+          log.error('Error fetching tournaments:', error);
         }
       },
 
@@ -311,7 +311,7 @@ export const useUserStore = create<UserState>()(
           //set({ users: response });
           // log.debug('User fetched successfully:', response);
         } catch (error) {
-          console.error('Error fetching users:', error);
+          log.error('Error fetching users:', error);
         }
       },
       setHasHydrated: (hydrated) => set({ hasHydrated: hydrated }),

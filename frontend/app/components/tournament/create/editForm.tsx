@@ -92,7 +92,7 @@ export const TournamentEditForm: React.FC<Props> = ({
         error: (err) => {
           const val = err.response.data;
           setErrorMessage(val);
-          console.error('Failed to create tourn', err);
+          log.error('Failed to create tourn', err);
           return <>{createErrorMessage(val)}</>;
         },
       });
@@ -108,7 +108,7 @@ export const TournamentEditForm: React.FC<Props> = ({
           return `${tourn.pk} has been updated`;
         },
         error: (err) => {
-          console.error(`Failed to update tourn ${tourn.pk}`, err);
+          log.error(`Failed to update tourn ${tourn.pk}`, err);
           setErrorMessage(err.response.data);
           return `Failed to update tourn ${tourn.pk}.`;
         },

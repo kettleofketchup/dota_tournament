@@ -34,7 +34,7 @@ export const UserCard: React.FC<Props> = memo(
     const [saveCallback, setSaveCallBack] = useState(saveFunc || 'save');
     useEffect(() => {
       if (!user.pk) {
-        console.error('User does not have a primary key (pk)');
+        log.error('User does not have a primary key (pk)');
         getUsers();
       }
     }, [user, user.mmr, user.pk, user.username, user.nickname, user.position]);

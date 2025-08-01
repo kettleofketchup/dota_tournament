@@ -66,7 +66,7 @@ export const UserRemoveButton: React.FC<PropsRemoveButton> = ({
           return `${user.username} has been deleted`;
         },
         error: (err) => {
-          console.error('Failed to delete user', err);
+          log.error('Failed to delete user', err);
           return `${user.username} could not be deleted`;
         },
       });

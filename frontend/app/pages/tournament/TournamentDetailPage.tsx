@@ -19,7 +19,7 @@ export const TournamentDetailPage: React.FC = () => {
           const response = await axios.get(`/tournaments/${pk}/`);
           setTournament(response.data);
         } catch (err) {
-          console.error('Failed to fetch tournament:', err);
+          log.error('Failed to fetch tournament:', err);
           setError(
             'Failed to load tournament details. Please try again later.',
           );

@@ -67,7 +67,7 @@ export const TeamCard: React.FC<Props> = ({
       ) as HTMLInputElement;
       if (modalCheckbox) modalCheckbox.checked = false;
     } catch (err) {
-      console.error('Failed to delete user', err);
+      log.error('Failed to delete user', err);
       setErrorMessage(err.response.data);
 
       setError(true);

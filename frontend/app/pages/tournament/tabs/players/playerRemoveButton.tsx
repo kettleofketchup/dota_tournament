@@ -73,7 +73,7 @@ export const PlayerRemoveButton: React.FC<PropsRemoveButton> = ({
         user_ids: updatedUsers,
       };
       if (tournament.pk === undefined) {
-        console.error('Tournament primary key is missing');
+        log.error('Tournament primary key is missing');
         return;
       }
 
@@ -88,7 +88,7 @@ export const PlayerRemoveButton: React.FC<PropsRemoveButton> = ({
           return `${user.username} has been removed`;
         },
         error: (err: any) => {
-          console.error('Failed to update tournament', err);
+          log.error('Failed to update tournament', err);
           return `${user.username} has been removed`;
         },
       });

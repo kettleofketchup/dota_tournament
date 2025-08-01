@@ -64,7 +64,7 @@ export const TeamEditForm: React.FC<Props> = ({ user, form, setForm }) => {
         error: (err) => {
           const val = err.response.data;
           setErrorMessage(val);
-          console.error('Failed to create user', err);
+          log.error('Failed to create user', err);
           return <>{createErrorMessage(val)}</>;
         },
       });
@@ -79,7 +79,7 @@ export const TeamEditForm: React.FC<Props> = ({ user, form, setForm }) => {
           return `${user.username} has been updated`;
         },
         error: (err) => {
-          console.error(`Failed to update user ${user.username}`, err);
+          log.error(`Failed to update user ${user.username}`, err);
           setErrorMessage(err.response.data);
           return `Failed to update user ${user.username}.`;
         },

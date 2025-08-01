@@ -6,10 +6,10 @@ import {
 } from '@headlessui/react';
 import React, { useCallback, useEffect, useState } from 'react';
 import { AvatarUrl } from '~/index';
+import { getLogger } from '~/lib/logger';
 import { useUserStore } from '../../store/userStore';
 import { get_dtx_members } from '../api/api';
 import type { GuildMember, GuildMembers, UsersType } from '../user/types';
-import { getLogger } from '~/lib/logger';
 
 const log = getLogger('DiscordUserDropdown');
 interface Props {
@@ -39,7 +39,7 @@ const DiscordUserDropdown: React.FC<Props> = ({
           setDiscordUsers(response);
         })
         .catch((error) => {
-          console.error('Error fetching user:', error);
+          log.error('Error fetching user:', error);
 
           setDiscordUsers([] as GuildMembers);
         });

@@ -32,7 +32,7 @@ export const PlayersTab: React.FC = memo(() => {
     log.debug(`Adding user: ${user.username}`);
     // Implement the logic to remove the user from the tournament
     if (user.pk && tournament.user_ids && user.pk in tournament.user_ids) {
-      console.error('User already exists in the tournament');
+      log.error('User already exists in the tournament');
       return;
     }
     const updatedUsers = tournament.users?.map((u) => u.pk);
@@ -43,7 +43,7 @@ export const PlayersTab: React.FC = memo(() => {
     }
     if (updatedUsers?.includes(thisUser.pk)) {
       log.debug();
-      console.error('User in the  tournament');
+      log.error('User in the  tournament');
       return;
     }
     const updatedTournament = {
@@ -51,7 +51,7 @@ export const PlayersTab: React.FC = memo(() => {
     };
 
     if (tournament.pk === undefined) {
-      console.error('Tournament primary key is missing');
+      log.error('Tournament primary key is missing');
       return;
     }
     toast.promise(
@@ -66,7 +66,7 @@ export const PlayersTab: React.FC = memo(() => {
           return `${thisUser.username} has been added`;
         },
         error: (err: any) => {
-          console.error('Failed to update tournament', err);
+          log.error('Failed to update tournament', err);
           return `${thisUser.username} could not be added`;
         },
       },

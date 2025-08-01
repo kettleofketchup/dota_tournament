@@ -4,13 +4,13 @@ import { toast } from 'sonner';
 import { updateTournament } from '~/components/api/api';
 import { SearchTeamsDropdown } from '~/components/team/searchTeams';
 import { TeamCard } from '~/components/team/teamCard';
+import { CaptainSelectionModal } from '~/components/tournament/captains/captainSelectionModal';
 import type { TournamentType } from '~/components/tournament/types'; // Adjust the import path as necessary
 import type { UserType } from '~/components/user/types';
 import { getLogger } from '~/lib/logger';
 import { hasErrors } from '~/pages/tournament/hasErrors';
 import { useUserStore } from '~/store/userStore';
 import { AddTeamsModal } from './teams/addTeamsModal';
-
 const log = getLogger('TeamsTab');
 
 export const TeamsTab: React.FC = memo(() => {
@@ -47,7 +47,7 @@ export const TeamsTab: React.FC = memo(() => {
       user_ids: updatedUsers,
     };
     if (tournament.pk === undefined) {
-      console.error('Tournament primary key is missing');
+      log.error('Tournament primary key is missing');
       return;
     }
 
@@ -61,7 +61,7 @@ export const TeamsTab: React.FC = memo(() => {
         return `${user.username} has been removed`;
       },
       error: (err: any) => {
-        console.error('Failed to update tournament', err);
+        log.error('Failed to update tournament', err);
         return `${user.username} has been removed`;
       },
     });
@@ -72,14 +72,14 @@ export const TeamsTab: React.FC = memo(() => {
     log.debug(`Adding user: ${user.username}`);
     // Implement the logic to remove the user from the tournament
     if (user.pk && tournament.user_ids && user.pk in tournament.user_ids) {
-      console.error('User already exists in the tournament');
+      log.error('User already exists in the tournament');
       return;
     }
     const updatedUsers = tournament.users?.map((u) => u.pk);
 
     if (updatedUsers?.includes(user)) {
       log.debug();
-      console.error('User in the  tournament');
+      log.error('User in the  tournament');
       return;
     }
     const updatedTournament = {
@@ -87,7 +87,7 @@ export const TeamsTab: React.FC = memo(() => {
     };
 
     if (tournament.pk === undefined) {
-      console.error('Tournament primary key is missing');
+      log.error('Tournament primary key is missing');
       return;
     }
     toast.promise(
@@ -103,7 +103,7 @@ export const TeamsTab: React.FC = memo(() => {
           return `${user.username} has been added`;
         },
         error: (err: any) => {
-          console.error('Failed to update tournament', err);
+          log.error('Failed to update tournament', err);
         },
       },
     );
@@ -157,8 +157,9 @@ export const TeamsTab: React.FC = memo(() => {
     <>
       <div className="p-5 container bg-base-300 rounded-lg shadow-lg hover:bg-base-400 transition-shadow duration-300 ease-in-out">
         {hasErrors()}
-        <div className="self-end p-5 pb-2 pt-2">
+        <div className="flex flex-row justify-center gap-2 gap-x-8 p-4 pt-2 pb-6 items-center">
           {<AddTeamsModal users={tournament.users} teamSize={5} />}
+          <CaptainSelectionModal />
         </div>
         <div className="w-full">
           <SearchTeamsDropdown

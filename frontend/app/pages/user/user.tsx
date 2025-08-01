@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import axios from '~/components/api/axios'; // Assuming axios is configured for your API
-import { UserCard } from '~/components/user/userCard';
 import type { UserType } from '~/components/user/types';
+import { UserCard } from '~/components/user/userCard';
 
 export const UserDetailPage: React.FC = () => {
   const { pk } = useParams<{ pk: string }>();
@@ -19,7 +19,7 @@ export const UserDetailPage: React.FC = () => {
           const response = await axios.get(`/users/${pk}/`);
           setUser(response.data);
         } catch (err) {
-          console.error('Failed to fetch tournament:', err);
+          log.error('Failed to fetch tournament:', err);
           setError(
             'Failed to load tournament details. Please try again later.',
           );

@@ -77,7 +77,7 @@ export const TournamentCard: React.FC<Props> = ({
         setError(false);
         setForm({} as TournamentType);
       } catch (err: any) {
-        console.error('Failed to create tournament', err);
+        log.error('Failed to create tournament', err);
         setErrorMessage(err.response.data);
       } finally {
         setIsSaving(false);
@@ -94,7 +94,7 @@ export const TournamentCard: React.FC<Props> = ({
         setError(true);
         setErrorMessage(err.response.data);
 
-        console.error('Failed to update tournament', err);
+        log.error('Failed to update tournament', err);
       } finally {
         setIsSaving(false);
       }
