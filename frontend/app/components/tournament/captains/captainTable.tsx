@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import {
   Table,
   TableBody,
@@ -15,6 +16,8 @@ interface TournamentUsersTable {}
 
 export const CaptainTable: React.FC<TournamentUsersTable> = () => {
   const tournament = useUserStore((state) => state.tournament);
+
+  useEffect(() => {}, [tournament.users]);
   const positions = (user: UserType) => {
     if (!user.positions) return null;
     return (
@@ -29,8 +32,8 @@ export const CaptainTable: React.FC<TournamentUsersTable> = () => {
       </div>
     );
   };
-  const members = () =>
-    tournament.members?.sort((a, b) => {
+  const members = () => {
+    const a = tournament.users?.sort((a, b) => {
       if (!a.mmr && !b.mmr) return 0;
       if (!a.mmr) return 1; // Treat undefined MMR as lower
       if (!b.mmr) return -1; // Treat undefined MMR as lower
@@ -38,6 +41,8 @@ export const CaptainTable: React.FC<TournamentUsersTable> = () => {
 
       if (a.mmr < b.mmr) return 1;
     });
+    return a || [];
+  };
 
   return (
     <Table>
@@ -51,7 +56,7 @@ export const CaptainTable: React.FC<TournamentUsersTable> = () => {
         </TableRow>
       </TableHeader>
       <TableBody>
-        {tournament.members?.map((user: UserType, idx: number) => (
+        {members().map((user: UserType, idx: number) => (
           <TableRow key={`TeamTableRow-${user.pk}`}>
             <TableCell>
               <div className="flex items-center gap-2">

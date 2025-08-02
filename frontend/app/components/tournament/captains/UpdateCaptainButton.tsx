@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import { updateTournament } from '~/components/api/api';
 import { Button } from '~/components/ui/button';
@@ -9,10 +10,13 @@ const log = getLogger('updateCaptainButton');
 
 export const UpdateCaptainButton: React.FC<{ user: UserType }> = ({ user }) => {
   const tournament = useUserStore((state) => state.tournament);
+  const determineIsCaptain = () => {
+    return !!tournament?.captains?.some((c) => c.pk === user.pk);
+  };
+  const [isCaptain, setIsCaptain] = useState<boolean>(determineIsCaptain());
+  const setTournament = useUserStore((state) => state.setTournament);
 
-  log.debug(`Adding captain for user: ${user.username}`);
-
-  const updateCaptain = () => {
+  const updateCaptain = async () => {
     var setIsAdding = true;
 
     if (!tournament) {
@@ -27,23 +31,27 @@ export const UpdateCaptainButton: React.FC<{ user: UserType }> = ({ user }) => {
       log.error('No tournament primary key found');
       return;
     }
+    const getCaptainIds = () => {
+      return tournament.captains?.map((c) => c.pk) || [];
+    };
     var newTournament: Partial<TournamentType> = {
       pk: tournament.pk,
-      captain_ids: [...tournament.captains.map((c) => c.pk), user.pk],
+      captain_ids: [...getCaptainIds(), user.pk],
     };
 
-    if (user.pk in tournament.captains) {
-      setIsAdding = false;
-
-      log.debug('User is already a captain, removing instead');
-      newTournament.captain_ids = newTournament.captain_ids.filter(
+    if (isCaptain) {
+      log.debug(`${user.username} is already a captain, removing instead`);
+      newTournament.captain_ids = (newTournament.captain_ids ?? []).filter(
         (id) => id !== user.pk,
       );
     }
-    var msg = setIsAdding ? 'Adding' : 'Removing';
+    var msg = isCaptain ? 'Removing' : 'adding';
+    log.debug(`${msg} captain for user: ${user.username}`, newTournament);
     toast.promise(updateTournament(tournament.pk, newTournament), {
       loading: `${msg} ${user.username} as captain...`,
-      success: () => {
+      success: (data) => {
+        setTournament(data);
+        setIsCaptain(!isCaptain);
         return `${tournament?.name} has been updated successfully!`;
       },
       error: (err) => {
@@ -53,8 +61,18 @@ export const UpdateCaptainButton: React.FC<{ user: UserType }> = ({ user }) => {
       },
     });
   };
-  const isAdded = user.pk in tournament.captains;
-  const msg = isAdded ? `Remove` : `Add`;
 
-  return <Button onClick={updateCaptain}>{msg} Captain</Button>;
+  const msg = () => (isCaptain ? `Remove` : `Add`);
+
+  const getButtonVariant = () => `${isCaptain ? 'destructive' : 'default'}`;
+
+  useEffect(() => {
+    setIsCaptain(determineIsCaptain());
+  }, [tournament.captains, isCaptain]);
+
+  return (
+    <Button onClick={updateCaptain} variant={getButtonVariant()}>
+      {msg()} Captain
+    </Button>
+  );
 };
