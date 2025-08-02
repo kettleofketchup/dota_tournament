@@ -16,12 +16,8 @@ import type {
   TeamType,
   TournamentType,
 } from '~/components/tournament/types';
-import type {
-  GuildMember,
-  GuildMembers,
-  UserType,
-} from '~/components/user/types';
 import { User } from '~/components/user/user';
+import type { GuildMember, GuildMembers, UserType } from '~/index';
 import { getLogger } from '~/lib/logger';
 
 const log = getLogger('userStore');
@@ -53,6 +49,8 @@ interface UserState {
   team: TeamType;
   teams: TeamType[];
   tournament: TournamentType;
+  draft: DraftType;
+
   tournaments: TournamentType[];
   curDraftRound: number;
   setCurDraftRound: (round: number) => void;
@@ -87,6 +85,7 @@ export const useUserStore = create<UserState>()(
   persist(
     (set, get) => ({
       tournament: {} as TournamentType,
+      draft: get()?.tournament?.draft as DraftType,
       tournaments: [] as TournamentType[],
       game: {} as GameType,
       games: [] as GameType[],

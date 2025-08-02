@@ -33,6 +33,7 @@ type hookParams = {
   setTournament: (tournament: TournamentType) => void;
   captain: UserType;
   draft_order: string;
+  setDraftOrder?: React.Dispatch<React.SetStateAction<string>>;
 
   setIsCaptain?: (value: React.SetStateAction<boolean>) => void;
 };
@@ -42,6 +43,7 @@ export const createTeamFromCaptainHook = async ({
   setTournament,
   captain,
   draft_order,
+  setDraftOrder,
   setIsCaptain,
 }: hookParams) => {
   const isCaptain = () => {
@@ -75,6 +77,7 @@ export const createTeamFromCaptainHook = async ({
     toast.promise(deleteTeam(getTeam().pk), {
       loading: `Deleting team for ${captain.username}`,
       success: () => {
+        setDraftOrder?.('0');
         return `Team for ${captain.username} has been deleted`;
       },
       error: (err) => {
@@ -102,8 +105,8 @@ export const createTeamFromCaptainHook = async ({
   toast.promise(createTeamFromCaptain(data), {
     loading: `${msg} ${captain.username} as captain...`,
     success: (data) => {
-
       setTournament(data);
+
       if (setIsCaptain) setIsCaptain(!isCaptain());
 
       return `${tournament?.name} has been updated successfully!`;

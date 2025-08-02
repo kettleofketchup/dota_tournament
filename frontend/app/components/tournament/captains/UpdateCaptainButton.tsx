@@ -24,13 +24,11 @@ export const UpdateCaptainButton: React.FC<{ user: UserType }> = ({ user }) => {
     return !!tournament?.captains?.some((c) => c.pk === user.pk);
   };
   const getTeam = () => {
-    return tournament?.teams?.find((t: TeamType) => t.captain.pk === user.pk);
+    return tournament?.teams?.find((t: TeamType) => t.captain?.pk === user.pk);
   };
   const [isCaptain, setIsCaptain] = useState<boolean>(determineIsCaptain());
   const setTournament = useUserStore((state) => state.setTournament);
-  const getCurrentTournament = useUserStore(
-    (state) => state.getCurrentTournament,
-  );
+
   const getDraftOrder = () => {
     if (!isCaptain) return '0';
     const team = getTeam();
@@ -55,6 +53,7 @@ export const UpdateCaptainButton: React.FC<{ user: UserType }> = ({ user }) => {
       tournament,
       captain: user,
       draft_order: draft_order,
+      setDraftOrder: setDraftOrder,
       setTournament: setTournament,
       setIsCaptain: setIsCaptain,
     });

@@ -100,3 +100,61 @@ def create_team_from_captain(request):
     team.save()
 
     return Response(TournamentSerializer(tournament).data, status=201)
+
+
+class CreateDraftRounds(serializers.Serializer):
+    tournament_pk = serializers.IntegerField(required=True)
+
+
+@api_view(["POST"])
+@permission_classes([IsStaff])
+def generate_draft_rounds(request):
+    serializer = CreateDraftRounds(data=request.data)
+
+    if serializer.is_valid():
+        tournament_pk = serializer.validated_data["tournament_pk"]
+
+    else:
+        return Response(serializer.errors, status=400)
+
+    try:
+        tournament = Tournament.objects.get(pk=tournament_pk)
+
+    except Tournament.DoesNotExist:
+        return Response({"error": "Tournament not found"}, status=404)
+
+        # Create a new team and add the user as a member (or captain)
+    if tournament.draft.exists():
+        tournament.draft.delete()
+
+    draft = Draft.objects.create(tournament=tournament)
+    draft.save()
+    max_picks = tournament.captains.count() * 5
+    pick = 0
+    phase = 0
+    order = tournament.teams.order_by("draft_order")
+
+    def pick(team):
+
+        draftRound = DraftRound.objects.create(
+            draft=draft,
+            captain=team.captain,
+            pick_number=pick,
+            pick_phase=phase,
+        )
+        draftRound.save()
+        pick += 1
+        if pick % 5 is 0:
+            phase += 1
+
+    while pick < max_picks:
+        for team in range(tournament.teams.order_by("draft_order")):
+            pick(team)
+            if pick >= max_picks:
+                break
+        for team in range(tournament.teams.order_by("draft_order").reverse()):
+
+            pick(team)
+            if pick >= max_picks:
+                break
+    return Response(TournamentSerializer(tournament).data, status=201)

@@ -2,6 +2,7 @@ import { memo, useEffect, useState, type FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { updateTournament } from '~/components/api/api';
+import { DraftModal } from '~/components/draft/draftModal';
 import { SearchTeamsDropdown } from '~/components/team/searchTeams';
 import { TeamCard } from '~/components/team/teamCard';
 import { CaptainSelectionModal } from '~/components/tournament/captains/captainSelectionModal';
@@ -12,7 +13,6 @@ import { hasErrors } from '~/pages/tournament/hasErrors';
 import { useUserStore } from '~/store/userStore';
 import { AddTeamsModal } from './teams/addTeamsModal';
 const log = getLogger('TeamsTab');
-
 export const TeamsTab: React.FC = memo(() => {
   const tournament = useUserStore((state) => state.tournament);
 
@@ -160,6 +160,7 @@ export const TeamsTab: React.FC = memo(() => {
         <div className="flex flex-row justify-center gap-2 gap-x-8 p-4 pt-2 pb-6 items-center">
           {<AddTeamsModal users={tournament.users} teamSize={5} />}
           <CaptainSelectionModal />
+          <DraftModal />
         </div>
         <div className="w-full">
           <SearchTeamsDropdown
