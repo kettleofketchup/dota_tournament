@@ -4,6 +4,7 @@ import { Badge } from '~/components/ui/badge';
 import { PositionEnum } from '~/components/user';
 import type { UserClassType, UserType } from '~/components/user/types';
 import { User } from '~/components/user/user';
+import { AvatarUrl } from '~/index';
 import { PlayerRemoveButton } from '~/pages/tournament/tabs/players/playerRemoveButton';
 import { useUserStore } from '~/store/userStore';
 import { UserRemoveButton } from './userCard/deleteButton';
@@ -53,7 +54,7 @@ export const UserCard: React.FC<Props> = memo(
             <div className="flex-row w-20 h-20">
               {!hasError() && (
                 <img
-                  src={user.avatarUrl}
+                  src={AvatarUrl(user)}
                   alt={`${user.username}'s avatar`}
                   className="w-16 h-16 rounded-full border border-primary"
                 />
@@ -66,7 +67,7 @@ export const UserCard: React.FC<Props> = memo(
                     <span className="relative inline-flex size-3 rounded-full bg-red-500" />
                   </span>
                   <img
-                    src={user.avatarUrl}
+                    src={AvatarUrl(user)}
                     alt={`${user.username}'s avatar`}
                     className="flex w-16 h-16 rounded-full border border-primary"
                   />

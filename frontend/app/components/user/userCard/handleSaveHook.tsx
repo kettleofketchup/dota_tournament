@@ -4,7 +4,6 @@ import { toast } from 'sonner';
 import type { UserClassType, UserType } from '~/components/user/types';
 import { User } from '~/components/user/user';
 import { getLogger } from '~/lib/logger';
-
 const log = getLogger('handleSaveHook');
 
 export const createErrorMessage = (

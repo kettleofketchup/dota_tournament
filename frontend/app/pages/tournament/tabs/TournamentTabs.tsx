@@ -55,8 +55,8 @@ export default function TournamentTabs() {
           className="flex w-full justify-center gap-2 rounded-full p-1 align-middle"
         >
           <TabsList className="container content-center flex w-full justify-center gap-2 rounded-full p-1 align-middle mx-auto">
-            <TabsTrigger value="players">Players ({playerCount})</TabsTrigger>
-            <TabsTrigger value="teams">Teams ({teamCount})</TabsTrigger>
+            <TabsTrigger className="w-full" value="players">Players ({playerCount})</TabsTrigger>
+            <TabsTrigger className="w-full" value="teams">Teams ({teamCount})</TabsTrigger>
             <TabsTrigger value="games">Games ({gameCount})</TabsTrigger>
           </TabsList>
           <TabsContent value="players">

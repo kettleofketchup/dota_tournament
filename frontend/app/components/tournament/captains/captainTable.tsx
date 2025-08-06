@@ -9,11 +9,11 @@ import {
   TableRow,
 } from '~/components/ui/table';
 import { PositionEnum } from '~/components/user';
+import { AvatarUrl } from '~/components/user/avatar';
 import type { UserType } from '~/components/user/types';
 import { useUserStore } from '~/store/userStore';
 import { UpdateCaptainButton } from './UpdateCaptainButton';
 interface TournamentUsersTable {}
-
 export const CaptainTable: React.FC<TournamentUsersTable> = () => {
   const tournament = useUserStore((state) => state.tournament);
 
@@ -62,7 +62,7 @@ export const CaptainTable: React.FC<TournamentUsersTable> = () => {
               <div className="flex items-center gap-2">
                 <span className="avatar w-8 h-8">
                   <img
-                    src={user.avatarUrl}
+                    src={AvatarUrl(user)}
                     alt={user.username}
                     className="rounded-full"
                   />

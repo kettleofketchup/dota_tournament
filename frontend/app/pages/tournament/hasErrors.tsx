@@ -32,7 +32,7 @@ export const hasErrors = () => {
       return;
     }
     createBadUsers();
-  }, [tournament.users]);
+  }, [tournament.users, allUsers]);
 
   return (
     <>

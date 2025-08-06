@@ -12,13 +12,6 @@ import {
   DialogTrigger,
 } from '~/components/ui/dialog';
 
-import {
-  Card,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '~/components/ui/card';
-import { AvatarUrl } from '~/index';
 import { getLogger } from '~/lib/logger';
 import { useUserStore } from '~/store/userStore';
 import { InitDraftButton } from './buttons/initDraftDialog';
@@ -100,52 +93,45 @@ export const DraftModal: React.FC = () => {
     log.debug('Current draft round state:', curRound);
   }, [curRound]);
 
-  const captainViewHeader = () => {
+  const noDraftView = () => {
     return (
-      <Card className="w-full max-w-sm bg-purple-900">
-        <CardHeader>
-          <CardTitle>Current Captain</CardTitle>
-          <CardDescription>
-            <img
-              src={AvatarUrl(curRound?.captain)}
-              alt="User Avatar"
-              className="w-12 h-12 rounded-full"
-            />{' '}
-            <span>
-              {curRound?.captain?.nickname ||
-                curRound?.captain?.username ||
-                'No captain selected'}
-            </span>
-          </CardDescription>
-        </CardHeader>
-      </Card>
+      <>
+        <h1> No Draft Information Available</h1>
+        <p> Start the draft with the init draft button below</p>
+      </>
     );
   };
 
   const header = () => {
     return (
-      <div className="flex flex-row items-center">
+      <div className="flex flex-row items-center gap-x-4">
         <DraftRoundCard
           draftRound={curRound}
           maxRounds={totalRounds}
           isCur={true}
         />
+
         {draftIndex < totalRounds &&
         draft &&
         draft.draft_rounds &&
         draft.draft_rounds[draftIndex + 1] ? (
-          <DraftRoundCard
-            draftRound={draft.draft_rounds[draftIndex + 1]}
-            maxRounds={totalRounds}
-            isCur={false}
-          />
+          <div className="hidden sm:flex sm:w-full">
+            <DraftRoundCard
+              draftRound={draft.draft_rounds[draftIndex + 1]}
+              maxRounds={totalRounds}
+              isCur={false}
+            />
+          </div>
         ) : (
           <></>
         )}
       </div>
     );
   };
-
+  const mainView = () => {
+    if (!draft || !draft.draft_rounds) return <>{noDraftView()}</>;
+    return <>{header()} </>;
+  };
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
@@ -158,11 +144,11 @@ export const DraftModal: React.FC = () => {
           <DialogTitle>Tournament Draft</DialogTitle>
           <DialogDescription>
             Drafting Teams
-            {header()}
+            {mainView()}
           </DialogDescription>
         </DialogHeader>
 
-        <div className="overflow-y-auto max-h-[60vh] pr-2">
+        <div className="overflow-y-auto max-h-[55vh] pr-2">
           {curRound && Object.keys(curRound).length > 0 ? (
             <DraftRoundView />
           ) : (
