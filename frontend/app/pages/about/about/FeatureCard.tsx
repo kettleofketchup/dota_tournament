@@ -10,16 +10,11 @@ interface FeatureCardProps {
   readonly colorClass: string;
 }
 
-export function FeatureCard({
-  title,
-  description,
-  icon,
-  colorClass,
-}: FeatureCardProps) {
+export function FeatureCard({ title, description, icon, colorClass }: FeatureCardProps) {
   log.debug(`Rendering FeatureCard for ${title}`);
 
   return (
-    <div className="card bg-base-200 shadow-lg h-full">
+    <div className="card bg-base-200 shadow-lg">
       <div className="card-body">
         <h3 className={`card-title ${colorClass}`}>
           {icon}

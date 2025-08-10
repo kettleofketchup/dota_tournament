@@ -106,7 +106,6 @@ export const AddPlayerModal: React.FC<Props> = ({
                 addPlayerCallback={addPlayerCallback}
                 removePlayerCallback={removePlayerCallback}
                 addedUsers={addedUsers}
-                className=""
               />
 
               <div className="self-end p-5 pb-2 pt-2">

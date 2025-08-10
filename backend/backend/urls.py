@@ -91,4 +91,5 @@ urlpatterns = [
         rebuild_team,
         name="draft-rebuild",
     ),
+    path("api/avatars/refresh/", app_views.refresh_all_avatars, name="refresh-avatars"),
 ]

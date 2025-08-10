@@ -1,7 +1,9 @@
 import logging
-from django.db.utils import IntegrityError
+
+import requests
 from django.conf import settings
 from django.db import models
+from django.db.utils import IntegrityError
 from django.utils import timezone
 from social_django.models import USER_MODEL  # fix: skip
 from social_django.models import AbstractUserSocialAuth, DjangoStorage
@@ -40,9 +42,112 @@ class CustomUser(AbstractUser):
     discordNickname = models.TextField(null=True, blank=True)
     guildNickname = models.TextField(null=True, blank=True)
 
+    def check_and_update_avatar(self):
+        """
+        Checks if the current avatar URL is valid. If not, fetches the latest
+        avatar from Discord and updates the database.
+
+        Returns:
+            bool: True if the avatar was updated, False otherwise.
+        """
+        if not self.discordId:
+            return False
+
+        if not self.avatar:
+            # If no avatar is set, try to fetch one.
+            return self._fetch_and_update_avatar_from_discord()
+
+        # Construct current avatar URL
+        extension = "gif" if self.avatar.startswith("a_") else "png"
+        current_url = f"https://cdn.discordapp.com/avatars/{self.discordId}/{self.avatar}.{extension}"
+
+        if self._is_avatar_url_valid(current_url):
+            return False
+
+        return self._fetch_and_update_avatar_from_discord()
+
+    def _is_avatar_url_valid(self, url):
+        """
+        Check if the avatar URL returns a valid response (not 404).
+        """
+        try:
+            response = requests.head(url, timeout=5)
+            return response.status_code == 200
+        except requests.RequestException:
+            logging.warning(
+                f"Failed to validate avatar URL for user {self.username}: {url}"
+            )
+            return False
+
+    def _fetch_and_update_avatar_from_discord(self):
+        """
+        Fetch the latest avatar from Discord API and update the database.
+
+        Returns:
+            bool: True if avatar was updated, False otherwise.
+        """
+        if not self.discordId:
+            return False
+
+        try:
+            headers = {
+                "Authorization": f"Bot {settings.DISCORD_BOT_TOKEN}",
+            }
+            response = requests.get(
+                f"{settings.DISCORD_API_BASE_URL}/users/{self.discordId}",
+                headers=headers,
+                timeout=10,
+            )
+
+            if response.status_code == 200:
+                user_data = response.json()
+                new_avatar = user_data.get("avatar")
+
+                if new_avatar != self.avatar:
+                    self.avatar = new_avatar
+                    self.save(update_fields=["avatar"])
+                    logging.info(
+                        f"Updated avatar for user {self.username} (Discord ID: {self.discordId})"
+                    )
+                    return True
+                return False
+
+            else:
+                logging.warning(
+                    f"Failed to fetch Discord user data for {self.username}: {response.status_code}"
+                )
+                return False
+
+        except requests.RequestException as e:
+            logging.error(
+                f"Error fetching Discord avatar for user {self.username}: {str(e)}"
+            )
+            return False
+        except Exception as e:
+            logging.error(
+                f"Unexpected error updating avatar for user {self.username}: {str(e)}"
+            )
+            return False
+
     @property
     def avatarUrl(self):
-        return f"https://cdn.discordapp.com/avatars/" f"{self.discordId}/{self.avatar}"
+        """
+        Constructs the Discord avatar URL from the stored discordId and avatar hash.
+        This property does not perform any network requests.
+        """
+        if not self.discordId:
+            return None
+
+        if self.avatar:
+            extension = "gif" if self.avatar.startswith("a_") else "png"
+            return f"https://cdn.discordapp.com/avatars/{self.discordId}/{self.avatar}.{extension}"
+
+        # Default avatar logic
+        if self.discordId:
+            # New default avatar URL logic based on user ID
+            return f"https://cdn.discordapp.com/embed/avatars/{(int(self.discordId) >> 22) % 6}.png"
+
+        return f"https://cdn.discordapp.com/embed/avatars/0.png"  # Fallback
 
 
 class Tournament(models.Model):

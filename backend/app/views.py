@@ -1,4 +1,5 @@
 import json
+from datetime import timedelta
 
 import requests
 from django.contrib.auth import login
@@ -6,6 +7,7 @@ from django.contrib.auth import logout as auth_logout
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse, HttpResponseBadRequest, JsonResponse
 from django.shortcuts import redirect, render
+from django.utils import timezone
 from rest_framework import generics, permissions, status, viewsets
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.generics import GenericAPIView
@@ -32,6 +34,7 @@ from .serializers import (
     TournamentSerializer,
     UserSerializer,
 )
+from .utils.avatar_utils import refresh_user_avatar
 
 
 def logout(request):
@@ -505,3 +508,101 @@ class DraftCreateView(generics.CreateAPIView):
 class DraftRoundCreateView(generics.CreateAPIView):
     serializer_class = DraftRoundSerializer
     permission_classes = [IsStaff]
+
+
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def refresh_avatar(request):
+    """
+    Refresh the current user's Discord avatar by fetching the latest from Discord API.
+    """
+    try:
+        user = request.user
+        if not user.discordId:
+            return Response(
+                {"error": "User does not have a Discord ID associated"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        # Use force_refresh=True to always fetch from Discord
+        result = refresh_user_avatar(user.id)
+
+        if result["success"]:
+            return Response(
+                {
+                    "message": result["message"],
+                    "updated": result["updated"],
+                    "avatar_url": result["avatar_url"],
+                },
+                status=status.HTTP_200_OK,
+            )
+        else:
+            return Response(
+                {"error": result["message"]}, status=status.HTTP_400_BAD_REQUEST
+            )
+
+    except Exception as e:
+        return Response(
+            {"error": f"Failed to refresh avatar: {str(e)}"},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        )
+
+
+@api_view(["POST"])
+@permission_classes([IsAdminUser])
+def refresh_user_avatar_admin(request, user_id):
+    """
+    Admin endpoint to refresh any user's Discord avatar.
+    """
+    try:
+        result = refresh_user_avatar(user_id)
+
+        if result["success"]:
+            return Response(
+                {
+                    "message": result["message"],
+                    "updated": result["updated"],
+                    "avatar_url": result["avatar_url"],
+                },
+                status=status.HTTP_200_OK,
+            )
+        else:
+            return Response(
+                {"error": result["message"]}, status=status.HTTP_400_BAD_REQUEST
+            )
+
+    except Exception as e:
+        return Response(
+            {"error": f"Failed to refresh avatar: {str(e)}"},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        )
+
+
+@api_view(["POST"])
+@permission_classes([AllowAny])
+def refresh_all_avatars(request):
+    """
+    Refreshes the avatars for all users in the database.
+    This is a public endpoint but is rate-limited to once per hour.
+    """
+    cache_key = "avatar_refresh_last_run"
+    last_run = cache.get(cache_key)
+
+    if last_run and (timezone.now() - last_run < timedelta(hours=1)):
+        return Response(
+            {"message": "Avatar refresh can only be run once per hour."},
+            status=status.HTTP_429_TOO_MANY_REQUESTS,
+        )
+
+    updated_count = 0
+    users = CustomUser.objects.all()
+    for user in users:
+        if user.check_and_update_avatar():
+            updated_count += 1
+
+    cache.set(cache_key, timezone.now(), timeout=3600)  # Cache for 1 hour
+
+    return Response(
+        {"message": f"Avatar refresh complete. {updated_count} avatars updated."},
+        status=status.HTTP_200_OK,
+    )

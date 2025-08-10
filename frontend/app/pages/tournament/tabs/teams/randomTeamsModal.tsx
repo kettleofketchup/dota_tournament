@@ -106,7 +106,7 @@ export const RandomizeTeamsModal: React.FC<Props> = ({
           </Button>
         </div>
         <div className="overflow-y-auto max-h-[70vh] pr-2">
-          <TeamsView teams={teams} key={`teams-${teams.id}`} />
+          <TeamsView teams={teams} key={`teams-${tournament.pk}`} />
         </div>
         <DialogFooter>
           <CreateTeamsButton

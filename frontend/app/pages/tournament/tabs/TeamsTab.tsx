@@ -8,7 +8,7 @@ import type { UserType } from '~/components/user/types';
 import { getLogger } from '~/lib/logger';
 import { hasErrors } from '~/pages/tournament/hasErrors';
 import { useUserStore } from '~/store/userStore';
-import { RandomizeTeamsModal } from './teams/randomTeamsModal.tsx';
+import { RandomizeTeamsModal } from './teams/randomTeamsModal';
 const log = getLogger('TeamsTab');
 export const TeamsTab: React.FC = memo(() => {
   const tournament = useUserStore((state) => state.tournament);

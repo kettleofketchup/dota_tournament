@@ -42,7 +42,6 @@ export const PlayersTab: React.FC = memo(() => {
       thisUser.dbFetch();
     }
     if (updatedUsers?.includes(thisUser.pk)) {
-      log.debug();
       log.error('User in the  tournament');
       return;
     }
@@ -98,7 +97,7 @@ export const PlayersTab: React.FC = memo(() => {
     return (
       <ScrollArea className=" h-30%  mx-1 p-0 py-4">
         <div
-          className="w-full content-center grid gap-2 mt-4 grid-cols-1 
+          className="w-full content-center grid gap-2 mt-4 grid-cols-1
         sm:grid-cols-2
         lg:grid-cols-3
          xl:grid-cols-4
@@ -127,7 +126,7 @@ export const PlayersTab: React.FC = memo(() => {
       <div className="grid grid-cols-2 gap-5 items-start pt-5  ">
         <div className="flex self-center place-self-stretch">
           <SearchUserDropdown
-            users={tournament.users}
+            users={tournament?.users || []}
             query={query}
             setQuery={setQuery}
           />
