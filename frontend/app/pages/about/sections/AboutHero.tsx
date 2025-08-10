@@ -12,6 +12,8 @@ export function AboutHero() {
     if (discordUsers.length === 0) getDiscordUsers();
   }, []);
 
+  const memberCount =
+    discordUsers.length === 0 ? 'Loading ...' : String(discordUsers.length);
   return (
     <div className="hero bg-gradient-to-br from-primary/10 to-secondary/10 py-20">
       <div className="hero-content text-center">
@@ -22,7 +24,7 @@ export function AboutHero() {
           </p>
           <p className="text-lg text-base-content">
             <span className="font-bold animate-pulse">
-              {discordUsers.length}
+              {memberCount}
             </span>{' '}
             Members
             <span className="font-bold"> Strong</span>

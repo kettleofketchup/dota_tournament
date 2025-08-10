@@ -19,6 +19,8 @@ export function PurposeSection() {
   const getUsers = useUserStore((state) => state.getUsers);
   const getHurk = () => users.find((user) => user.username === 'hurk_');
 
+  const memberCount =
+    discordUsers.length === 0 ? 'Loading ...' : String(discordUsers.length);
   useEffect(() => {
     if (!getHurk()) getUsers();
     if (discordUsers.length === 0) getDiscordUsers();
@@ -67,9 +69,7 @@ export function PurposeSection() {
             <p className="text-lg text-base-content mb-4">
               DTX is a competitive, community‑driven Dota 2 guild ranked #1 on
               US EAST for the past 2 years. We have{' '}
-              <span className="font-bold animate-pulse">
-                {discordUsers.length}
-              </span>{' '}
+              <span className="font-bold animate-pulse">{memberCount}</span>{' '}
               members and are focused on teamwork, community, and consistent
               improvement. This site supports DTX operations— coordinating
               rosters and scrims, publishing schedules, tracking match stats,
