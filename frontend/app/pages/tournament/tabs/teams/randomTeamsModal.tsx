@@ -83,7 +83,7 @@ export const RandomizeTeamsModal: React.FC<Props> = ({
             </DialogTrigger>
           </TooltipTrigger>
           <TooltipContent>
-            <p>Change Captains and Draft Order</p>
+            <p>Randomize Teams using Player MMR</p>
           </TooltipContent>
         </Tooltip>
       </TooltipProvider>
