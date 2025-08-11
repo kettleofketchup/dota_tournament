@@ -1,6 +1,6 @@
 [project]
 name = "website"
-version = "0.3.10"
+version = "0.3.11"
 description = ""
 authors = [
     {name = "kettleofketchup@gmail.com",email = "kettleofketchup@gmail.com"}
@@ -27,6 +27,7 @@ dependencies = [
     "isort (>=6.0.1,<7.0.0)",
     "faker (>=37.3.0,<38.0.0)",
     "certbot-nginx (>=4.1.1,<5.0.0)",
+    "semver (>=3.0.4,<4.0.0)",
 
 ]
 
