@@ -32,7 +32,7 @@ export const UsersDropdown: React.FC<Props> = ({ users }) => {
         <div className="collapse collapse-arrow border border-base-300 bg-base-200 rounded-box">
           <input type="checkbox" />
           <div className="collapse-title text-md font-medium">
-            Players ({users.length})
+            Captains ({users.length})
           </div>
           <div className="collapse-content">
             <ul className="list-disc list-inside ml-4">

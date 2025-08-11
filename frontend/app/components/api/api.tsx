@@ -85,7 +85,7 @@ export async function getGames(): Promise<GamesType> {
 }
 
 export async function deleteTournament(pk: number): Promise<void> {
-  await axios.delete(`/tournament/${pk}/`);
+  await axios.delete(`/tournaments/${pk}/`);
 }
 
 export async function createTournament(

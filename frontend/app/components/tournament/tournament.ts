@@ -16,6 +16,8 @@ import {
   updateTournament,
 } from '~/components/api/api';
 
+import { getLogger } from '~/lib/logger';
+const log = getLogger('tournamentClass');
 export class Tournament implements TournamentClassType {
   name!: string;
   date_played!: string;

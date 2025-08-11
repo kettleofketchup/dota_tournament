@@ -1,12 +1,10 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
+import { TournamentCard } from '~/components/tournament/card/TournamentCard';
 import { TournamentCreateModal } from '~/components/tournament/create/createModal';
-import { TournamentCard } from '~/components/tournament/TournamentCard';
 
 import type {
-  TournamentType,
-  TeamType,
-  GameType,
   TournamentClassType,
+  TournamentType,
 } from '~/components/tournament/types';
 import { useUserStore } from '~/store/userStore';
 export default function Tournament() {
@@ -57,7 +55,8 @@ export default function Tournament() {
       ? 'grid col-span-2' // Spanning classes
       : 'grid col-span-1'; // Default class for the wrapper, assuming "grid" was intentional for item styling
 
-    const cssClassNames = wrapperClassName + ' px-6 py-4 gap-6 content-center';
+    const cssClassNames =
+      wrapperClassName + 'flex px-0 py-4 gap-6 content-center h-full';
 
     return (
       <div className={cssClassNames} key={tournamentData.pk}>

@@ -1,6 +1,6 @@
 import { getLogger } from '~/lib/logger';
 
-import type { FormEvent } from 'react';
+import type { FormEvent, JSX } from 'react';
 import React, { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import { Tournament } from '~/components/tournament/tournament';
@@ -14,6 +14,7 @@ const log = getLogger('editForm');
 
 import type { UserType } from '~/components/user/types';
 
+import { createTournament, updateTournament } from '~/components/api/api';
 import {
   Select,
   SelectContent,
@@ -23,7 +24,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '~/components/ui/select';
-
 interface Props {
   tourn: TournamentClassType; // Accepts both UserClassType and TournamentType
   form: TournamentClassType;
@@ -37,7 +37,7 @@ export const TournamentEditForm: React.FC<Props> = ({
 }) => {
   const currentUser: UserType = useUserStore((state) => state.currentUser); // Zustand setter
   const [errorMessage, setErrorMessage] = useState<
-    Partial<Record<keyof TournamentClassType, string>>
+    Partial<Record<keyof TournamentType, string>>
   >({});
 
   const [isSaving, setIsSaving] = useState(false);
@@ -58,14 +58,16 @@ export const TournamentEditForm: React.FC<Props> = ({
       </div>
     );
   }
+
   const createErrorMessage = (
     val: Partial<Record<keyof TournamentType, string>>,
-  ) => {
-    if (!val || Object.keys(val).length === 0)
-      return <h5>Error creating tournament:</h5>;
+  ): JSX.Element => {
+    const headerText = () => <h5>Error creating Tournament:</h5>;
+    if (!val || Object.keys(val).length === 0) return headerText();
 
     return (
       <div className="text-error">
+        {headerText()}
         <ul>
           {Object.entries(val).map(([field, message]) => (
             <li key={field}>{message}</li>
@@ -80,8 +82,12 @@ export const TournamentEditForm: React.FC<Props> = ({
 
     tourn = new Tournament(form as TournamentType); // Create a new instance of Tournament with the form data
     log.debug(tourn);
+
     if (!tourn.pk) {
-      toast.promise(tourn.dbCreate(), {
+      let updateData = {
+        ...form,
+      } as Partial<TournamentType>;
+      toast.promise(createTournament(updateData), {
         loading: `Creating tournament .`,
         success: () => {
           setIsSaving(true);
@@ -90,27 +96,34 @@ export const TournamentEditForm: React.FC<Props> = ({
           return `${tourn?.name} has been Created`;
         },
         error: (err) => {
-          const val = err.response.data;
+          let val = err.response.data;
+          log.error(`Failed to update tourn ${tourn.pk}`, err);
           setErrorMessage(val);
-          log.error('Failed to create tourn', err);
           return <>{createErrorMessage(val)}</>;
         },
       });
       setIsSaving(false);
     } else {
-      toast.promise(tourn.dbUpdate(form as TournamentType), {
+      let updateData = {
+        pk: tourn.pk,
+        ...form,
+      } as Partial<TournamentType>;
+
+      log.debug('Saving tournament with payload:', updateData);
+      toast.promise(updateTournament(tourn.pk, updateData), {
         loading: `Updating tourn ${tourn.pk}.`,
-        success: (data) => {
+        success: (data: TournamentType) => {
           setIsSaving(true);
           setStatusMsg('tourn updated successfully!');
 
-          setTournamentStore(tourn as TournamentType); // Update Zustand store with the current instance
+          setTournamentStore(data); // Update Zustand store with the current instance
           return `${tourn.pk} has been updated`;
         },
         error: (err) => {
+          let val = err.response.data;
           log.error(`Failed to update tourn ${tourn.pk}`, err);
-          setErrorMessage(err.response.data);
-          return `Failed to update tourn ${tourn.pk}.`;
+          setErrorMessage(err);
+          return <>{createErrorMessage(val)}</>;
         },
       });
       setIsSaving(false);

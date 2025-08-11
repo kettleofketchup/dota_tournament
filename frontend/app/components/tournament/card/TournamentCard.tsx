@@ -2,17 +2,18 @@ import type { FormEvent } from 'react';
 import React, { useEffect, useState } from 'react';
 import type { TournamentType } from '~/components/tournament/types';
 import { getLogger } from '~/lib/logger';
-import { STATE_CHOICES } from './constants';
+import { STATE_CHOICES } from '../constants';
 
 const log = getLogger('TournamentCard');
 
+import { Edit } from 'lucide-react';
 import { useNavigate } from 'react-router';
 import { toast } from 'sonner';
 import { useUserStore } from '~/store/userStore';
-import { createTournament, updateTournament } from '../api/api';
-import { Button } from '../ui/button';
-import { UsersDropdown } from '../user/UsersDropdown';
-
+import { updateTournament } from '../../api/api';
+import { Button } from '../../ui/button';
+import { UsersDropdown } from './UsersDropdown';
+import { TournamentRemoveButton } from './deleteButton';
 interface Props {
   tournament: TournamentType;
   edit?: boolean;
@@ -72,38 +73,22 @@ export const TournamentCard: React.FC<Props> = ({
     log.debug('Saving tournament with payload:', payload);
     log.debug('Save function:', saveFunc);
 
-    if (saveFunc === 'create') {
-      toast.promise(createTournament(payload), {
-        loading: `Creating Tournament for  ${tournament.pk}`,
-        success: (data: TournamentType) => {
-          log.debug('Tournament created successfully:', data);
-          setTournament(data);
-          return `${tournament.pk} has been created successfully!`;
-        },
-        error: (err) => {
-          const val = err.response.data;
-          log.error('Failed to create tournament', err);
-          return `Failed to update captains: ${val}`;
-        },
-      });
-    } else if (saveFunc === 'save') {
-      if (!tournament.pk) return;
+    if (!tournament.pk) return;
 
-      toast.promise(updateTournament(tournament.pk, payload), {
-        loading: `Updating Tournament for  ${tournament.pk}`,
-        success: (data: TournamentType) => {
-          log.debug('Tournament updated successfully:', data);
-          setTournament(data);
+    toast.promise(updateTournament(tournament.pk, payload), {
+      loading: `Updating Tournament for  ${tournament.pk}`,
+      success: (data: TournamentType) => {
+        log.debug('Tournament updated successfully:', data);
+        setTournament(data);
 
-          return `${tournament.pk} has been updated successfully!`;
-        },
-        error: (err) => {
-          const val = err.response.data;
-          log.error('Failed to update tournament', err);
-          return `Failed to update tournament: ${val}`;
-        },
-      });
-    }
+        return `${tournament.pk} has been updated successfully!`;
+      },
+      error: (err) => {
+        const val = err.response.data;
+        log.error('Failed to update tournament', err);
+        return `Failed to update tournament: ${val}`;
+      },
+    });
 
     setIsSaving(true);
   };
@@ -141,26 +126,12 @@ export const TournamentCard: React.FC<Props> = ({
   };
 
   const TournamentHeader = () => {
+    if (editMode) return null;
+    if (!tournament || !tournament.name) return null;
     return (
-      <>
-        {!editMode && (
-          <div className="flex-1">
-            <h2 className="card-title text-lg">{getHeaderName()}</h2>
-
-            <div className="flex gap-2 mt-1">
-              {tournament.state === STATE_CHOICES.in_progress && (
-                <span className="badge badge-warning">In Progress</span>
-              )}
-              {tournament.state === STATE_CHOICES.future && (
-                <span className="badge badge-error">Admin</span>
-              )}
-              {tournament.state === STATE_CHOICES.past && (
-                <span className="badge badge-success">Past</span>
-              )}
-            </div>
-          </div>
-        )}
-      </>
+      <div className="flex w-40">
+        <h2 className="w-full card-title text-lg">{getHeaderName()}</h2>
+      </div>
     );
   };
   const editModeView = () => {
@@ -261,7 +232,7 @@ export const TournamentCard: React.FC<Props> = ({
           </div>
         )}
 
-        <UsersDropdown users={tournament.users || []} />
+        <UsersDropdown users={tournament.captains || []} />
       </>
     );
   };
@@ -282,45 +253,62 @@ export const TournamentCard: React.FC<Props> = ({
 
   const editModeCss = () =>
     editMode
-      ? `px-6 py-4 gap-6 content-center`
-      : `px-6 py-4 gap-6 content-center`;
+      ? `px-6 py-4 gap-6 content-center w-full`
+      : `px-6 py-4 gap-6 content-center w-full`;
 
+  const editBtn = () => {
+    if (!currentUser || !currentUser.is_staff) return null;
+    if (saveCallback === 'create') {
+      return null;
+    }
+
+    return (
+      <Button
+        className="w-20 ml-0 bg-purple-900 text-white"
+        onClick={() => setEditMode(!editMode)}
+      >
+        {!editMode && <Edit />}
+        {editMode ? 'Cancel' : 'Edit'}
+      </Button>
+    );
+  };
+  const headerButtons = () => {
+    return (
+      <div className="flex self-start flex flex-col w-full align-top  items-end justify-end gap-2 lg:flex-row lg:justify-end lg:items-top ">
+        {editBtn()}
+        <Button
+          variant={'secondary'}
+          className="w-20outline-green-500"
+          onClick={() => navigate(`/tournament/${tournament.pk}`)}
+        >
+          View
+        </Button>
+      </div>
+    );
+  };
   return (
-    <div key={`usercard:${getKeyName()} base`} className={editModeCss()}>
+    <div
+      key={`usercard:${getKeyName()} base`}
+      className={`${editModeCss()} h-full`}
+    >
       <div
-        className=" p-2 h-full card bg-base-200 shadow-md w-full
+        className="w-full h-full card bg-base-200 shadow-md w-full
             max-w-sm hover:bg-violet-900 . focus:outline-2
             hover:shadow-xl/30
             focus:outline-offset-2 focus:outline-violet-500
             focus:outline-offset-2 active:bg-violet-900
             delay-700 duration-900 ease-in-out"
       >
-        <div className="flex items-center gap-2">
+        <div className="flex flex-row items-center gap-2">
           {TournamentHeader()}
-
-          {currentUser && currentUser.is_staff && (
-            <>
-              {saveCallback !== 'create' && (
-                <button
-                  className="btn btn-sm btn-outline ml-auto"
-                  onClick={() => setEditMode(!editMode)}
-                >
-                  {editMode ? 'Cancel' : 'Edit'}
-                </button>
-              )}
-            </>
-          )}
-
-          <button
-            className="btn btn-sm btn-outline outline-green-500"
-            onClick={() => navigate(`/tournament/${tournament.pk}`)}
-          >
-            View
-          </button>
+          {headerButtons()}
         </div>
 
         <div className="mt-4 space-y-2 text-sm">
           {editMode ? editModeView() : viewMode()}
+        </div>
+        <div className="flex flex-row mt-2 justify-end">
+          <TournamentRemoveButton tournament={tournament} />
         </div>
       </div>
     </div>
