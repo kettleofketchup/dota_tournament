@@ -15,6 +15,7 @@ import type { UserType } from '~/index';
 import { getLogger } from '~/lib/logger';
 import { useUserStore } from '~/store/userStore';
 import { choosePlayerHook } from '../hooks/choosePlayerHook';
+import { refreshDraftHook } from '../hooks/refreshDraftHook';
 const log = getLogger('pickPlayerButton');
 
 export const ChoosePlayerButton: React.FC<{
@@ -45,6 +46,7 @@ export const ChoosePlayerButton: React.FC<{
       setDraft,
       setCurDraftRound,
     });
+    refreshDraftHook({ draft, setDraft });
 
     log.debug('updateDraftRound', {
       user: user.username,

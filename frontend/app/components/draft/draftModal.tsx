@@ -46,7 +46,7 @@ export const DraftModal: React.FC = () => {
     },
   });
 
-  const prevRound = () => {
+  const prevRound = async () => {
     if (!draft) return;
     if (!draft.draft_rounds) return;
     log.debug('Prev Round');
@@ -58,8 +58,9 @@ export const DraftModal: React.FC = () => {
       setCurDraftRound(draft.draft_rounds[draftIndex - 1]);
     }
     log.debug(draftIndex);
+
   };
-  const nextRound = () => {
+  const nextRound = async () => {
     if (!draft) return;
     if (!draft.draft_rounds) return;
     log.debug('Next Round');
@@ -73,6 +74,7 @@ export const DraftModal: React.FC = () => {
       log.debug('Already at the last round');
     }
     log.debug('Current round after update:', curDraftRound);
+
   }; //localhost/api/tournaments/init-draft
 
   const totalRounds = (tournament?.teams?.length || 0) * 5;
