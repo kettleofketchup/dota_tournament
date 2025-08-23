@@ -343,12 +343,57 @@ class UserSerializer(serializers.ModelSerializer):
 
 
 class GameSerializer(serializers.ModelSerializer):
+
+    tournament_id = serializers.PrimaryKeyRelatedField(
+        source="tournament",
+        many=False,
+        queryset=CustomUser.objects.all(),
+        write_only=True,
+        required=False,
+    )
+    dire_team = TeamSerializerForTournament(many=False, read_only=True)
+    radiant_team = TeamSerializerForTournament(many=False, read_only=True)
+    radiant_team_id = serializers.PrimaryKeyRelatedField(
+        source="radiant_team",
+        many=False,
+        queryset=Team.objects.all(),
+        write_only=True,
+        required=False,
+    )
+    dire_team_id = radiant_team_id = serializers.PrimaryKeyRelatedField(
+        source="dire_team",
+        many=False,
+        queryset=Team.objects.all(),
+        write_only=True,
+        required=False,
+    )
+    round = serializers.IntegerField(read_only=False, write_only=False)
+    game_id = serializers.IntegerField(read_only=False, write_only=False)
+
+    tournament_type = serializers.CharField(read_only=False)
+    captains = TournamentUserSerializer(many=True, read_only=True)
+    winning_team = TeamSerializerForTournament(many=False, read_only=True)
+    winning_team_id = serializers.PrimaryKeyRelatedField(
+        source="winning_team",
+        many=False,
+        queryset=Team.objects.all(),
+        write_only=True,
+        required=False,
+    )
+
     class Meta:
         model = Game
+
         fields = (
             "pk",
             "tournament",
-            "team1",
-            "team2",
+            "tournament_id",
+            "radiant_team",
+            "radiant_team_id",
+            "dire_team",
+            "dire_team_id",
+            "game_id",
+            "round",
             "winning_team",
+            "winning_team_id",
         )

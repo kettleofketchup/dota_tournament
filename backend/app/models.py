@@ -240,11 +240,12 @@ class Team(models.Model):
 
 class GameStat(models.Model):
     user = models.ForeignKey(
-        User, related_name="game_stats", on_delete=models.CASCADE, blank=True
+        User, related_name="games", on_delete=models.CASCADE, blank=True
     )
     game = models.ForeignKey(
         "Game", related_name="stats", on_delete=models.CASCADE, blank=True
     )
+    team = models.ForeignKey("Team", on_delete=models.CASCADE, blank=True)
     kills = models.IntegerField(default=0, blank=True)
     deaths = models.IntegerField(default=0, blank=True)
     assists = models.IntegerField(default=0, blank=True)
@@ -252,14 +253,20 @@ class GameStat(models.Model):
     tower_damage = models.IntegerField(default=0, blank=True)
     gold_per_minute = models.IntegerField(default=0, blank=True)
     xp_per_minute = models.IntegerField(default=0, blank=True)
+    radiant = models.BooleanField(blank=True, default=False)
 
     def __str__(self):
         return f"{self.user.username} stats for {self.game}"
 
+    @property
+    def team(self):
+        if not self.game:
+            return
+        if not self.user:
+            return
+
 
 class Game(models.Model):
-    users = models.ManyToManyField(User, related_name="games", blank=True)
-
     tournament = models.ForeignKey(
         Tournament, related_name="games", on_delete=models.CASCADE, blank=True
     )
