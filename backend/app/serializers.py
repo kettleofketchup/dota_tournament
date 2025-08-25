@@ -368,10 +368,8 @@ class GameSerializer(serializers.ModelSerializer):
         required=False,
     )
     round = serializers.IntegerField(read_only=False, write_only=False)
-    game_id = serializers.IntegerField(read_only=False, write_only=False)
+    gameid = serializers.IntegerField(read_only=False, write_only=False)
 
-    tournament_type = serializers.CharField(read_only=False)
-    captains = TournamentUserSerializer(many=True, read_only=True)
     winning_team = TeamSerializerForTournament(many=False, read_only=True)
     winning_team_id = serializers.PrimaryKeyRelatedField(
         source="winning_team",
@@ -386,13 +384,12 @@ class GameSerializer(serializers.ModelSerializer):
 
         fields = (
             "pk",
-            "tournament",
             "tournament_id",
             "radiant_team",
             "radiant_team_id",
             "dire_team",
             "dire_team_id",
-            "game_id",
+            "gameid",
             "round",
             "winning_team",
             "winning_team_id",

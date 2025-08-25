@@ -5,21 +5,18 @@ import type {
   UserType,
   UsersType,
 } from '~/components/user';
-import { User } from '~/components/user';
+import { PositionEnum, User } from '~/components/user';
 import { AvatarUrl } from '~/components/user/avatar';
-import { PositionEnum } from '~/components/user';
-
-export { AvatarUrl, User, PositionEnum };
-export type { GuildMember, GuildMembers, UserClassType, UserType, UsersType };
+import type { GameType, GamesType } from './components/game/types';
 import type {
-  GameType,
-  GamesType,
   TeamType,
   TeamsType,
   TournamentClassType,
   TournamentType,
   TournamentsType,
 } from './components/tournament/types';
+export { AvatarUrl, PositionEnum, User };
+export type { GuildMember, GuildMembers, UserClassType, UserType, UsersType };
 
 export type {
   GameType,
