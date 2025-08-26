@@ -143,6 +143,25 @@ class DraftSerializer(serializers.ModelSerializer):
         )
 
 
+class GameSerializerForTournament(serializers.ModelSerializer):
+
+    dire_team = TeamSerializerForTournament(many=False, read_only=True)
+    radiant_team = TeamSerializerForTournament(many=False, read_only=True)
+    winning_team = TeamSerializerForTournament(many=False, read_only=True)
+
+    class Meta:
+        model = Game
+
+        fields = (
+            "pk",
+            "radiant_team",
+            "dire_team",
+            "gameid",
+            "round",
+            "winning_team",
+        )
+
+
 class DraftRoundSerializer(serializers.ModelSerializer):
     draft = serializers.PrimaryKeyRelatedField(
         many=False,
@@ -275,6 +294,7 @@ class TournamentSerializer(serializers.ModelSerializer):
     )
     tournament_type = serializers.CharField(read_only=False)
     captains = TournamentUserSerializer(many=True, read_only=True)
+    games = GameSerializerForTournament(many=True, read_only=True)
 
     def get_draft(self, obj):
         """
@@ -301,6 +321,7 @@ class TournamentSerializer(serializers.ModelSerializer):
             "teams",  # Include full team objects
             "winning_team",
             "state",
+            "games",
             "user_ids",  # Allow setting user IDs for the tournament
             "captains",
             "tournament_type",
@@ -347,7 +368,7 @@ class GameSerializer(serializers.ModelSerializer):
     tournament_id = serializers.PrimaryKeyRelatedField(
         source="tournament",
         many=False,
-        queryset=CustomUser.objects.all(),
+        queryset=Tournament.objects.all(),
         write_only=True,
         required=False,
     )
@@ -367,8 +388,6 @@ class GameSerializer(serializers.ModelSerializer):
         write_only=True,
         required=False,
     )
-    round = serializers.IntegerField(read_only=False, write_only=False)
-    gameid = serializers.IntegerField(read_only=False, write_only=False)
 
     winning_team = TeamSerializerForTournament(many=False, read_only=True)
     winning_team_id = serializers.PrimaryKeyRelatedField(

@@ -84,6 +84,11 @@ export async function getGames(): Promise<GamesType> {
   return response.data;
 }
 
+export async function createGame(data: Partial<GameType>): Promise<GameType> {
+  const response = await axios.post(`/game/register`, data);
+  return response.data as GameType;
+}
+
 export async function deleteTournament(pk: number): Promise<void> {
   await axios.delete(`/tournaments/${pk}/`);
 }

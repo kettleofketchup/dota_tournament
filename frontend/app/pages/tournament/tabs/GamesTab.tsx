@@ -1,6 +1,6 @@
 import { memo } from 'react';
-import type { GameType } from '~/components/tournament/types'; // Adjust the import path as necessary
-
+import { GameCreateModal } from '~/components/game/create/createGameModal';
+import type { GameType } from '~/index'; // Adjust the import path as necessary
 import { useUserStore } from '~/store/userStore';
 
 export const GamesTab: React.FC = memo(() => {
@@ -8,35 +8,39 @@ export const GamesTab: React.FC = memo(() => {
   const setTournament = useUserStore((state) => state.setTournament);
   if (!tournament || !tournament.games || tournament.games.length === 0) {
     return (
-      <div className="flex justify-center items-center h-screen">
-        <div className="alert alert-info">
-          <span>No games available for this tournament.</span>
+      <>
+        <div>
+          <GameCreateModal></GameCreateModal>
         </div>
-      </div>
+
+        <div className="flex justify-center items-center h-screen">
+          <div className="alert alert-info">
+            <span>No games available for this tournament.</span>
+          </div>
+        </div>
+      </>
     );
   }
   return (
-
-    <div className='p-5 container bg-base-300 rounded-lg shadow-lg hover:bg-base-400 transition-shadow duration-300 ease-in-out'>
-
-    <ul>
-      {tournament.games.map((game: GameType) => (
-        <li
-          key={game.pk}
-          className="relative rounded-md p-3 text-sm/6 transition hover:bg-white/5"
-        >
-          <a href="#" className="font-semibold text-white">
-            <span className="absolute inset-0" />
-            {game.teams}
-          </a>
-          <ul className="flex gap-2 text-white/50" aria-hidden="true">
-            <li>Played on: {game.date_played}</li>
-            <li>Winning Team: {game.winning_team}</li>
-            <li aria-hidden="true">&middot;</li>
-          </ul>
-        </li>
-      ))}
+    <div className="p-5 container bg-base-300 rounded-lg shadow-lg hover:bg-base-400 transition-shadow duration-300 ease-in-out">
+      <ul>
+        {tournament.games.map((game: GameType) => (
+          <li
+            key={game.pk}
+            className="relative rounded-md p-3 text-sm/6 transition hover:bg-white/5"
+          >
+            <a href="#" className="font-semibold text-white">
+              <span className="absolute inset-0" />
+              {game.teams}
+            </a>
+            <ul className="flex gap-2 text-white/50" aria-hidden="true">
+              <li>Played on: {game.date_played}</li>
+              <li>Winning Team: {game?.winning_team}</li>
+              <li aria-hidden="true">&middot;</li>
+            </ul>
+          </li>
+        ))}
       </ul>
-      </div>
+    </div>
   );
-})
+});
