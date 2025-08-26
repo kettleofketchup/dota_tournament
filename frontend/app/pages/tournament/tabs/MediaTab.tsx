@@ -1,7 +1,4 @@
-import { Tab, TabGroup, TabList, TabPanel, TabPanels } from '@headlessui/react';
-import type { GameType, TournamentType } from '~/components/tournament/types'; // Adjust the import path as necessary
-
-import { Fragment } from 'react';
+import type { GameType, TournamentType } from '~/index'; // Adjust the import path as necessary
 
 export default function TeamsTab({
   tournament,

@@ -24,7 +24,7 @@ from social_django.utils import load_strategy, psa
 from backend import settings
 
 from .decorators import render_to
-from .models import CustomUser, Draft, DraftRound, Team, Tournament
+from .models import CustomUser, Draft, DraftRound, Game, Team, Tournament
 from .permissions import IsStaff
 from .serializers import (
     DraftRoundSerializer,
@@ -481,6 +481,33 @@ def get_discord_voice_channel_activity(request):
 class GameCreateView(generics.CreateAPIView):
     serializer_class = GameSerializer
     permission_classes = [IsStaff]
+
+
+@permission_classes((IsStaff,))
+class GameView(viewsets.ModelViewSet):
+    serializer_class = GameSerializer
+    queryset = Game.objects.all()
+    http_method_names = [
+        "get",
+        "post",
+        "put",
+        "patch",
+        "delete",
+        "head",
+        "options",
+        "trace",
+    ]
+
+    @permission_classes((IsStaff,))
+    def patch(self, request, *args, **kwargs):
+        print(request.data)
+        return self.partial_update(request, *args, **kwargs)
+
+    def get_permissions(self):
+        self.permission_classes = [IsStaff]
+        if self.request.method == "GET":
+            self.permission_classes = [AllowAny]
+        return super(GameView, self).get_permissions()
 
 
 from django.db import transaction

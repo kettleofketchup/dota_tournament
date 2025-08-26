@@ -11,13 +11,9 @@ import {
 } from '~/components/api/api';
 import axios from '~/components/api/axios';
 import type { DraftRoundType, DraftType } from '~/components/draft/types';
-import type {
-  GameType,
-  TeamType,
-  TournamentType,
-} from '~/components/tournament/types';
+import type { TeamType, TournamentType } from '~/components/tournament/types';
 import { User } from '~/components/user/user';
-import type { GuildMember, GuildMembers, UserType } from '~/index';
+import type { GameType, GuildMember, GuildMembers, UserType } from '~/index';
 import { getLogger } from '~/lib/logger';
 
 const log = getLogger('userStore');
@@ -103,7 +99,8 @@ export const useUserStore = create<UserState>()(
           await get().getCurrentTournament();
 
           set({
-            curDraftRound: get().tournament.draft.draft_rounds[get().draftIndex],
+            curDraftRound:
+              get().tournament.draft.draft_rounds[get().draftIndex],
           });
         } catch (err) {
           log.error('Failed to fetch draft:', err);

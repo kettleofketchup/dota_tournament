@@ -92,6 +92,9 @@ export async function createGame(data: Partial<GameType>): Promise<GameType> {
 export async function deleteTournament(pk: number): Promise<void> {
   await axios.delete(`/tournaments/${pk}/`);
 }
+export async function deleteGame(pk: number): Promise<void> {
+  await axios.delete(`/games/${pk}/`);
+}
 
 export async function createTournament(
   data: Partial<TournamentType>,

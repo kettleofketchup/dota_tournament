@@ -22,7 +22,7 @@ import type { TeamType } from '~/index';
 import { cn } from '~/lib/utils';
 interface Props {
   teams: TeamType[];
-  selectedTeam: Number;
+  selectedTeam: number;
   setSelectedTeam: React.Dispatch<React.SetStateAction<number>>;
 }
 

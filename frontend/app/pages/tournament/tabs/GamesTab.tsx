@@ -1,46 +1,46 @@
 import { memo } from 'react';
 import { GameCreateModal } from '~/components/game/create/createGameModal';
-import type { GameType } from '~/index'; // Adjust the import path as necessary
+import { GameCard } from '~/components/game/gameCard/gameCard';
+import { getLogger } from '~/lib/logger';
 import { useUserStore } from '~/store/userStore';
+const log = getLogger('GamesTab');
 
 export const GamesTab: React.FC = memo(() => {
   const tournament = useUserStore((state) => state.tournament);
-  const setTournament = useUserStore((state) => state.setTournament);
-  if (!tournament || !tournament.games || tournament.games.length === 0) {
+  const renderNoGames = () => {
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <div className="alert alert-info">
+          <span>No games available for this tournament.</span>
+        </div>
+      </div>
+    );
+  };
+  const renderGames = () => {
+    if (!tournament || !tournament.games) {
+      log.error('No Tournament games');
+      return;
+    }
+    log.debug('rendering games');
     return (
       <>
-        <div>
-          <GameCreateModal></GameCreateModal>
-        </div>
-
-        <div className="flex justify-center items-center h-screen">
-          <div className="alert alert-info">
-            <span>No games available for this tournament.</span>
-          </div>
-        </div>
+        {tournament.games?.map((game) => (
+          <GameCard game={game} />
+        ))}
       </>
     );
-  }
+  };
   return (
-    <div className="p-5 container bg-base-300 rounded-lg shadow-lg hover:bg-base-400 transition-shadow duration-300 ease-in-out">
-      <ul>
-        {tournament.games.map((game: GameType) => (
-          <li
-            key={game.pk}
-            className="relative rounded-md p-3 text-sm/6 transition hover:bg-white/5"
-          >
-            <a href="#" className="font-semibold text-white">
-              <span className="absolute inset-0" />
-              {game.teams}
-            </a>
-            <ul className="flex gap-2 text-white/50" aria-hidden="true">
-              <li>Played on: {game.date_played}</li>
-              <li>Winning Team: {game?.winning_team}</li>
-              <li aria-hidden="true">&middot;</li>
-            </ul>
-          </li>
-        ))}
-      </ul>
+    <div className="py-5 px-3 mx-auto container bg-base-300 rounded-lg shadow-lg hover:bg-base-400 transition-shadow duration-300 ease-in-out">
+      <div className="grid grid-cols-2 gap-5 items-start pt-5  ">
+        <div className="flex px-5 place-self-end">
+          <GameCreateModal />
+        </div>
+      </div>
+
+      {!tournament || !tournament.games || tournament.games.length === 0
+        ? renderNoGames()
+        : renderGames()}
     </div>
   );
 });

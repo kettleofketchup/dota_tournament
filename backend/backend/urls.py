@@ -21,6 +21,7 @@ from app.views import (
     get_discord_members,
     get_discord_voice_channel_activity,
     get_user_guilds,
+    GameView,
 )
 
 router = routers.DefaultRouter()
@@ -37,6 +38,7 @@ router.register(
     DraftRoundView,
     "draftrounds",
 )
+router.register(r"games", GameView, "games")
 
 from django.views.generic.base import RedirectView
 
