@@ -95,7 +95,7 @@ export const DraftModal: React.FC<DraftModalParams> = ({
     log.debug('Current round after update:', curDraftRound);
   };
 
-  const totalRounds = (tournament?.teams?.length || 0) * 5;
+  const totalRounds = (tournament?.teams?.length || 0) * 4;
 
   useEffect(() => {
     if (!draft || !draft.draft_rounds) return;
@@ -151,6 +151,7 @@ export const DraftModal: React.FC<DraftModalParams> = ({
   }, [
     tournament,
     tournament.teams,
+    curDraftRound,
     setDraft,
     setCurDraftRound,
     setDraftIndex,
@@ -250,7 +251,11 @@ export const DraftModal: React.FC<DraftModalParams> = ({
             </DialogTrigger>
           </TooltipTrigger>
           <TooltipContent>
-            <p>Change Captains and Draft Order</p>
+            <p>
+              {liveView
+                ? 'Watch The live draft in progress'
+                : 'Administer the Draft'}
+            </p>
           </TooltipContent>
         </Tooltip>
       </TooltipProvider>
