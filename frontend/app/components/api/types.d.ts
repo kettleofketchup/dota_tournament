@@ -12,3 +12,11 @@ export interface InitDraftRoundsAPI {
 export interface RebuildDraftRoundsAPI {
   tournament_pk: number;
 }
+
+}
+
+
+export interface PickPlayerForRoundAPI {
+  draft_round_pk: number;
+  user_pk: number;
+}

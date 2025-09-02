@@ -15,6 +15,8 @@ from enum import IntEnum
 from django.contrib.auth.models import AbstractUser
 from django.db.models import JSONField
 
+log = logging.getLogger(__name__)
+
 
 # Enum for Dota2 positions
 class PositionEnum(IntEnum):
@@ -312,6 +314,13 @@ class Draft(models.Model):
         blank=True,
         null=True,
     )
+    latest_round = models.ForeignKey(
+        "DraftRound",
+        related_name="current_round",
+        on_delete=models.SET_NULL,
+        blank=True,
+        null=True,
+    )
 
     def __str__(self):
         return f"Draft {self.pk} in {self.tournament.name}"
@@ -353,6 +362,20 @@ class Draft(models.Model):
             raise ValueError("Draft must be associated with a tournament.")
 
         return self.tournament.captains.all()
+
+    def update_latest_round(self):
+        """
+        Returns the latest draft round.
+        """
+        if not self.draft_rounds.exists():
+            return
+
+        self.latest_round = (
+            self.draft_rounds.order_by("pick_number")
+            .exclude(choice__isnull=False)
+            .first()
+        )
+        self.save()
 
     def rebuild_teams(self):
         """
@@ -400,8 +423,8 @@ class Draft(models.Model):
 
         max_picks = self.tournament.captains.count() * 5
 
-        pick = 0
-        phase = 0
+        pick = 1
+        phase = 1
         order = self.tournament.teams.order_by("draft_order")
 
         def pick_player(draft, team, pick, phase):
@@ -497,6 +520,24 @@ class DraftRound(models.Model):
         return Team.objects.filter(
             tournament=self.draft.tournament, captain=self.captain
         ).first()
+
+    def pick_player(self, user: CustomUser):
+        if self.choice:
+            raise ValueError("This draft round already has a choice.")
+
+        log.debug(
+            f"Draft round {self.pk} picking player {user.username} for captain {self.captain.username}"
+        )
+        log.debug(self.draft.users_remaining)
+        log.debug(self.draft.users_remaining)
+        if self.draft.users_remaining.contains(user):
+            self.choice = user
+            self.team.members.add(user)
+            self.team.save()
+            self.draft.update_latest_round()
+            self.save()
+        else:
+            raise ValueError("User is not available for drafting.")
 
     def __str__(self):
         return f"{self.picker.username} picked {self.choice.username} in {self.tournament.name}"

@@ -33,6 +33,50 @@ from app.serializers import (
 from backend import settings
 
 
+class PickPlayerForRound(serializers.Serializer):
+    draft_round_pk = serializers.IntegerField(required=True)
+    user_pk = serializers.IntegerField(required=True)
+
+
+@api_view(["POST"])
+@permission_classes([IsStaff])
+def pick_player_for_round(request):
+    serializer = PickPlayerForRound(data=request.data)
+
+    if serializer.is_valid():
+        draft_round_pk = serializer.validated_data["draft_round_pk"]
+        user_pk = serializer.validated_data["user_pk"]
+
+    else:
+        return Response(serializer.errors, status=400)
+
+    try:
+        draft_round = DraftRound.objects.get(pk=draft_round_pk)
+    except DraftRound.DoesNotExist:
+        return Response({"error": "Draft round not found"}, status=404)
+    try:
+        user = CustomUser.objects.get(pk=user_pk)
+    except CustomUser.DoesNotExist:
+        return Response({"error": "User not found"}, status=404)
+    try:
+        draft_round.pick_player(user)
+    except Exception as e:
+        logging.error(
+            f"Error picking player for draft round {draft_round_pk}: {str(e)}"
+        )
+        return Response({"error": f"Failed to pick player. {str(e)}"}, status=500)
+    try:
+        tournament = draft_round.draft.tournament
+    except Tournament.DoesNotExist:
+        return Response({"error": "Tournament not found"}, status=404)
+
+    draft_round.draft.update_latest_round()
+    draft_round.draft.save()
+    
+    
+    return Response(TournamentSerializer(tournament).data, status=201)
+
+
 class CreateTournamentTeamRequestSerializer(serializers.Serializer):
     tournament_pk = serializers.IntegerField(required=True)
     user_pk = serializers.IntegerField(required=True)
@@ -136,6 +180,8 @@ def generate_draft_rounds(request):
     draft = Draft.objects.create(tournament=tournament)
     draft.save()
     draft.build_rounds()
+    draft.update_latest_round()
+
     return Response(TournamentSerializer(tournament).data, status=201)
 
 

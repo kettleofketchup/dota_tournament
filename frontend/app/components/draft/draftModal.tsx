@@ -1,4 +1,4 @@
-import { ClipboardPen } from 'lucide-react';
+import { ClipboardPen, EyeIcon } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
 import { Button } from '~/components/ui/button';
 import {
@@ -28,7 +28,12 @@ import { refreshTournamentHook } from './hooks/refreshTournamentHook';
 import { useDraftLive } from './hooks/useDraftLive';
 import type { DraftRoundType, DraftType } from './types';
 const log = getLogger('DraftModal');
-export const DraftModal: React.FC = () => {
+type DraftModalParams = {
+  liveView?: boolean;
+};
+export const DraftModal: React.FC<DraftModalParams> = ({
+  liveView = false,
+}) => {
   const tournament = useUserStore((state) => state.tournament);
   const setTournament = useUserStore((state) => state.setTournament);
   const draft = useUserStore((state) => state.draft);
@@ -47,6 +52,17 @@ export const DraftModal: React.FC = () => {
       log.debug('Live update received - draft data refreshed');
       refreshDraftHook({ draft, setDraft });
       refreshTournamentHook({ tournament, setTournament });
+      if (liveView) {
+        let newDraft: DraftRoundType =
+          draft?.draft_rounds?.find(
+            (round) => round.pk === draft.latest_round,
+          ) || ({} as DraftRoundType);
+        setCurDraftRound(newDraft);
+        let number = draft?.draft_rounds?.findIndex(
+          (round) => round.pk === newDraft.pk,
+        );
+        if (number) setDraftIndex(number);
+      }
     },
   });
 
@@ -228,8 +244,8 @@ export const DraftModal: React.FC = () => {
           <TooltipTrigger asChild>
             <DialogTrigger asChild>
               <Button className="btn btn-primary">
-                <ClipboardPen />
-                Begin Draft
+                {liveView ? <EyeIcon /> : <ClipboardPen />}
+                {liveView ? 'Live Draft' : 'Begin Draft'}
               </Button>
             </DialogTrigger>
           </TooltipTrigger>

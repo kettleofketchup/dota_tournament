@@ -5,6 +5,7 @@ export interface DraftType {
   tournament?: TournamentType;
   users_remaining?: UserType[];
   draft_rounds?: DraftRoundType[];
+  latest_round?: number;
 }
 
 export interface DraftRoundType {

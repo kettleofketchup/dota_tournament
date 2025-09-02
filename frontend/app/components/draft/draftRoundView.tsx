@@ -53,6 +53,7 @@ export const DraftRoundView: React.FC = () => {
 
     return <TeamTable team={team} />;
   };
+
   const playerChoiceView = () => {
     if (!curDraftRound || !curDraftRound.choice)
       return <DraftTable curRound={curDraftRound} />;
@@ -69,6 +70,17 @@ export const DraftRoundView: React.FC = () => {
       </div>
     );
   };
+
+  if (draft.latest_round !== curDraftRound.pk && !curDraftRound.choice) {
+    return (
+      <div className="mb-4">
+        <h3 className="text-xl font-bold">
+          Not Current Round {curDraftRound.pk} vs ({draft.latest_round})
+        </h3>
+        <p className="text-gray-500">This is not the current draft round.</p>
+      </div>
+    );
+  }
 
   return (
     <div className="p-4">

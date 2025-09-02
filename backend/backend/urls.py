@@ -47,6 +47,7 @@ from app.functions.tournament import (
     create_team_from_captain,
     generate_draft_rounds,
     rebuild_team,
+    pick_player_for_round,
 )
 
 urlpatterns = [
@@ -93,6 +94,11 @@ urlpatterns = [
         "api/tournaments/draft-rebuild",
         rebuild_team,
         name="draft-rebuild",
+    ),
+    path(
+        "api/tournaments/pick_player",
+        pick_player_for_round,
+        name="pick_player",
     ),
     path("api/avatars/refresh/", app_views.refresh_all_avatars, name="refresh-avatars"),
     path("api/steam/", include("steam.urls")),

@@ -12,8 +12,10 @@ import { RandomizeTeamsModal } from './teams/randomTeamsModal';
 const log = getLogger('TeamsTab');
 export const TeamsTab: React.FC = memo(() => {
   const tournament = useUserStore((state) => state.tournament);
+  const isStaff = useUserStore((state) => state.isStaff);
 
   const allUsers = useUserStore((state) => state.users); // Zustand setter
+  const currentUser = useUserStore((state) => state.currentUser); // Zustand setter
 
   const getCurrentTournament = useUserStore(
     (state) => state.getCurrentTournament,
@@ -63,7 +65,8 @@ export const TeamsTab: React.FC = memo(() => {
       >
         <RandomizeTeamsModal users={tournament?.users || []} teamSize={5} />
         <CaptainSelectionModal />
-        <DraftModal />
+        {isStaff(currentUser) && <DraftModal />}
+        <DraftModal liveView={true} />
       </div>
     );
   };

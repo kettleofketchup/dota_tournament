@@ -1,16 +1,16 @@
 import { toast } from 'sonner';
-import { updateDraftRound } from '~/components/api/api';
+import { PickPlayerForRound } from '~/components/api/api';
+import type { PickPlayerForRoundAPI } from '~/components/api/types';
 import type { UserType } from '~/components/user/types';
 import type { DraftRoundType, DraftType, TournamentType } from '~/index';
 import { getLogger } from '~/lib/logger';
-import { rebuildTeamsHook } from './rebuildTeamHook';
-const log = getLogger('ChoosePlayerHook');
+import { refreshTournamentHook } from './refreshTournamentHook';
+const log = getLogger('PickPlayerHook');
 
 type hookParams = {
   tournament: TournamentType;
   setTournament: (tournament: TournamentType) => void;
-  user: UserType;
-  draft: DraftType;
+  player: UserType;
   curDraftRound: DraftRoundType;
   setDraft: (draft: DraftType) => void;
   setCurDraftRound: (draftRound: DraftRoundType) => void;
@@ -19,41 +19,37 @@ type hookParams = {
 export const choosePlayerHook = async ({
   tournament,
   setTournament,
-  user,
-  draft,
+  player,
   curDraftRound,
   setDraft,
   setCurDraftRound,
 }: hookParams) => {
-  log.debug('createTeamFromCaptainHook', { tournament, user });
-  if (!tournament) {
+  if (!tournament || !tournament.pk) {
     log.error('Creating tournamentNo tournament found');
     return;
   }
-  if (!user || !user.pk) {
+  if (!player || !player.pk) {
     log.error('No user found to update captain');
     return;
   }
-  if (!tournament.pk) {
-    log.error('No tournament primary key found');
+  if (!curDraftRound || !curDraftRound.pk) {
+    log.error('No current draft round found');
     return;
   }
 
- 
   log.debug(
-    `Choosing player ${user.username} for captain  ${curDraftRound.captain?.username}`,
+    `Choosing player ${player.username} for captain  ${curDraftRound.captain?.username}`,
   );
 
-  const dataRoundUpdate: Partial<DraftRoundType> = {
-    choice_id: user.pk,
-    pk: curDraftRound.pk,
+  const dataRoundUpdate: PickPlayerForRoundAPI = {
+    draft_round_pk: curDraftRound.pk,
+    user_pk: player.pk,
   };
 
-  toast.promise(updateDraftRound(curDraftRound.pk, dataRoundUpdate), {
-    loading: `Choosing ${user.username} for ${curDraftRound.captain?.username}  in round ${curDraftRound.pick_number}`,
+  toast.promise(PickPlayerForRound(dataRoundUpdate), {
+    loading: `Choosing ${player.username} for ${curDraftRound.captain?.username} in round ${curDraftRound.pick_number}`,
     success: (data) => {
-      setCurDraftRound(data);
-
+      setTournament(data);
       return `${curDraftRound?.pick_number} has been updated successfully!`;
     },
     error: (err) => {
@@ -62,8 +58,11 @@ export const choosePlayerHook = async ({
       return `Failed to update captains: ${val}`;
     },
   });
-  rebuildTeamsHook({
+  refreshTournamentHook({
     tournament: tournament,
     setTournament: setTournament,
+    setDraft: setDraft,
+    curDraftRound: curDraftRound,
+    setCurDraftRound: setCurDraftRound,
   });
 };

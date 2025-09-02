@@ -16,6 +16,7 @@ import axios from './axios';
 import type {
   CreateTeamFromCaptainAPI,
   InitDraftRoundsAPI,
+  PickPlayerForRoundAPI,
   RebuildDraftRoundsAPI,
 } from './types';
 const log = getLogger('api');
@@ -218,5 +219,12 @@ export async function DraftRebuild(
   data: RebuildDraftRoundsAPI,
 ): Promise<TournamentType> {
   const response = await axios.post(`/tournaments/draft-rebuild`, data);
+  return response.data as TournamentType;
+}
+
+export async function PickPlayerForRound(
+  data: PickPlayerForRoundAPI,
+): Promise<TournamentType> {
+  const response = await axios.post(`/tournaments/pick_player`, data);
   return response.data as TournamentType;
 }

@@ -95,6 +95,7 @@ class DraftSerializerForTournament(serializers.ModelSerializer):
             "pk",
             "draft_rounds",
             "users_remaining",
+            "latest_round",
         )
 
 
@@ -140,6 +141,7 @@ class DraftSerializer(serializers.ModelSerializer):
             "tournament",
             "draft_rounds",
             "users_remaining",
+            "latest_round",
         )
 
 

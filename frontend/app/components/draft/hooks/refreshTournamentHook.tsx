@@ -1,16 +1,22 @@
 import { fetchTournament } from '~/components/api/api';
-import type { TournamentType } from '~/index';
+import type { DraftRoundType, DraftType, TournamentType } from '~/index';
 import { getLogger } from '~/lib/logger';
 const log = getLogger('RefreshTournament');
 
 type hookParams = {
   tournament: TournamentType;
   setTournament: (tournament: TournamentType) => void;
+  setDraft?: (draft: DraftType) => void;
+  curDraftRound?: DraftRoundType;
+  setCurDraftRound?: (draft: DraftRoundType) => void;
 };
 
 export const refreshTournamentHook = async ({
   tournament,
   setTournament,
+  setDraft,
+  curDraftRound,
+  setCurDraftRound,
 }: hookParams) => {
   log.debug('Initialization draft', { tournament });
 
@@ -28,6 +34,13 @@ export const refreshTournamentHook = async ({
     log.debug('tournament has been refreshed');
     const data = await fetchTournament(tournament.pk);
     setTournament(data);
+    if (setDraft) setDraft(data.draft);
+    if (setCurDraftRound)
+      setCurDraftRound(
+        tournament.draft?.draft_rounds?.find(
+          (round: DraftRoundType) => round?.pk === curDraftRound?.pk,
+        ) || ({} as DraftRoundType),
+      );
   } catch (error) {
     log.error('Tournament  has failed to refresh!', error);
   }
