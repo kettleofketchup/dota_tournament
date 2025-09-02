@@ -50,9 +50,11 @@ export const DraftModal: React.FC<DraftModalParams> = ({
     interval: 3000, // Poll every 3 seconds when modal is open
     onUpdate: () => {
       log.debug('Live update received - draft data refreshed');
-      refreshDraftHook({ draft, setDraft });
-      refreshTournamentHook({ tournament, setTournament });
+      if (!liveView) return;
       if (liveView) {
+        refreshDraftHook({ draft, setDraft });
+        refreshTournamentHook({ tournament, setTournament });
+
         let newDraft: DraftRoundType =
           draft?.draft_rounds?.find(
             (round) => round.pk === draft?.latest_round,
@@ -93,6 +95,9 @@ export const DraftModal: React.FC<DraftModalParams> = ({
       log.debug('Already at the last round');
     }
     log.debug('Current round after update:', curDraftRound);
+    setCurDraftRound(
+      draft?.draft_rounds?.[draftIndex] || ({} as DraftRoundType),
+    );
   };
 
   const totalRounds = (tournament?.teams?.length || 0) * 4;
@@ -115,6 +120,7 @@ export const DraftModal: React.FC<DraftModalParams> = ({
       draft?.draft_rounds?.[draftIndex] || ({} as DraftRoundType),
     );
   }, [draftIndex]);
+
   const initialize = () => {
     log.debug('Tournament Modal Initialized draft data:', tournament?.draft);
 
@@ -145,22 +151,6 @@ export const DraftModal: React.FC<DraftModalParams> = ({
   useEffect(() => {
     initialize();
   }, []);
-
-  useEffect(() => {
-    log.debug('Tournament Modal Initialized draft data:', tournament?.draft);
-  }, [
-    tournament,
-    tournament.teams,
-    curDraftRound,
-    setDraft,
-    setCurDraftRound,
-    setDraftIndex,
-    tournament.teams,
-  ]);
-
-  useEffect(() => {
-    log.debug('Current draft round state:', curDraftRound);
-  }, [draftIndex]);
 
   // Log modal state changes for debugging live updates
   useEffect(() => {
@@ -210,7 +200,7 @@ export const DraftModal: React.FC<DraftModalParams> = ({
             isCur={true}
           />
 
-          {draftIndex < totalRounds &&
+          {draftIndex < totalRounds - 1 &&
           draft &&
           draft.draft_rounds &&
           draft.draft_rounds[draftIndex + 1] ? (

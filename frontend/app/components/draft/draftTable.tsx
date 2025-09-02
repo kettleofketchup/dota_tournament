@@ -22,9 +22,7 @@ interface DraftTableProps {
 export const DraftTable: React.FC<DraftTableProps> = ({ curRound }) => {
   const tournament = useUserStore((state) => state.tournament);
   const curDraft = useUserStore((state) => state.curDraft);
-  useEffect(() => {}, [tournament]);
-
-  useEffect(() => {}, [curRound, curDraft]);
+  useEffect(() => {}, [curRound.choice, curDraft.users_remaining]);
 
   const members = () => {
     const a = tournament?.draft?.users_remaining?.sort((a, b) => {

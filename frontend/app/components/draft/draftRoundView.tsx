@@ -10,6 +10,7 @@ import type {
 import { getLogger } from '~/lib/logger';
 import { useUserStore } from '~/store/userStore';
 import { TeamTable } from '../team/teamTable/teamTable';
+import { PlayerChoiceView } from './choiceCard';
 import { DraftTable } from './draftTable';
 
 const log = getLogger('DraftRoundView');
@@ -55,7 +56,7 @@ export const DraftRoundView: React.FC = () => {
   };
 
   const playerChoiceView = () => {
-    if (!curDraftRound || !curDraftRound.choice)
+    if (!curDraftRound || !curDraftRound?.choice)
       return <DraftTable curRound={curDraftRound} />;
 
     return (
@@ -63,7 +64,7 @@ export const DraftRoundView: React.FC = () => {
         <h3 className="text-xl font-bold">Current Choice</h3>
         <div className="flex flex-col items-center justify-center">
           <UserCard
-            user={curDraftRound.choice as UserClassType}
+            user={curDraftRound?.choice as UserClassType}
             compact={true}
           />
         </div>
@@ -71,7 +72,7 @@ export const DraftRoundView: React.FC = () => {
     );
   };
 
-  if (draft?.latest_round !== curDraftRound?.pk && !curDraftRound.choice) {
+  if (draft?.latest_round !== curDraftRound?.pk && !curDraftRound?.choice) {
     return (
       <div className="mb-4">
         <h3 className="text-xl font-bold">
@@ -89,7 +90,7 @@ export const DraftRoundView: React.FC = () => {
       </div>
 
       {teamView()}
-      {playerChoiceView()}
+      <PlayerChoiceView curRound={curDraftRound} />
     </div>
   );
 };
