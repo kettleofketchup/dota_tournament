@@ -421,7 +421,7 @@ class Draft(models.Model):
             )
             round.delete()
 
-        max_picks = self.tournament.captains.count() * 5
+        max_picks = self.tournament.captains.count() * 4
 
         pick = 1
         phase = 1
