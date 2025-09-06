@@ -1,10 +1,12 @@
 from ast import alias
+from logging import getLogger
 from typing import TypeAlias
 
 from django.contrib.auth.models import User
 from django.db import transaction
 from rest_framework import serializers
 
+log = getLogger(__name__)
 from .models import (
     CustomUser,
     Draft,
@@ -381,15 +383,39 @@ class UserSerializer(serializers.ModelSerializer):
             "positions",
         )
 
+    def update(self, instance, validated_data):
+        with transaction.atomic():
+            positions_data = validated_data.pop("positions", None)
+            if positions_data:
+                positions_instance = instance.positions
+                for key, value in positions_data.items():
+                    setattr(positions_instance, key, value)
+                positions_instance.save()
+                log.debug(positions_data)
+
+            for key, value in validated_data.items():
+                setattr(instance, key, value)
+
+            instance.save()
+            log.debug("Updated User")
+            return instance
+
     def create(self, validated_data):
         fields = self.Meta.fields
-        for key in validated_data.keys():
-            if key not in fields:
-                raise KeyError(f"Invalid field: {key}")
 
-        user = CustomUser(**validated_data)  # Create user with all the other fields
-        user.save()
-        return user
+        with transaction.atomic():
+
+            for key in validated_data.keys():
+                if key not in fields:
+                    raise KeyError(f"Invalid field: {key}")
+
+            positions_data = validated_data.pop("positions")
+            positions = PositionsModel.objects.create(**positions_data)
+            user = CustomUser.objects.create(positions=positions, **validated_data)
+
+            user = CustomUser(**validated_data)  # Create user with all the other fields
+            user.save()
+            return user
 
 
 class GameSerializer(serializers.ModelSerializer):

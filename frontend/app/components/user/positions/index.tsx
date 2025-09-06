@@ -14,6 +14,9 @@ interface BadgeProps {
 
 import { getLogger } from '~/lib/logger';
 
+const numberClasses =
+  'absolute -top-1 -left-1 h-4 w-4 rounded-full p-0 border-white border-1 text-white';
+
 const log = getLogger('userPositionsBadge');
 export const useBadgeGuard = (user: UserType): boolean => {
   if (!user) {
@@ -38,14 +41,15 @@ export const CarryBadge: React.FC<BadgeProps> = memo(({ user }) => {
   if (!user.positions?.carry) return null;
   return (
     <div className="relative inline-block">
-      <CarrySVG />
-      Carry
-      <Badge
-        className="absolute -top-1 -right-1 h-2 w-2 rounded-full p-0"
-        variant="destructive"
-      >
-        {user.positions.carry}
-      </Badge>
+      <div className="flex flex-row">
+        <Badge className="badge-primary bg-red-900 text-white">
+          <Badge className={`${numberClasses} bg-red-900/80`}>
+            {user.positions.carry}
+          </Badge>
+          <CarrySVG />
+          Carry
+        </Badge>
+      </div>
     </div>
   );
 });
@@ -55,10 +59,17 @@ export const MidBadge: React.FC<{ user: UserType }> = ({ user }) => {
   if (!shouldShowBadge) return null;
   if (!user.positions?.mid) return null;
   return (
-    <Badge className="badge-primary bg-cyan-900 text-white">
-      <MidSVG />
-      Mid
-    </Badge>
+    <div className="relative inline-block">
+      <div className="flex flex-row">
+        <Badge className="badge-primary bg-cyan-900 text-white">
+          <Badge className={`${numberClasses} bg-cyan-900/80`}>
+            {user.positions.mid}
+          </Badge>
+          <MidSVG />
+          Mid
+        </Badge>
+      </div>
+    </div>
   );
 };
 
@@ -68,10 +79,17 @@ export const OfflaneBadge: React.FC<{ user: UserType }> = ({ user }) => {
 
   if (!user.positions?.offlane) return null;
   return (
-    <Badge className="badge-primary badge-primary bg-green-900 text-white">
-      <OfflaneSVG />
-      Offlane
-    </Badge>
+    <div className="relative inline-block">
+      <div className="flex flex-row">
+        <Badge className="badge-primary badge-primary bg-green-900 text-white">
+          <Badge className={`${numberClasses} bg-green-900/80`}>
+            {user.positions.offlane}
+          </Badge>
+          <OfflaneSVG />
+          Offlane
+        </Badge>
+      </div>
+    </div>
   );
 };
 
@@ -80,10 +98,17 @@ export const SoftSupportBadge: React.FC<{ user: UserType }> = ({ user }) => {
   if (!shouldShowBadge) return null;
   if (!user.positions?.soft_support) return null;
   return (
-    <Badge className="badge-primary bg-purple-900 text-white">
-      <SoftSupportSVG />
-      SoftSupport
-    </Badge>
+    <div className="relative inline-block">
+      <div className="flex flex-row">
+        <Badge className="badge-primary bg-purple-900 text-white">
+          <Badge className={`${numberClasses} bg-purple-900/80`}>
+            {user.positions.soft_support}
+          </Badge>
+          <SoftSupportSVG />
+          SoftSupport
+        </Badge>
+      </div>
+    </div>
   );
 };
 
@@ -92,21 +117,36 @@ export const HardSupportBadge: React.FC<{ user: UserType }> = ({ user }) => {
   if (!shouldShowBadge) return null;
   if (!user.positions?.hard_support) return null;
   return (
-    <Badge className="badge-primary bg-blue-900 text-white">
-      <HardSupportSVG />
-      HardSupport
-    </Badge>
+    <div className="relative inline-block">
+      <div className="flex flex-row">
+        <Badge className="badge-primary bg-blue-900 text-white">
+          <Badge className={`${numberClasses} bg-blue-900/80`}>
+            {user.positions.hard_support}
+          </Badge>
+          <HardSupportSVG />
+          HardSupport
+        </Badge>
+      </div>
+    </div>
   );
 };
 export const RolePositions: React.FC<{ user: UserType }> = ({ user }) => {
   if (!user.positions) return null;
+
   return (
     <div className="flex gap-1 flex-wrap">
-      <CarryBadge user={user} />
-      <MidBadge user={user} />
-      <OfflaneBadge user={user} />
-      <SoftSupportBadge user={user} />
-      <HardSupportBadge user={user} />
+      {[
+        { component: CarryBadge, value: user?.positions?.carry },
+        { component: MidBadge, value: user?.positions?.mid },
+        { component: OfflaneBadge, value: user?.positions?.offlane },
+        { component: SoftSupportBadge, value: user?.positions?.soft_support },
+        { component: HardSupportBadge, value: user?.positions?.hard_support },
+      ]
+        .filter(({ value }) => value != null)
+        .sort((a, b) => a.value - b.value)
+        .map(({ component: Component }, index) => (
+          <Component key={index} user={user} />
+        ))}
     </div>
   );
 };

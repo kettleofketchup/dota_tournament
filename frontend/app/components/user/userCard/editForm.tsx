@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import type { UserClassType, UserType } from '~/components/user/types';
 
 import { User } from '~/components/user';
@@ -8,6 +8,7 @@ import { useUserStore } from '~/store/userStore';
 import { UserRoundPlusIcon } from 'lucide-react';
 import { toast } from 'sonner';
 import { DialogClose } from '~/components/ui/dialog';
+import { Input } from '~/components/ui/input';
 import { Label } from '~/components/ui/label';
 import {
   Select,
@@ -49,14 +50,34 @@ export const UserEditForm: React.FC<Props> = ({
   const [errorMessage, setErrorMessage] = useState<
     Partial<Record<keyof UserType, string>>
   >({});
+  const isStaff = useUserStore((state) => state.isStaff);
 
   const [isSaving, setIsSaving] = useState(false);
   const [statusMsg, setStatusMsg] = useState<string | null>('null');
   const setUser = useUserStore((state) => state.setUser); // Zustand setter
 
-  const handleChange = (field: keyof UserClassType, value: any) => {
-    setForm((prev) => ({ ...prev, [field]: value }) as UserClassType);
+  const handleChange = (field: string, value: any) => {
+    log.debug('User form field changed:', field, value);
+    setForm((prev) => {
+      const newForm = { ...prev };
+      const fields = field.split('.');
+      if (fields.length > 1) {
+        // Handle nested properties
+        let current: any = newForm;
+        for (let i = 0; i < fields.length - 1; i++) {
+          if (!current[fields[i]]) {
+            current[fields[i]] = {};
+          }
+          current = current[fields[i]];
+        }
+        current[fields[fields.length - 1]] = value;
+        return newForm;
+      } else {
+        return { ...prev, [field]: value };
+      }
+    });
   };
+
   useEffect(() => {
     setForm(user as UserClassType); // Initialize form with user data
 
@@ -82,12 +103,13 @@ export const UserEditForm: React.FC<Props> = ({
   const inputView = (key: string, label: string, type: string = 'text') => {
     return (
       <div>
-        <label className="font-semibold">{label}</label>
-        <input
+        <Label className="font-semibold">{label}</Label>
+        <Input
           type={type}
           placeholder={user[key] ?? ''}
           value={form[key] ?? ''}
           onFocus={() => handleChange(key as keyof UserClassType, user[key])}
+          disabled={!isStaff}
           onChange={(e) =>
             handleChange(key as keyof UserClassType, e.target.value)
           }
@@ -119,7 +141,11 @@ export const UserEditForm: React.FC<Props> = ({
         <div className="flex flex-col md:flex-row md:cols-2 xl:cols-3 flex-wrap w-full items-center align-middle w-full gap-6 justify-center mt-2 ">
           <div className="flex flex-col align-center items-center justify-center gap-2  ">
             <Label className="carry-select font-semibold">Carry</Label>
-            <Select>
+            <Select
+              onValueChange={(value) =>
+                handleChange('positions.carry', parseInt(value, 10))
+              }
+            >
               <SelectTrigger>
                 <SelectValue
                   placeholder={form.positions?.carry.toString()}
@@ -132,7 +158,11 @@ export const UserEditForm: React.FC<Props> = ({
           </div>
           <div className="flex flex-col align-center items-center justify-center gap-2  ">
             <Label className="offlane-select font-semibold">Mid</Label>
-            <Select>
+            <Select
+              onValueChange={(value) =>
+                handleChange('positions.mid', parseInt(value, 10))
+              }
+            >
               <SelectTrigger>
                 <SelectValue
                   placeholder={form.positions?.mid.toString()}
@@ -145,7 +175,11 @@ export const UserEditForm: React.FC<Props> = ({
           </div>
           <div className="flex flex-col align-center items-center justify-center gap-2  ">
             <Label className="mid-select font-semibold">Offlane</Label>
-            <Select>
+            <Select
+              onValueChange={(value) =>
+                handleChange('positions.offlane', parseInt(value, 10))
+              }
+            >
               <SelectTrigger>
                 <SelectValue
                   placeholder={form.positions?.offlane.toString()}
@@ -158,7 +192,11 @@ export const UserEditForm: React.FC<Props> = ({
           </div>
           <div className="flex flex-col align-center items-center justify-center gap-2  ">
             <Label className="mid-select font-semibold">Soft Support</Label>
-            <Select>
+            <Select
+              onValueChange={(value) =>
+                handleChange('positions.soft_support', parseInt(value, 10))
+              }
+            >
               <SelectTrigger>
                 <SelectValue
                   placeholder={form.positions?.soft_support.toString()}
@@ -171,7 +209,11 @@ export const UserEditForm: React.FC<Props> = ({
           </div>
           <div className="flex flex-col align-center items-center justify-center gap-2  ">
             <Label className="mid-select font-semibold">Hard Support</Label>
-            <Select>
+            <Select
+              onValueChange={(value) =>
+                handleChange('positions.hard_support', parseInt(value, 10))
+              }
+            >
               <SelectTrigger>
                 <SelectValue
                   placeholder={form.positions?.hard_support.toString()}
@@ -186,7 +228,7 @@ export const UserEditForm: React.FC<Props> = ({
       </div>
     );
   };
-  const title = useMemo(() => {
+  const title = () => {
     var msg = 'Status: ';
 
     if (statusMsg && statusMsg !== null && statusMsg !== 'null')
@@ -197,12 +239,12 @@ export const UserEditForm: React.FC<Props> = ({
     log.debug('title', msg);
 
     return msg;
-  }, [statusMsg, user.username]);
+  };
 
   return (
     <>
       <div className="font-bold text-center bg-gray-900 rounded-lg p-2 mb-4">
-        <label>{title}</label>
+        <label>{title()}</label>
       </div>
 
       {inputView('nickname', 'Nickname: ')}
@@ -235,6 +277,7 @@ export const UserEditForm: React.FC<Props> = ({
             {user && user.pk && (isSaving ? 'Saving...' : 'Save Changes')}
             {user && !user.pk && (isSaving ? 'Saving...' : 'Create User')}
           </button>
+
         </DialogClose>
       </div>
     </>

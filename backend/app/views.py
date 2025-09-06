@@ -308,14 +308,9 @@ def current_user(request):
     user = request.user
     if request.user.is_authenticated:
 
-        return Response(
-            {
-                "username": user.username,
-                "avatarUrl": user.avatarUrl,
-                "is_staff": user.is_staff,
-                "is_superuser": user.is_superuser,
-            }
-        )
+        data = UserSerializer(user).data
+        return Response(data, 201)
+
     else:
         return Response()
 

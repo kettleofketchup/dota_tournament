@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import axios from '~/components/api/axios'; // Assuming axios is configured for your API
-import type { UserType } from '~/components/user/types';
+import type { UserClassType, UserType } from '~/components/user/types';
 import { UserCard } from '~/components/user/userCard';
 
 export const UserDetailPage: React.FC = () => {
@@ -74,7 +74,7 @@ export const UserDetailPage: React.FC = () => {
     <div className="container mx-auto p-4">
       {/* You can use TournamentCard or a custom layout */}
 
-      <UserCard user={user} />
+      <UserCard user={user as UserClassType} />
       {/* Additional details or components can be added here */}
     </div>
   );

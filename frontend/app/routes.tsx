@@ -10,4 +10,5 @@ export default [
   route('user/:pk', 'routes/user.tsx'),
   route('logout', 'routes/logoutRedirect.tsx'),
   route('done', 'routes/doneRedirect.tsx'),
+  route('profile', 'routes/profile.tsx'),
 ] satisfies RouteConfig;

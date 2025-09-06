@@ -1,14 +1,18 @@
 import { motion } from 'framer-motion';
 import React, { memo, useEffect, useState } from 'react';
+import { useForm } from 'react-hook-form';
 import { Badge } from '~/components/ui/badge';
 import type { UserClassType, UserType } from '~/components/user/types';
 import { User } from '~/components/user/user';
 import { AvatarUrl } from '~/index';
+import { getLogger } from '~/lib/logger';
 import { PlayerRemoveButton } from '~/pages/tournament/tabs/players/playerRemoveButton';
 import { useUserStore } from '~/store/userStore';
 import { RolePositions } from './positions';
 import { UserRemoveButton } from './userCard/deleteButton';
 import UserEditModal from './userCard/editModal';
+const log = getLogger('UserCard');
+
 interface Props {
   user: UserClassType;
   edit?: boolean;
@@ -20,8 +24,8 @@ interface Props {
 export const UserCard: React.FC<Props> = memo(
   ({ user, edit, saveFunc, compact, deleteButtonType }) => {
     const [editMode, setEditMode] = useState(edit || false);
+    const form = useForm<UserType>();
 
-    const [form, setForm] = useState<UserType>(user ?? ({} as UserType));
     const currentUser: UserType = useUserStore((state) => state.currentUser); // Zustand setter
     const [isSaving, setIsSaving] = useState(false);
     const [error, setError] = useState(false);
