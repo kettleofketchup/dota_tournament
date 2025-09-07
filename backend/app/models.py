@@ -1,8 +1,8 @@
 import logging
-from django.core.exceptions import ValidationError as DjangoValidationError
 
 import requests
 from django.conf import settings
+from django.core.exceptions import ValidationError as DjangoValidationError
 from django.db import models
 from django.db.utils import IntegrityError
 from django.utils import timezone
@@ -60,6 +60,7 @@ class CustomUser(AbstractUser):
         on_delete=models.CASCADE,
         help_text="Positions field",
         null=False,
+        blank=True,
     )
     avatar = models.TextField(null=True, blank=True)
     discordId = models.TextField(null=True, unique=True, blank=True)
