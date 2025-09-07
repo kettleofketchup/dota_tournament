@@ -59,7 +59,7 @@ class CustomUser(AbstractUser):
         PositionsModel,
         on_delete=models.CASCADE,
         help_text="Positions field",
-        null=False,
+        null=True,
         blank=True,
     )
     avatar = models.TextField(null=True, blank=True)

@@ -361,7 +361,7 @@ class TournamentSerializer(serializers.ModelSerializer):
 
 class UserSerializer(serializers.ModelSerializer):
     teams = TeamSerializer(many=True, read_only=True)  # Associated teams
-    positions = PositionsSerializer(many=False, read_only=False)
+    positions = PositionsSerializer(many=False, read_only=False, required=False)
 
     class Meta:
         model = CustomUser
@@ -386,14 +386,16 @@ class UserSerializer(serializers.ModelSerializer):
 
     def update(self, instance, validated_data):
         with transaction.atomic():
-            positions_data = validated_data.pop("positions", None)
-            if positions_data:
-                positions_instance = instance.positions
-                for key, value in positions_data.items():
-                    setattr(positions_instance, key, value)
-                positions_instance.save()
-                log.debug(positions_data)
-
+            try:
+                positions_data = validated_data.pop("positions", None)
+                if positions_data:
+                    positions_instance = instance.positions
+                    for key, value in positions_data.items():
+                        setattr(positions_instance, key, value)
+                    positions_instance.save()
+                    log.debug(positions_data)
+            except KeyError:
+                pass
             for key, value in validated_data.items():
                 setattr(instance, key, value)
 
@@ -410,11 +412,16 @@ class UserSerializer(serializers.ModelSerializer):
                 if key not in fields:
                     raise KeyError(f"Invalid field: {key}")
 
-            positions_data = validated_data.pop("positions")
-            positions = PositionsModel.objects.create(**positions_data)
-            user = CustomUser.objects.create(positions=positions, **validated_data)
+            if "positions" in validated_data:
 
-            user = CustomUser(**validated_data)  # Create user with all the other fields
+                positions_data = validated_data.pop("positions")
+                positions = PositionsModel.objects.create(**positions_data)
+                user = CustomUser.objects.create(positions=positions, **validated_data)
+
+            else:
+                log.debug(validated_data)
+                user = CustomUser(**validated_data)
+
             user.save()
             return user
 
