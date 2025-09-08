@@ -2,7 +2,7 @@ import { z } from 'zod';
 import { DraftSchema } from '../draft/schemas';
 import { UserSchema } from '../user';
 
-export const TeamSchema: z.ZodType<any> = z.object({
+export const TeamSchema = z.object({
   name: z.string().min(1).max(100).nullable(),
   date: z.string().min(1).max(100).nullable(),
   members: z.array(UserSchema).nullable(),

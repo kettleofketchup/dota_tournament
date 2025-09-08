@@ -6,7 +6,7 @@ import { DraftSchema } from '../draft/schemas';
 import { GameSchema } from '../game/schemas';
 import { TeamSchema } from '../team';
 import { STATE_CHOICES, TOURNAMENT_TYPE } from './constants';
-export const TournamentSchema: z.ZodType<any> = z.object({
+export const TournamentSchema = z.object({
   name: z.string().nullable(),
   date_played: z.string().nullable(),
   users: z.array(UserSchema).nullable(),

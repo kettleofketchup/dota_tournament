@@ -31,7 +31,7 @@ export const TeamsTab: React.FC = memo(() => {
     query === ''
       ? tournament.teams
       : tournament.teams
-          ?.filter((team) => {
+          ?.filter((team: TeamType) => {
             const q = query.toLowerCase();
 
             // Check if any user in the team matches the query
@@ -48,7 +48,7 @@ export const TeamsTab: React.FC = memo(() => {
 
             return userMatches || teamNameMatch;
           })
-          .sort((a, b) => a.name.localeCompare(b.name));
+          .sort((a: TeamType, b: TeamType) => a.name.localeCompare(b.name));
 
   useEffect(() => {
     log.debug('Tournament users:', tournament.users);
