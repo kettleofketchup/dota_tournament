@@ -19,6 +19,7 @@ import {
   TooltipTrigger,
 } from '~/components/ui/tooltip';
 import { getLogger } from '~/lib/logger';
+import { useTournamentStore } from '~/store/tournamentStore';
 import { useUserStore } from '~/store/userStore';
 import { InitDraftButton } from './buttons/initDraftDialog';
 import { LatestRoundButton } from './buttons/latestButton';
@@ -45,19 +46,27 @@ export const DraftModal: React.FC<DraftModalParams> = ({
   const setCurDraftRound = useUserStore((state) => state.setCurDraftRound);
   const draftIndex = useUserStore((state) => state.draftIndex);
   const setDraftIndex = useUserStore((state) => state.setDraftIndex);
-  const [open, setOpen] = useState(false);
+  const live = useTournamentStore((state) => state.live);
+  const [open, setOpen] = useState(live);
+
+  useEffect(() => {
+    if (live) {
+      setOpen(true);
+    }
+  }, [live]);
 
   // Enable live updates when modal is open and draft exists
 
   const setDraftRoundToLatest = () => {
     const newDraft: DraftRoundType =
-      draft?.draft_rounds?.find((round) => round.pk === draft?.latest_round) ||
-      ({} as DraftRoundType);
+      draft?.draft_rounds?.find(
+        (round: DraftRoundType) => round.pk === draft?.latest_round,
+      ) || ({} as DraftRoundType);
 
     setCurDraftRound(newDraft);
 
     const i = draft?.draft_rounds?.findIndex(
-      (round) => round.pk === newDraft.pk,
+      (round: DraftRoundType) => round.pk === newDraft.pk,
     );
     if (i) setDraftIndex(i);
     log.debug('Set draft round to latest:', { newDraft, i });
@@ -82,13 +91,14 @@ export const DraftModal: React.FC<DraftModalParams> = ({
     if (!draft.draft_rounds) return;
 
     const newDraft: DraftRoundType =
-      draft?.draft_rounds?.find((round) => round.pk === draft?.latest_round) ||
-      ({} as DraftRoundType);
+      draft?.draft_rounds?.find(
+        (round: DraftRoundType) => round.pk === draft?.latest_round,
+      ) || ({} as DraftRoundType);
 
     setCurDraftRound(newDraft);
 
     const i = draft?.draft_rounds?.findIndex(
-      (round) => round.pk === newDraft.pk,
+      (round: DraftRoundType) => round.pk === newDraft.pk,
     );
 
     if (i == -1) {

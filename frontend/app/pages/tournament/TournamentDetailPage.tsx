@@ -2,17 +2,28 @@ import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { useShallow } from 'zustand/react/shallow';
 import axios from '~/components/api/axios'; // Assuming axios is configured for your API
+import { useTournamentStore } from '~/store/tournamentStore';
 import { useUserStore } from '~/store/userStore';
 import TournamentTabs from './tabs/TournamentTabs';
 
 import { getLogger } from '~/lib/logger';
 const log = getLogger('TournamentDetailPage');
 export const TournamentDetailPage: React.FC = () => {
-  const { pk } = useParams<{ pk: string }>();
+  const { pk, '*': slug } = useParams<{ pk: string; '*': string }>();
   const tournament = useUserStore(useShallow((state) => state.tournament));
   const setTournament = useUserStore((state) => state.setTournament);
+  const setLive = useTournamentStore((state) => state.setLive);
+  const setActiveTab = useTournamentStore((state) => state.setActiveTab);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  useEffect(() => {
+    const parts = slug?.split('/') || [];
+    const tab = parts[0] || 'players';
+    const live = parts[1] === 'draft';
+
+    setActiveTab(tab);
+    setLive(live);
+  }, [slug, setActiveTab, setLive]);
   useEffect(() => {
     if (pk) {
       const fetchTournament = async () => {

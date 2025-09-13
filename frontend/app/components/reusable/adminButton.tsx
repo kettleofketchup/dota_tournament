@@ -27,7 +27,6 @@ export const AdminOnlyButton: React.FC<AdminOnlyButtonProps> = ({
             }}
             whileHover={{ scale: 1.1 }}
             whileFocus={{ scale: 1.05 }}
-            
           >
             <Button className="btn btn-danger bg-red-900 text-white">
               <UserLock className="mr-2" />

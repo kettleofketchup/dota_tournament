@@ -7,10 +7,13 @@ import { TeamsTab } from './TeamsTab';
 
 import { useEffect, useMemo } from 'react';
 import { useShallow } from 'zustand/react/shallow';
+import { useTournamentStore } from '~/store/tournamentStore';
 import { useUserStore } from '~/store/userStore';
 
 export default function TournamentTabs() {
   const users = useUserStore((state) => state.users); // Zustand setter
+  const activeTab = useTournamentStore((state) => state.activeTab);
+  const setActiveTab = useTournamentStore((state) => state.setActiveTab);
 
   const getUsers = useUserStore((state) => state.getUsers); // Zustand setter
   useEffect(() => {
@@ -44,7 +47,8 @@ export default function TournamentTabs() {
   }, [tournament.games]);
   return (
     <Tabs
-      defaultValue="players"
+      value={activeTab}
+      onValueChange={setActiveTab}
       className="flex justify-center rounded-full  align-middle gap-4 sm:-p1 sm:gap-2 sm:w-full"
     >
       <TabsList className="container content-center flex w-full justify-center gap-2 rounded-full ">

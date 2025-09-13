@@ -1,4 +1,5 @@
 import { useEffect, type FormEvent } from 'react';
+import { AdminOnlyButton } from '~/components/reusable/adminButton';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -27,6 +28,7 @@ export const ChoosePlayerButton: React.FC<{
   const setCurDraftRound = useUserStore((state) => state.setCurDraftRound);
   const curDraftRound = useUserStore((state) => state.curDraftRound);
   const draft = useUserStore((state) => state.draft);
+  const isStaff = useUserStore((state) => state.isStaff);
 
   const setDraft = useUserStore((state) => state.setDraft);
 
@@ -53,7 +55,13 @@ export const ChoosePlayerButton: React.FC<{
       draft: draft,
     });
   };
-
+  if (!isStaff()) {
+    return (
+      <>
+        <AdminOnlyButton buttonTxt="Only Staff Can Pick" />
+      </>
+    );
+  }
   return (
     <div className="flex flex-row items-center gap-4">
       <AlertDialog>
