@@ -1,5 +1,7 @@
 import { Crown } from 'lucide-react';
 import React, { useState } from 'react';
+import { TEAMS_BUTTONS_WIDTH } from '~/components/constants';
+import { DIALOG_CSS, SCROLLAREA_CSS } from '~/components/reusable/modal';
 import { Button } from '~/components/ui/button';
 import {
   Dialog,
@@ -31,7 +33,9 @@ export const CaptainSelectionModal: React.FC = () => {
         <Tooltip>
           <TooltipTrigger asChild>
             <DialogTrigger asChild>
-              <Button className="btn btn-primary">
+              <Button
+                className={`w-[${TEAMS_BUTTONS_WIDTH}] bg-yellow-400 hover:bg-yellow-200 text-black`}
+              >
                 <Crown className="mr-2" />
                 Pick Captains
               </Button>
@@ -47,20 +51,21 @@ export const CaptainSelectionModal: React.FC = () => {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       {dialogButton()}
-      <DialogContent className="xl:min-w-5xl l:min-w-5xl md:min-w-3xl sm:min-w-2xl  ">
+      <DialogContent className={`${DIALOG_CSS}`}>
         <DialogHeader>
           <DialogTitle>Choose Captains</DialogTitle>
           <DialogDescription>
             Update Captains for {tournament.name}
           </DialogDescription>
         </DialogHeader>
-        <ScrollArea className="h-[70vh] w-full border rounded-md px-1 overflow-x-auto">
+        <ScrollArea className={`${SCROLLAREA_CSS}`}>
           <CaptainTable />
-          <ScrollBar orientation="vertical" />{' '}
           {/* Optional: Add a vertical scrollbar */}
-          <ScrollBar orientation="horizontal" />{' '}
           {/* Optional: Add a horizontal scrollbar */}
+          <ScrollBar orientation="vertical" />
+          <ScrollBar orientation="horizontal" />
         </ScrollArea>
+
         <DialogFooter>
           <DialogClose asChild>
             <Button variant="outline">Close</Button>
