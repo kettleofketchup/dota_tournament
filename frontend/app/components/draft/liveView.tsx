@@ -22,7 +22,7 @@ export const LiveView: React.FC<LiveViewProps> = ({ isPolling }) => {
   };
   return (
     <div className="flex flex-col gap-2">
-      <div className="flex items-center flex-col sm:flex-row">
+      <div className="flex items-center flex-col sm:flex-row gap-2 justify-between sm:justify-start">
         <div className="flex items-center gap-2">
           <h3 className="text-lg font-semibold">Draft Progress</h3>{' '}
         </div>
