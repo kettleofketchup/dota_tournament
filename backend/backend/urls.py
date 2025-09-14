@@ -19,9 +19,6 @@ from app.views import (
     UserCreateView,
     UserView,
     current_user,
-    get_discord_members,
-    get_discord_voice_channel_activity,
-    get_user_guilds,
 )
 
 router = routers.DefaultRouter()
@@ -70,15 +67,7 @@ urlpatterns = [
     path("api/tournament/register", TournamentCreateView.as_view()),
     path("api/team/register", TeamCreateView.as_view()),
     path("api/game/register", GameCreateView.as_view()),
-    path("api/dtx_members", get_discord_members, name="dtx_members"),
-    path("api/discord-members/", get_discord_members, name="discord-members"),
-    path("api/discord-user-guilds/", get_user_guilds, name="discord-user-guilds"),
     path("api/logout", app_views.logout),
-    path(
-        "api/discord-voice-activity/",
-        get_discord_voice_channel_activity,
-        name="discord-voice-activity",
-    ),
     path("api/draft/register", DraftCreateView.as_view()),
     path("api/draftround/register", DraftRoundCreateView.as_view()),
     path(
@@ -105,4 +94,5 @@ urlpatterns = [
     path("api/profile_update", profile_update, name="profile_update"),
     path("api/steam/", include("steam.urls")),
     path("api/bracket/", include("bracket.urls")),
+    path("api/discord/", include("discordbot.urls")),
 ]

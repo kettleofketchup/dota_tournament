@@ -1,46 +1,38 @@
 services:
   frontend:
-    container_name: frontend
+    env_file: "./docker/.env.prod"
     image: ghcr.io/kettleofketchup/dtx_website/frontend:latest
-    env_file: "./.env.dev"
-
     ports:
       - "3000:3000"   # Internal Nginx in frontend container
-    volumes:
-      - ./frontend:/app
-      - /app/node_modules/
-    command: ["npx", "react-router", "dev" , "--port", "3000", "--host", "0.0.0.0"]
+    restart: always
 
   backend:
-    container_name: backend
-    env_file: "./.env.dev"
+    env_file: "./docker/.env.prod"
     image: ghcr.io/kettleofketchup/dtx_website/backend:latest
     ports:
       - "8000:8000"
     restart: always
     volumes:
-      - ./backend/:/app/backend
-      - ./poetry.lock/:/app/poetry.lock
-      - ./pyproject.toml/:/app/pyproject.toml
+      - ./backend/db.sqlite3:/app/backend/prod.db.sqlite3
+
   nginx:
     image: ghcr.io/kettleofketchup/dtx_website/nginx:latest
     container_name: nginx
     restart: always
-    env_file: "./.env.dev"
+    env_file: "./docker/.env.prod"
     ports:
       - "80:80"
       - "443:443"
     volumes:
+
       - ./nginx/default.template.conf:/etc/nginx/templates/default.template.conf
-      - ./nginx/data/ssl/cert.crt:/etc/letsencrypt/live/dota.kettle.sh/fullchain.pem
-      - ./nginx/data/ssl/cert.key:/etc/letsencrypt/live/dota.kettle.sh/privkey.pem
       - ./nginx/data/user_conf.d:/etc/nginx/user_conf.d
       - ./nginx/data/certbot/webroot/:/var/www/certbot/
       - ./nginx/data/certbot/work/:/lib/letsencrypt/
       - ./nginx/data/certbot/configs/:/etc/letsencrypt/
       - ./nginx/data/certbot/logs/:/var/log/letsencrypt/
-
-
+      - ./nginx/data/ssl/cert.crt:/etc/letsencrypt/live/dota.kettle.sh/fullchain.pem
+      - ./nginx/data/ssl/cert.key:/etc/letsencrypt/live/dota.kettle.sh/privkey.pem
     depends_on:
       - frontend
       - backend

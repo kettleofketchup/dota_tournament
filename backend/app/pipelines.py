@@ -1,8 +1,7 @@
+from django.contrib.auth import get_user_model
 from social_core.pipeline.partial import partial
 
-from django.contrib.auth import get_user_model
-
-from .models import CustomUser
+from .models import CustomUser, PositionsModel
 
 User = get_user_model()
 import logging
@@ -19,7 +18,8 @@ def save_discord(
     avatar = social_auth.extra_data["avatar"]
     logger.info(f"SAVE_DISCORD {social_auth.extra_data}")
     discordUsername = social_auth.extra_data["username"]
-
+    position = PositionsModel.objects.create()
+    user.positions = position
     user.avatar = avatar
     user.discordId = discordId
     user.discordUsername = discordUsername

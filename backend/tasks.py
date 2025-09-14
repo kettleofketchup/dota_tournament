@@ -12,14 +12,31 @@ from scripts.docker import ns_docker
 
 config = None
 version = None
+import os
 
+from dotenv import load_dotenv
+
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "backend.settings")
 
 ns_db = Collection("db")
-apps = ["steam", "app", "bracket"]
+ns_db_populate = Collection("populate")
+ns_db.add_collection(ns_db_populate, "populate")
+apps = ["steam", "app", "bracket", "discordbot"]
+
+
+def check_dbs(c):
+    for db_path in [paths.TEST_DB_PATH, paths.DEV_DB_PATH, paths.PROD_DB_PATH]:
+        if not db_path.exists():
+            with c.cd(paths.BACKEND_PATH.absolute()):
+                cmd = f"touch {db_path}"
+                c.run(cmd, pty=True)
 
 
 @task
-def db_makemigrations(c):
+def db_makemigrations(c, path: Path = paths.DEBUG_ENV_FILE):
+    load_dotenv(path)
+    check_dbs(c)
+
     with c.cd(paths.BACKEND_PATH.absolute()):
         for app in apps:
             cmd = f"python manage.py makemigrations {app}"
@@ -29,14 +46,29 @@ def db_makemigrations(c):
         c.run(cmd, pty=True)
 
 
-@task(pre=[db_makemigrations])
-def db_migrate(c):
+@task(pre=[])
+def db_migrate(c, path: Path = paths.DEBUG_ENV_FILE):
+    load_dotenv(path)
+    db_makemigrations(c, path)
+
     with c.cd(paths.BACKEND_PATH.absolute()):
         for app in apps:
             cmd = f"python manage.py migrate {app}"
             c.run(cmd, pty=True)
 
         cmd = f"python manage.py migrate"
+        c.run(cmd, pty=True)
+
+
+@task
+def db_populate_users(c, path: Path = paths.TEST_ENV_FILE, force: bool = False):
+    """Populate the database with Discord users."""
+    load_dotenv(path)
+    db_migrate(c, path)
+
+    with c.cd(paths.BACKEND_PATH.absolute()):
+        force_flag = "--force" if force else ""
+        cmd = f"python manage.py populate_users {force_flag}"
         c.run(cmd, pty=True)
 
 
@@ -50,6 +82,31 @@ def db_migrate(c):
 #         # Populate the database with fake data
 
 
+@task
+def db_populate_tournaments(c, path: Path = paths.TEST_ENV_FILE, force: bool = False):
+    """Populate the database with 5 tournaments containing random users."""
+    load_dotenv(path)
+
+    with c.cd(paths.BACKEND_PATH.absolute()):
+        force_flag = "--force" if force else ""
+        cmd = f"python manage.py populate_tournaments {force_flag}"
+        c.run(cmd, pty=True)
+
+
+@task
+def populate_all(c):
+    paths.TEST_DB_PATH.unlink(missing_ok=True)
+    paths.TEST_DB_PATH.touch()
+    db_migrate(c, paths.TEST_ENV_FILE)
+    db_populate_users(c)
+    db_populate_tournaments(c)
+
+
 ns_db.add_task(db_migrate, "migrate")
 ns_db.add_task(db_makemigrations, "makemigrations")
+ns_db_populate.add_task(db_populate_users, "users")
+ns_db_populate.add_task(db_populate_tournaments, "tournaments")
+ns_db_populate.add_task(populate_all, "all")
+
+
 # ns_db.add_task(db_fill, "fill")

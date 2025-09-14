@@ -50,9 +50,17 @@
       "editor.tabSize": 4,
       "editor.formatOnSave": true,
       "editor.defaultFormatter": "ms-python.black-formatter",
-      "editor.wordBasedSuggestions": "off"
+      "editor.wordBasedSuggestions": "off",
+      "editor.codeActionsOnSave": {
+        "source.organizeImports": "always",
+        "source.removeUnusedImports": "always"
+      }
 
-    },
+
+  },
+"isort.args": [
+    "--settings-path", "${workspaceFolder}/pyproject.toml"
+],
     "python.defaultInterpreterPath": ".venv/bin/python",
     "python.terminal.activateEnvironment": true,
     "terminal.integrated.env.linux": {

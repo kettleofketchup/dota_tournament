@@ -61,7 +61,7 @@ export async function updateUser(
   return response.data;
 }
 export async function get_dtx_members(): Promise<GuildMembers> {
-  const response = await axios.get<GuildMembers>(`/dtx_members`);
+  const response = await axios.get<GuildMembers>(`/discord/dtx_members`);
   if ('members' in response.data) {
     log.debug(response.data.members);
     return response.data.members as GuildMembers;
@@ -169,7 +169,7 @@ export async function logout(): Promise<void> {
   await axios.post(`/logout`);
 }
 export async function refreshAvatars(): Promise<void> {
-  await axios.post(`/avatars/refresh/`);
+  axios.post(`/avatars/refresh/`);
 }
 export async function createDraft(
   pk: number,

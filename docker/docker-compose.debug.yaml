@@ -2,7 +2,7 @@ services:
   frontend:
     container_name: frontend
     image: ghcr.io/kettleofketchup/dtx_website/frontend:latest
-    env_file: "./.env.dev"
+    env_file: "./docker/.env.dev"
 
     ports:
       - "3000:3000"   # Internal Nginx in frontend container
@@ -15,7 +15,7 @@ services:
 
   backend:
     container_name: backend
-    env_file: "./.env.dev"
+    env_file: "./docker/.env.dev"
     image: ghcr.io/kettleofketchup/dtx_website/backend:latest
     ports:
       - "8000:8000"
@@ -28,7 +28,7 @@ services:
     image: ghcr.io/kettleofketchup/dtx_website/nginx:latest
     container_name: nginx
     restart: always
-    env_file: "./.env.dev"
+    env_file: "./docker/.env.dev"
     ports:
       - "80:80"
       - "443:443"

@@ -12,9 +12,15 @@ https://docs.djangoproject.com/en/1.10/ref/settings/
 
 import contextlib
 import os
+import sys
 from pathlib import Path
 
 from dotenv import load_dotenv
+
+# Add parent directory to Python path for paths module
+sys.path.insert(0, str(Path(__file__).parent.parent.parent))
+
+from paths import DEV_DB_PATH, PROD_DB_PATH, TEST_DB_PATH
 
 load_dotenv()
 DISCORD_API_BASE_URL = "https://discord.com/api"
@@ -48,6 +54,7 @@ import logging
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
+
 if "DEBUG" in os.environ and os.environ["DEBUG"].lower() == "true":
     logging.basicConfig(level=logging.DEBUG)
     DEBUG = True
@@ -68,6 +75,7 @@ INSTALLED_APPS = [
     "corsheaders",
     "steam",
     "bracket",
+    "discordbot",
 ]
 
 MIDDLEWARE = [
@@ -177,17 +185,22 @@ SOCIAL_AUTH_PIPELINE = (
 # Database
 # https://docs.djangoproject.com/en/1.10/ref/settings/#databases
 
+db_name = "prod.db.sqlite3"  # Default to prod
+match os.environ.get("NODE_ENV", "").lower():
+    case "dev":
+        db_name = "dev.db.sqlite3"
+    case "test":
+        db_name = "test.db.sqlite3"
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR_PATH / "db.sqlite3",
+        "NAME": BASE_DIR_PATH / db_name,
         "OPTIONS": {
             "timeout": 30,  # seconds
         },
     }
 }
 
-print(BASE_DIR_PATH)
 
 # Password validation
 # https://docs.djangoproject.com/en/1.10/ref/settings/#auth-password-validators

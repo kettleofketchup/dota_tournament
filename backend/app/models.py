@@ -40,6 +40,9 @@ class PositionsModel(models.Model):
         help_text="Rank of the hard support position from 0 (No play) to 5 (best)",
     )
 
+    def __str__(self):
+        return f"Carry: {self.carry}, Mid: {self.mid}, Offlane: {self.offlane}, Soft Support: {self.soft_support}, Hard Support: {self.hard_support}"
+
 
 # Enum for Dota2 positions
 class PositionEnum(IntEnum):
@@ -67,6 +70,14 @@ class CustomUser(AbstractUser):
     discordUsername = models.TextField(null=True, blank=True)
     discordNickname = models.TextField(null=True, blank=True)
     guildNickname = models.TextField(null=True, blank=True)
+
+    def createFromDiscordData(self, data):
+        self.username = data["user"]["username"]
+        self.discordId = data["user"]["id"]
+        self.avatar = data["user"]["avatar"]
+        self.discordUsername = data["user"]["username"]
+        self.nickname = data.get("nick", "")
+        return self
 
     def check_and_update_avatar(self):
         """
@@ -154,6 +165,18 @@ class CustomUser(AbstractUser):
                 f"Unexpected error updating avatar for user {self.username}: {str(e)}"
             )
             return False
+
+    def save(self, *args, **kwargs):
+        """
+        Override save method to automatically create a PositionsModel instance
+        if the user doesn't have one.
+        """
+        if not self.positions_id:  # Check if positions is not set
+            # Create a default PositionsModel with all positions set to 0
+            default_positions = PositionsModel.objects.create()
+            self.positions = default_positions
+
+        super().save(*args, **kwargs)
 
     @property
     def avatarUrl(self):

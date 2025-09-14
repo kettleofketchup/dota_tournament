@@ -19,14 +19,19 @@ FROM python:3.12-slim-bookworm AS runtime
 ENV VIRTUAL_ENV=/app/.venv \
     PATH="/app/.venv/bin:$PATH"
 
-COPY --from=builder ${VIRTUAL_ENV} ${VIRTUAL_ENV}
+COPY --from=builder /app/.venv /app/.venv
 WORKDIR /app
-
 COPY ./backend /app/backend
-WORKDIR /app/backend
+COPY poetry.lock pyproject.toml ./
+COPY ./backend /app/backend
+COPY ./scripts /app/scripts
+COPY __init__.py /app/
+COPY paths.py /app/
+COPY tasks.py /app/
+RUN ls -all && ls -all .venv/bin/ && ls -all backend/
 EXPOSE 8000
-RUN ls
-RUN python manage.py migrate
 
+# Run migrations using the virtual environment directly
+RUN bash -c "poetry run inv db.migrate"
 
-ENTRYPOINT ["python", "manage.py", "runserver", "0.0.0.0:8000"]
+ENTRYPOINT ["python", "backend/manage.py", "runserver", "0.0.0.0:8000"]
