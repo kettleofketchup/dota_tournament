@@ -14,7 +14,7 @@ services:
       - "8000:8000"
     restart: always
     volumes:
-      - ./backend/prod.db.sqlite3:/app/backend/db.sqlite3
+      - ./backend/prod.db.sqlite3:/app/backend/prod.db.sqlite3
   nginx:
     image: ghcr.io/kettleofketchup/dtx_website/nginx:${VERSION}
     env_file: "./docker/.env.release"
