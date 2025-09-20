@@ -1,7 +1,7 @@
 import { motion } from 'framer-motion';
 import { OctagonAlert } from 'lucide-react';
 import { useEffect, type FormEvent } from 'react';
-import { initDraftHook } from '~/components/draft/hooks/initDraft';
+import { initDraftHook } from '~/components/draft/hooks/initDraftHook';
 import { AdminOnlyButton } from '~/components/reusable/adminButton';
 import {
   AlertDialog,

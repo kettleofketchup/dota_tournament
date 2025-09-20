@@ -1,20 +1,21 @@
 from pathlib import Path
 
+import semver
+from invoke import UnexpectedExit
 from invoke.collection import Collection
 from invoke.tasks import task
-from invoke import UnexpectedExit
+
 import paths
 from backend.tasks import ns_db
-from scripts.docker import ns_docker, docker_pull_all
-from scripts.update import ns_update
-from scripts.utils import get_version, crun
+from scripts.docker import docker_pull_all, ns_docker
 from scripts.sync_version import (
+    get_version_from_env,
     get_version_from_pyproject,
     update_env_version,
-    get_version_from_env,
     update_pyproject_version,
 )
-import semver
+from scripts.update import ns_update
+from scripts.utils import crun, get_version
 
 config = None
 version = None
@@ -27,8 +28,8 @@ ns_version = Collection("version")
 def sync_version_from_env(c, env_file=".env.release"):
     """Sync version from environment file to pyproject.toml"""
     # Import functions locally to avoid import issues
-    import sys
     import os
+    import sys
 
     print(f"Syncing version from {env_file}...")
     version = get_version_from_env(env_file)
@@ -41,8 +42,8 @@ def sync_version_from_env(c, env_file=".env.release"):
 def sync_version_from_pyproject(c):
     """Sync version from pyproject.toml to environment files"""
     # Import functions locally to avoid import issues
-    import sys
     import os
+    import sys
 
     from scripts.sync_version import get_version_from_pyproject, update_env_version
 
@@ -51,7 +52,7 @@ def sync_version_from_pyproject(c):
     print(f"Syncing to version: {version}")
 
     # Update environment files
-    for env_file in [".env.release", ".env.debug"]:
+    for env_file in [paths.PROD_ENV_FILE, paths.RELEASE_ENV_FILE]:
         update_env_version(env_file, version)
 
     print("Version sync complete!")
@@ -61,10 +62,10 @@ def sync_version_from_pyproject(c):
 def set_version(c, version):
     """Set version across all files"""
     # Import functions locally to avoid import issues
-    import sys
     import os
+    import sys
 
-    from scripts.sync_version import update_pyproject_version, update_env_version
+    from scripts.sync_version import update_env_version, update_pyproject_version
 
     print(f"Setting version to {version}...")
 
@@ -72,7 +73,7 @@ def set_version(c, version):
     update_pyproject_version(version)
 
     # Update environment files
-    for env_file in [".env.release", ".env.prod"]:
+    for env_file in [paths.PROD_ENV_FILE, paths.RELEASE_ENV_FILE]:
         update_env_version(env_file, version)
 
     print("Version sync complete!")
@@ -86,8 +87,8 @@ def build_with_version(c, version=None, env_file=None):
 
     from scripts.sync_version import (
         get_version_from_env,
-        update_pyproject_version,
         update_env_version,
+        update_pyproject_version,
     )
 
     # Determine the version to use

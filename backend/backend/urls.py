@@ -1,8 +1,11 @@
+import logging
 from venv import create
 
 from django.contrib import admin
 from django.urls import include, path
 from rest_framework import routers
+
+log = logging.getLogger(__name__)
 
 from app import views as app_views
 from app.views import (
@@ -47,6 +50,7 @@ from app.functions.tournament import (
     rebuild_team,
 )
 from app.functions.user import profile_update
+from common.utils import isTestEnvironment
 
 urlpatterns = [
     path("done/", RedirectView.as_view(url="http://localhost:5173")),
@@ -96,3 +100,10 @@ urlpatterns = [
     path("api/bracket/", include("bracket.urls")),
     path("api/discord/", include("discordbot.urls")),
 ]
+
+log.warning(f"Test Environ:  {isTestEnvironment()}")
+if isTestEnvironment():
+    log.warning("Adding test environment URLs")
+    urlpatterns += [
+        path("api/tests/", include("tests.urls")),
+    ]

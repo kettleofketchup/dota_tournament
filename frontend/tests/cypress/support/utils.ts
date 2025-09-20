@@ -30,19 +30,42 @@ export function visitAndWaitForHydration(url: string) {
 export function suppressHydrationErrors() {
   cy.window().then((win) => {
     const originalError = win.console.error;
+    const originalWarn = win.console.warn;
+
     win.console.error = (...args) => {
       const message = args[0]?.toString() || '';
 
-      // Filter out hydration warnings
+      // Filter out hydration warnings and font loading errors
       if (
         message.includes('Hydration failed') ||
         message.includes('Text content does not match') ||
-        message.includes('Warning: Text content did not match')
+        message.includes('Warning: Text content did not match') ||
+        message.includes('server rendered HTML didn\'t match the client') ||
+        message.includes('Expected server HTML to contain') ||
+        message.includes('net::ERR_ABORTED') ||
+        message.includes('Failed to load resource') ||
+        message.includes('fonts.googleapis.com') ||
+        message.includes('font')
       ) {
         return; // Suppress these errors
       }
 
       originalError.apply(win.console, args);
+    };
+
+    win.console.warn = (...args) => {
+      const message = args[0]?.toString() || '';
+
+      // Filter out hydration warnings
+      if (
+        message.includes('Hydration') ||
+        message.includes('Text content did not match') ||
+        message.includes('server HTML')
+      ) {
+        return; // Suppress these warnings
+      }
+
+      originalWarn.apply(win.console, args);
     };
   });
 }

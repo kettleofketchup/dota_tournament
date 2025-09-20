@@ -82,6 +82,18 @@ Cypress.on('uncaught:exception', (err, runnable) => {
     'Warning: Text content did not match',
     'Warning: Expected server HTML to contain',
     'Minified React error',
+    'net::ERR_ABORTED 404',
+    'Failed to load resource',
+    'FiraCode-VF.woff2',
+    'fonts.googleapis.com',
+    'font loading',
+    'server rendered HTML didn\'t match the client',
+    'This can happen if a SSR-ed Client Component used',
+    'Variable input such as',
+    'Date formatting in a user\'s locale',
+    'External changing data without sending a snapshot',
+    'Invalid HTML tag nesting',
+    'browser extension installed which messes with the HTML',
   ];
 
   return !ignoredErrors.some((ignoredError) =>

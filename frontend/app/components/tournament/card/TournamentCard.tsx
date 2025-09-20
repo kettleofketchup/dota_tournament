@@ -281,6 +281,7 @@ export const TournamentCard: React.FC<Props> = ({
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.2 }}
+
       key={`Tournamentcard:${getKeyName()} base`}
       className={
         'flex items-center justify-center p-4 gap-6 content-center w-full h-full'

@@ -20,7 +20,10 @@ COPY ./package.json package-lock.json /app/
 COPY --from=development-dependencies-env /app/node_modules /app/node_modules
 COPY --from=build-env /app/build /app/build
 WORKDIR /app
-ENV prod=false
+ENV PROD=false
 ENV NODE_ENV="dev"
+ENV RELEASE=false
+ENV TEST=false
+
 EXPOSE 3000
 CMD ["npm", "run", "start"]

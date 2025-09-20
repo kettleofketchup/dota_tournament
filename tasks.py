@@ -7,7 +7,6 @@ from invoke.tasks import task
 
 import paths
 from backend.tasks import ns_db
-from backend.tests.tasks import ns_test
 from scripts.docker import docker_pull_all, ns_docker
 from scripts.sync_version import (
     get_version_from_env,
@@ -15,6 +14,7 @@ from scripts.sync_version import (
     update_env_version,
     update_pyproject_version,
 )
+from scripts.tests import dev_test, ns_test
 from scripts.update import ns_update
 from scripts.utils import crun, get_version
 from scripts.version import ns_version
@@ -22,6 +22,10 @@ from scripts.version import ns_version
 config = None
 version = None
 
+import invoke
+from rich.traceback import install
+
+install(suppress=[invoke])
 
 ns = Collection()
 ns_dev = Collection("dev")
@@ -30,9 +34,9 @@ ns.add_collection(ns_prod, "prod")
 ns.add_collection(ns_docker, "docker")
 ns.add_collection(ns_dev, "dev")
 ns.add_collection(ns_db, "db")
-ns.add_collection(ns_test, "dbtest")
 ns.add_collection(ns_update, "update")
 ns.add_collection(ns_version, "version")
+ns.add_collection(ns_test, "test")
 from dotenv import load_dotenv
 
 
@@ -68,22 +72,6 @@ def dev_debug(c):
             f"docker compose "
             f"--project-directory {paths.PROJECT_PATH.resolve()} "
             f"-f {paths.DOCKER_COMPOSE_DEBUG_PATH.resolve()} "
-            f"--ansi always up --no-attach nginx --remove-orphans"
-        )
-        c.run(cmd)
-
-
-@task
-def dev_test(c):
-
-    db_migrate(c, paths.TEST_ENV_FILE)
-    with c.cd(paths.PROJECT_PATH):
-        load_dotenv(paths.TEST_ENV_FILE)
-
-        cmd = (
-            f"docker compose "
-            f"--project-directory {paths.PROJECT_PATH.resolve()} "
-            f"-f {paths.DOCKER_COMPOSE_TEST_PATH.resolve()} "
             f"--ansi always up --no-attach nginx --remove-orphans"
         )
         c.run(cmd)

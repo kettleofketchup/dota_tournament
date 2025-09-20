@@ -3,7 +3,6 @@ import {
   suppressHydrationErrors,
   visitAndWaitForHydration,
 } from '../support/utils';
-
 describe('Hydration Error Handling', () => {
   beforeEach(() => {
     // Suppress hydration errors before each test

@@ -16,6 +16,7 @@ import type { UserType } from '~/components/user/types';
 
 import { createTournament, updateTournament } from '~/components/api/api';
 import { SCROLLAREA_CSS } from '~/components/reusable/modal';
+import { Input } from '~/components/ui/input';
 import { ScrollArea } from '~/components/ui/scroll-area';
 import {
   Select,
@@ -26,7 +27,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '~/components/ui/select';
-import { Input } from '~/components/ui/input';
 interface Props {
   tourn: TournamentClassType; // Accepts both UserClassType and TournamentType
   form: TournamentClassType;
@@ -140,6 +140,7 @@ export const TournamentEditForm: React.FC<Props> = ({
       <div className="w-full flex flex-col items-start">
         <Label htmlFor="tournament_type">Tournament Type</Label>
         <Select
+          id="tournament_type"
           value={form.tournament_type || ''}
           onValueChange={(value) => handleChange('tournament_type', value)}
           style={{ width: '90%' }}
@@ -175,6 +176,7 @@ export const TournamentEditForm: React.FC<Props> = ({
         <Label className="font-semibold">{label}</Label>
         <Input
           type={type}
+          id={`tourn-${label}`}
           placeholder={tourn[key] ?? ''}
           value={form[key] ?? ''}
           onFocus={() => handleChange(key as keyof TournamentType, tourn[key])}

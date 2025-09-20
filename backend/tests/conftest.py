@@ -8,18 +8,31 @@ from dotenv import load_dotenv
 from invoke import Context
 
 # Add the parent directory to Python path for paths module
-sys.path.insert(0, str(Path(__file__).parent.parent.parent))
+try:
+    from paths import TEST_DB_PATH, TEST_ENV_FILE
 
-from paths import TEST_DB_PATH, TEST_ENV_FILE
+except ModuleNotFoundError:
+
+    sys.path.insert(0, str(Path(__file__).parent.parent.parent))
+    from paths import TEST_DB_PATH, TEST_ENV_FILE
+
 
 # Load test environment variables at module level
 load_dotenv(TEST_ENV_FILE)
 # Clean up test data
 from django.conf import settings
-from populate import populate_users
 
-import paths
+try:
+    from paths import TEST_DB_PATH, TEST_ENV_FILE
+
+
+except ModuleNotFoundError:
+
+    sys.path.insert(0, str(Path(__file__).parent))
+    from paths import TEST_DB_PATH, TEST_ENV_FILE
+
 from app.models import CustomUser
+from tests.populate import populate_users
 
 # @pytest.fixture(autouse=True)
 # def disable_db_cleanup(request, django_db_setup, django_db_blocker):

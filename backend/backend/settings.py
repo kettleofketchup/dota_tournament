@@ -20,8 +20,11 @@ from dotenv import load_dotenv
 # Add parent directory to Python path for paths module
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
+import logging
+
 from paths import DEV_DB_PATH, PROD_DB_PATH, TEST_DB_PATH
 
+log = logging.getLogger(__name__)
 load_dotenv()
 DISCORD_API_BASE_URL = "https://discord.com/api"
 SOCIAL_AUTH_DISCORD_KEY = os.environ.get("client_id")
@@ -53,14 +56,25 @@ SECRET_KEY = "v*kswpdyi3+*-=q4a)7&_!xwb%@udm1vi56r690!!j6e*p3^mn"
 import logging
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
 
-if "DEBUG" in os.environ and os.environ["DEBUG"].lower() == "true":
+
+def env_bool(key: str, default: bool = False) -> bool:
+    value = os.environ.get(key)
+    if value is None:
+        return default
+    return value.strip().lower() in ("1", "true", "yes", "on")
+
+
+NODE_ENV = "dev"
+TEST = env_bool("TEST")
+RELEASE = env_bool("RELEASE")
+DEBUG = env_bool("DEBUG")
+
+if DEBUG:
     logging.basicConfig(level=logging.DEBUG)
-    DEBUG = True
-
 # Application definition
-
+if "NODE_ENV" in os.environ:
+    NODE_ENV = os.environ.get("NODE_ENV")
 INSTALLED_APPS = [
     "django.contrib.admin",
     "django.contrib.auth",
@@ -77,6 +91,7 @@ INSTALLED_APPS = [
     "bracket",
     "discordbot",
 ]
+
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",

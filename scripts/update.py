@@ -10,7 +10,7 @@ from invoke.tasks import task
 
 import paths
 from backend.tasks import db_migrate
-from scripts.docker import docker_pull_all
+from scripts.docker import docker_build_all, docker_pull_all
 
 from .utils import crun, get_version
 
@@ -38,6 +38,14 @@ from scripts.utils import hasWANConnection
 
 
 @task
+def all_test(c):
+
+    if hasWANConnection():
+        npm(c)
+        python(c)
+
+
+@task
 def all(c):
 
     git(c)
@@ -52,3 +60,4 @@ ns_update.add_task(git, name="git")
 ns_update.add_task(python, name="python")
 ns_update.add_task(npm, name="npm")
 ns_update.add_task(all, name="all")
+ns_update.add_task(all_test, name="all_test")

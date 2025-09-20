@@ -63,15 +63,6 @@ def populate_users(force=False):
 
     # Create users
     users_created = 0
-    kettle = "kettleofketchup"
-    for user in discord_users:
-        if user["user"]["username"] == kettle:
-
-            user = create_user(user)
-            user.is_superuser = True
-            user.is_staff = True
-            user.save()
-            break
 
     print(
         f"Created {users_created} new users. Total users in database: {CustomUser.objects.count()}"

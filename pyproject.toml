@@ -1,6 +1,6 @@
 [project]
 name = "website"
-version = "0.3.16"
+version = "0.4.0"
 description = ""
 authors = [
     {name = "kettleofketchup@gmail.com",email = "kettleofketchup@gmail.com"}
@@ -31,6 +31,7 @@ dependencies = [
     "pytest (>=8.4.2,<9.0.0)",
     "poetry (>=2.2.0,<3.0.0)",
     "pytest-django (>=4.11.1,<5.0.0)",
+    "rich (>=14.1.0,<15.0.0)",
 
 ]
 

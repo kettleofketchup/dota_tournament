@@ -5,7 +5,7 @@ from invoke import Collection, task
 
 from paths import BACKEND_PATH, PROJECT_PATH, TEST_DB_PATH, TEST_ENV_FILE
 
-ns_test = Collection("test")
+ns_dbtest = Collection("test")
 from dotenv import load_dotenv
 
 from backend.tasks import db_migrate
@@ -28,4 +28,4 @@ def run_tests(c):
         c.run(cmd, pty=True)
 
 
-ns_test.add_task(run_tests)
+ns_dbtest.add_task(run_tests, "all")

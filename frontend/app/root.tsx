@@ -1,5 +1,3 @@
-import { scan } from 'react-scan';
-
 import { useEffect } from 'react';
 import {
   isRouteErrorResponse,
@@ -14,54 +12,50 @@ import { getLogger } from '~/lib/logger';
 import type { Route } from './+types/root';
 import './app.css';
 import ResponsiveAppBar from './components/navbar/navbar';
-import { useUserStore } from './store/userStore';
+
+('use client');
+
 const log = getLogger('root');
-export const links: Route.LinksFunction = () => [
-  { rel: 'preconnect', href: 'https://fonts.googleapis.com' },
-  {
-    rel: 'preconnect',
-    href: 'https://fonts.gstatic.com',
-    crossOrigin: 'anonymous',
-  },
-  {
-    rel: 'stylesheet',
-    href: 'https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap',
-  },
+
+// ✅ All fonts and external styles live here
+export const links: Route.LinksFunction = () => [];
+
+// ✅ Meta tags live here
+export const meta: Route.MetaFunction = () => [
+  { title: 'Tournament Tracker' },
+  { name: 'description', content: 'Track your tournament progress' },
+  { name: 'viewport', content: 'width=device-width, initial-scale=1' },
+  { charSet: 'utf-8' },
 ];
 
-export function Layout({ children }: { children: React.ReactNode }) {
+// ✅ Dev-only scripts injected client-side only, never during SSR
+export function DevScripts() {
   useEffect(() => {
-    log.debug(process.env.NODE_ENV);
-    // Make sure to run react-scan only after hydration
-    // if (import.meta.env.DEV) {
-    scan({
-      enabled: process.env.NODE_ENV === 'dev',
-      trackUnnecessaryRenders: process.env.NODE_ENV === 'dev',
-      showToolbar: process.env.NODE_ENV === 'dev',
-    });
-    // }
+    log.debug('DevScripts loaded', import.meta.env);
+
+    if (process.env.NODE_ENV === 'dev' || import.meta.env.DEV) {
+      import('react-scan').then((module) => {
+        module.scan({
+          enabled: import.meta.env.DEV === true,
+          trackUnnecessaryRenders: import.meta.env.DEV === true,
+          showToolbar: import.meta.env.DEV === true,
+        });
+      });
+    }
   }, []);
 
-  const currentUser = useUserStore((state) => state.currentUser); // Zustand setter
-  const getCurrentUser = useUserStore((state) => state.getCurrentUser); // Zustand setter
+  return null;
+}
 
-  const hasHydrated = useUserStore((state) => state.hasHydrated); // Zustand setter
-
+export function Layout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" className="dark" data-theme="dark">
-      <head>
-        {/* {import.meta.env.DEV && (
-          <script src="https://unpkg.com/react-scan/dist/auto.global.js" />
-        )} */}
-        <meta charSet="utf-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
+      <head suppressHydrationWarning={true}>
         <Meta />
         <Links />
       </head>
       <body>
-        {/* Your component tree. Now you can override Material UI's styles. */}
-
-        <div className="flex flex-col h-screen flex w-screen h-screen justify-between">
+        <div className="flex flex-col w-screen h-screen justify-between">
           <ResponsiveAppBar />
           <div id="outlet_root" className="flex-grow overflow-x-hidden">
             {children}
@@ -71,6 +65,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
 
         <ScrollRestoration />
         <Scripts />
+        <DevScripts />
       </body>
     </html>
   );

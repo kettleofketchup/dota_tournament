@@ -31,7 +31,4 @@ COPY tasks.py /app/
 RUN ls -all && ls -all .venv/bin/ && ls -all backend/
 EXPOSE 8000
 
-# Run migrations using the virtual environment directly
-RUN bash -c "poetry run inv db.migrate"
-
 ENTRYPOINT ["python", "backend/manage.py", "runserver", "0.0.0.0:8000"]

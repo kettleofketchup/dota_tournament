@@ -166,7 +166,7 @@ The test suite includes custom Cypress commands defined in `support/commands.ts`
 cy.login('user@example.com', 'password')
 
 // Login via API (faster for test setup)
-cy.loginApi('user@example.com', 'password')
+cy.loginAdmin('user@example.com', 'password')
 
 // Logout
 cy.logout()
