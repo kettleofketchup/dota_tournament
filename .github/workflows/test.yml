@@ -5,7 +5,9 @@ on:
     branches: [ main, develop ]
   pull_request:
     branches: [ main ]
-
+permissions:
+  contents: read
+  packages: read   # 👈 required for ghcr.io
 jobs:
   test:
     runs-on: ubuntu-latest
