@@ -24,7 +24,13 @@ RUN --mount=type=cache,target=$POETRY_CACHE_DIR poetry install --no-root --with 
 
 FROM deps AS source
 WORKDIR /app
+COPY __init__.py paths.py tasks.py /app/
+COPY ./scripts /app/scripts
+COPY ./backend /app/backend
 
+
+FROM deps-dev AS source-dev
+WORKDIR /app
 COPY __init__.py paths.py tasks.py /app/
 COPY ./scripts /app/scripts
 COPY ./backend /app/backend
@@ -32,15 +38,11 @@ COPY ./backend /app/backend
 # ---- Runtime (production) ----
 FROM source AS runtime
 WORKDIR /app
-
 EXPOSE 8000
 ENTRYPOINT ["python", "backend/manage.py", "runserver", "0.0.0.0:8000"]
 
 # ---- Runtime for dev/test ----
-FROM runtime AS runtime-dev
+FROM source-dev AS runtime-dev
 WORKDIR /app
-
-# Replace venv with the dev one
 EXPOSE 8000
-COPY --from=deps-dev /app/.venv /app/.venv
 ENTRYPOINT ["python", "backend/manage.py", "runserver", "0.0.0.0:8000"]

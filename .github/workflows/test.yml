@@ -90,11 +90,15 @@ jobs:
         restore-keys: |
           cypress-${{ runner.os }}-
 
-    - name: Install Cypress binary (cached)
+    - name: Install Cypress binary
       working-directory: frontend
-      run: npx cypress install
-      env:
-        CYPRESS_INSTALL_BINARY: 0
+      run: |
+        if [ ! -x "$HOME/.cache/Cypress/$(npx cypress version --component version)/Cypress/Cypress" ]; then
+          echo "Cypress binary missing, installing..."
+          npx cypress install
+        else
+          echo "Using cached Cypress binary"
+        fi
 
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v3
