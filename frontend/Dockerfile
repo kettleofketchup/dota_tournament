@@ -34,6 +34,7 @@ RUN npm run build
 
 # ---- Runtime (production) ----
 FROM deps AS runtime
+LABEL org.opencontainers.image.source="https://github.com/kettleofketchup/dtx_website"
 WORKDIR /app
 ENV PROD=false
 ENV NODE_ENV="dev"
@@ -47,6 +48,7 @@ CMD ["npm", "run", "start"]
 
 # ---- Runtime (dev) ----
 FROM deps-dev AS runtime-dev
+LABEL org.opencontainers.image.source="https://github.com/kettleofketchup/dtx_website"
 WORKDIR /app
 ENV PROD=false
 ENV NODE_ENV="dev"

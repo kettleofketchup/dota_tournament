@@ -30,7 +30,7 @@ jobs:
         password: ${{ secrets.GITHUB_TOKEN }}
 
     - name: pull images
-      run:  docker compose -f docker/docker-compose.test.yaml pull
+
     - name: start containers
       run:  docker compose -f docker/docker-compose.test.yaml up -d
 
