@@ -30,20 +30,6 @@ jobs:
       run:  docker compose --project-directory . -f docker/docker-compose.test.yaml pull
     - name: start containers
       run:  docker compose --project-directory . -f docker/docker-compose.test.yaml up -d
-
-
-    - name: Wait for backend
-      run: |
-        for i in {1..30}; do
-          if docker compose exec -T backend poetry run python manage.py check --database default; then
-            echo "Backend ready"
-            exit 0
-          fi
-          echo "Waiting for backend..."
-          sleep 5
-        done
-        echo "Backend not ready in time"
-        exit 1
     - name: populate database
       run: docker compose exec -T backend poetry run inv db.populate.all
     - name: Run Cypress tests
