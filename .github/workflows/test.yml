@@ -12,9 +12,6 @@ jobs:
       contents: read
       packages: read   # 👈 required for ghcr.io
     runs-on: ubuntu-latest
-
-
-
     steps:
 
     - name: Checkout code
@@ -30,7 +27,7 @@ jobs:
         password: ${{ secrets.GITHUB_TOKEN }}
 
     - name: pull images
-
+      run:  docker compose -f docker/docker-compose.test.yaml pull
     - name: start containers
       run:  docker compose -f docker/docker-compose.test.yaml up -d
 
