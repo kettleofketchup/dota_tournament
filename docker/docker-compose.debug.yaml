@@ -21,6 +21,14 @@ services:
       - ./backend/:/app/backend
       - ./poetry.lock/:/app/poetry.lock
       - ./pyproject.toml/:/app/pyproject.toml
+  redis:
+    image: redis:8.2.1-alpine
+    container_name: redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - backend/.redis_data:/data
+    restart: always
   nginx:
     image: ghcr.io/kettleofketchup/dtx_website/nginx:latest
     container_name: nginx
