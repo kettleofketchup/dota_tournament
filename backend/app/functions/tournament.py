@@ -25,6 +25,7 @@ from app.permissions import IsStaff
 from app.serializers import (
     DraftRoundSerializer,
     DraftSerializer,
+    DraftSerializerMMRs,
     GameSerializer,
     TeamSerializer,
     TournamentSerializer,
@@ -242,3 +243,34 @@ def rebuild_team(request):
     data = TournamentSerializer(tournament).data
     log.debug(data)
     return Response(data, status=201)
+
+
+class DraftPredictMMRSerializer(serializers.Serializer):
+    draft_pk = serializers.IntegerField(required=True)
+
+
+from cacheops import cached_as
+
+
+@api_view(["POST"])
+@permission_classes([AllowAny])
+def get_draft_style_mmrs(request):
+    serializer = DraftPredictMMRSerializer(data=request.data)
+
+    if serializer.is_valid():
+        draft_pk = serializer.validated_data["draft_pk"]
+
+    else:
+        return Response(serializer.errors, status=400)
+
+    try:
+        draft = Draft.objects.get(pk=draft_pk)
+    except Draft.DoesNotExist:
+        return Response({"error": "Draft not found"}, status=404)
+
+    @cached_as(Draft, timeout=60 * 15)
+    def get_data(request):
+        return DraftSerializerMMRs(draft).data
+
+    data = get_data(request)
+    return Response(data, 201)

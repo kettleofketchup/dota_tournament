@@ -39,10 +39,10 @@ def db_makemigrations(c, path: Path = paths.DEBUG_ENV_FILE):
 
     with c.cd(paths.BACKEND_PATH.absolute()):
         for app in apps:
-            cmd = f"python manage.py makemigrations {app}"
+            cmd = f"DISABLE_CACHE=true python manage.py makemigrations {app}"
             c.run(cmd, pty=True)
 
-        cmd = f"python manage.py makemigrations"
+        cmd = f"DISABLE_CACHE=true python manage.py makemigrations"
         c.run(cmd, pty=True)
 
 
@@ -53,22 +53,24 @@ def db_migrate(c, path: Path = paths.DEBUG_ENV_FILE):
 
     with c.cd(paths.BACKEND_PATH.absolute()):
         for app in apps:
-            cmd = f"python manage.py migrate {app}"
+            cmd = f"DISABLE_CACHE=true python manage.py migrate {app}"
             c.run(cmd, pty=True)
 
-        cmd = f"python manage.py migrate"
+        cmd = f"DISABLE_CACHE=true python manage.py migrate"
         c.run(cmd, pty=True)
 
 
 @task
 def db_populate_users(c, path: Path = paths.TEST_ENV_FILE, force: bool = False):
     """Populate the database with Discord users."""
+
     load_dotenv(path)
     db_migrate(c, path)
 
     with c.cd(paths.BACKEND_PATH.absolute()):
+
         force_flag = "--force" if force else ""
-        cmd = f"python manage.py populate_users {force_flag}"
+        cmd = f"DISABLE_CACHE=true python manage.py populate_users {force_flag}"
         c.run(cmd, pty=True)
 
 
@@ -89,17 +91,19 @@ def db_populate_tournaments(c, path: Path = paths.TEST_ENV_FILE, force: bool = F
 
     with c.cd(paths.BACKEND_PATH.absolute()):
         force_flag = "--force" if force else ""
-        cmd = f"python manage.py populate_tournaments {force_flag}"
+        cmd = f"DISABLE_CACHE=true python manage.py populate_tournaments {force_flag}"
         c.run(cmd, pty=True)
 
 
 @task
 def populate_all(c):
     paths.TEST_DB_PATH.unlink(missing_ok=True)
+
+    paths.TEST_DB_PATH.unlink(missing_ok=True)
     paths.TEST_DB_PATH.touch()
     db_migrate(c, paths.TEST_ENV_FILE)
-    db_populate_users(c)
-    db_populate_tournaments(c)
+    db_populate_users(c, paths.TEST_ENV_FILE)
+    db_populate_tournaments(c, paths.TEST_ENV_FILE)
 
 
 ns_db.add_task(db_migrate, "migrate")

@@ -82,14 +82,14 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-    "app",
+    "app.apps.AppConfig",
     "social_django",
     "rest_framework",
     "django_jinja",
     "corsheaders",
-    "steam",
-    "bracket",
-    "discordbot",
+    "steam.apps.SteamConfig",
+    "bracket.apps.TournamentConfig",
+    "discordbot.apps.DiscordbotConfig",
     "cacheops",  # Added for django-cacheops
 ]
 
@@ -218,15 +218,22 @@ DATABASES = {
 }
 
 # Cacheops/Redis cache configuration
-CACHES = {
-    "default": {
-        "BACKEND": "django_redis.cache.RedisCache",
-        "LOCATION": "redis://redis:6379/1",
-        "OPTIONS": {
-            "CLIENT_CLASS": "django_redis.client.DefaultClient",
-        },
+if not env_bool("DISABLE_CACHE"):
+    CACHES = {
+        "default": {
+            "BACKEND": "django_redis.cache.RedisCache",
+            "LOCATION": "redis://redis:6379/1",
+            "OPTIONS": {
+                "CLIENT_CLASS": "django_redis.client.DefaultClient",
+            },
+        }
     }
-}
+else:
+    CACHES = {
+        "default": {
+            "BACKEND": "django.core.cache.backends.dummy.DummyCache",
+        }
+    }
 
 CACHEOPS_REDIS = {
     "host": "redis",
@@ -236,15 +243,20 @@ CACHEOPS_REDIS = {
 }
 
 # Enable caching for tournament-related models
-CACHEOPS = {
-    "app.tournament": {"ops": "all", "timeout": 60 * 60},
-    "app.team": {"ops": "all", "timeout": 60 * 60},
-    "app.customuser": {"ops": "all", "timeout": 60 * 60},
-    "app.draft": {"ops": "all", "timeout": 60 * 60},
-    "app.game": {"ops": "all", "timeout": 60 * 60},
-    "app.draftround": {"ops": "all", "timeout": 60 * 60},
-    # Add more as needed
-}
+if not env_bool("DISABLE_CACHE"):
+    CACHEOPS = {
+        "app.tournament": {"ops": "all", "timeout": 60 * 60},
+        "app.team": {"ops": "all", "timeout": 60 * 60},
+        "app.customuser": {"ops": "all", "timeout": 60 * 60},
+        "app.draft": {"ops": "all", "timeout": 60 * 60},
+        "app.game": {"ops": "all", "timeout": 60 * 60},
+        "app.draftround": {"ops": "all", "timeout": 60 * 60},
+        # Add more as needed
+    }
+else:
+    # Disable all caching
+    CACHEOPS = {}
+
 
 CACHEOPS_DEGRADE_ON_FAILURE = True
 

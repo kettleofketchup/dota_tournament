@@ -15,6 +15,8 @@ import { getLogger } from '~/lib/logger';
 import axios from './axios';
 import type {
   CreateTeamFromCaptainAPI,
+  DraftStyleMMRsAPIReturn,
+  GetDraftStyleMMRsAPI,
   InitDraftRoundsAPI,
   PickPlayerForRoundAPI,
   RebuildDraftRoundsAPI,
@@ -69,7 +71,6 @@ export async function get_dtx_members(): Promise<GuildMembers> {
     throw new Error("Key 'members' not found in response data");
   }
 }
-
 export async function getTournamentsBasic(): Promise<TournamentsType> {
   const response = await axios.get<TournamentsType>(`/tournaments-basic`);
   return response.data as TournamentsType;
@@ -152,6 +153,14 @@ export async function deleteTeam(pk: number): Promise<void> {
 
 export async function fetchDraft(pk: number): Promise<DraftType> {
   const response = await axios.get<DraftType>(`/drafts/${pk}/`);
+  return response.data;
+}
+
+export async function updateDraft(
+  pk: number,
+  data: Partial<DraftType>,
+): Promise<DraftType> {
+  const response = await axios.patch<DraftType>(`/drafts/${pk}/`, data);
   return response.data;
 }
 export async function fetchDraftRound(pk: number): Promise<DraftRoundType> {
@@ -238,4 +247,11 @@ export async function UpdateProfile(
 ): Promise<UserType> {
   const response = await axios.post(`/profile_update`, data);
   return response.data as UserType;
+}
+
+export async function getDraftStyleMMRs(
+  data: GetDraftStyleMMRsAPI,
+): Promise<DraftStyleMMRsAPIReturn> {
+  const response = await axios.post(`/draft/get-style-mmrs`, data);
+  return response.data as DraftStyleMMRsAPIReturn;
 }

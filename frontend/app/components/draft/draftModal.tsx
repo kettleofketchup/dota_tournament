@@ -23,11 +23,13 @@ import { useTournamentStore } from '~/store/tournamentStore';
 import { useUserStore } from '~/store/userStore';
 import { TEAMS_BUTTONS_WIDTH } from '../constants';
 import { DIALOG_CSS, SCROLLAREA_CSS } from '../reusable/modal';
+import { DraftStyleModal } from './buttons/draftStyleModal';
 import { InitDraftButton } from './buttons/initDraftDialog';
 import { LatestRoundButton } from './buttons/latestButton';
 import { NextRoundButton } from './buttons/nextButton';
 import { PrevRoundButton } from './buttons/prevButton';
 import { ShareDraftButton } from './buttons/shareDraftButton';
+import { DraftBalanceDisplay } from './draftBalanceDisplay';
 import { DraftRoundView } from './draftRoundView';
 import { refreshDraftHook } from './hooks/refreshDraftHook';
 import { refreshTournamentHook } from './hooks/refreshTournamentHook';
@@ -192,6 +194,7 @@ export const DraftModal: React.FC<DraftModalParams> = ({}) => {
     return (
       <div className="flex flex-col gap-2">
         <LiveView isPolling={liveReload} />
+        <DraftBalanceDisplay />
       </div>
     );
   };
@@ -259,8 +262,9 @@ export const DraftModal: React.FC<DraftModalParams> = ({}) => {
           id="DraftFootStarter"
           className="w-full  flex flex-col rounded-full items-center gap-4 mb-4 md:flex-row align-center sm:shadow-md sm:shadow-black/10 /50 sm:p-6 sm:m-0"
         >
-          <div className="flex w-full justify-center md:justify-start">
+          <div className="flex w-full justify-center md:justify-start gap-2">
             <InitDraftButton />
+            <DraftStyleModal />
           </div>
           {choiceButtons()}
           <div className="flex w-full justify-center md:justify-end gap-2">

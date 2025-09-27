@@ -1,4 +1,25 @@
 to run python, you have to source .venv/bin/activate
+
+## Django Management Commands
+
+### Redis/Caching Dependencies
+Some Django management commands may fail if Redis is not available, especially when using django-cacheops or Redis-backed caching. If you encounter Redis connection errors during database operations (like `populate_users`), you can disable caching:
+
+```bash
+DISABLE_CACHE=true python manage.py <command>
+```
+
+This environment variable:
+- Sets Django's CACHES to use DummyCache (no-op cache)
+- Disables CACHEOPS entirely (empty configuration)
+- Allows management commands to run without Redis dependency
+
+Common scenarios where this is needed:
+- Database population scripts
+- Data migration commands
+- Development setup without Docker/Redis
+- CI/CD environments without Redis service
+
 # Project Goal
 Website that provides a way to help manage DTX, a Dota2 gaming organization.
 

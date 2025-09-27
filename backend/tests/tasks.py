@@ -24,7 +24,7 @@ def run_tests(c):
     TEST_DB_PATH.touch()
 
     with c.cd(BACKEND_PATH.absolute()):
-        cmd = "pytest -vvv  -s -c pytest.ini"
+        cmd = "DISABLE_CACHE=true pytest -vvv  -s -c pytest.ini"
         c.run(cmd, pty=True)
 
 

@@ -13,6 +13,7 @@ from app import views as app_views
 from app.functions.tournament import (
     create_team_from_captain,
     generate_draft_rounds,
+    get_draft_style_mmrs,
     pick_player_for_round,
     rebuild_team,
 )
@@ -73,6 +74,7 @@ urlpatterns = [
     path("api/team/register", TeamCreateView.as_view()),
     path("api/game/register", GameCreateView.as_view()),
     path("api/logout", app_views.logout),
+    path("api/draft/get-style-mmrs", get_draft_style_mmrs, name="get-draft-style-mmrs"),
     path("api/draft/register", DraftCreateView.as_view()),
     path("api/draftround/register", DraftRoundCreateView.as_view()),
     path(

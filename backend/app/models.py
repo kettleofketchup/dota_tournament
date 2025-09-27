@@ -1,6 +1,7 @@
 import logging
 
 import requests
+from cacheops import cached_as
 from django.conf import settings
 from django.core.exceptions import ValidationError as DjangoValidationError
 from django.db import models
@@ -11,7 +12,7 @@ from social_django.models import AbstractUserSocialAuth, DjangoStorage
 
 User = settings.AUTH_USER_MODEL
 
-from enum import IntEnum
+from enum import IntEnum, StrEnum
 
 from django.contrib.auth.models import AbstractUser
 from django.db.models import JSONField
@@ -51,6 +52,12 @@ class PositionEnum(IntEnum):
     Offlane = 3
     SoftSupport = 4
     HardSupport = 5
+
+
+# Enum for Dota2 positions
+class DraftStyles(StrEnum):
+    snake = ("snake",)
+    normal = ("normal",)
 
 
 class CustomUser(AbstractUser):
@@ -361,11 +368,161 @@ class Draft(models.Model):
         blank=True,
         null=True,
     )
+    DRAFT_STYLE_CHOICES = [
+        ("snake", "Snake"),
+        ("normal", "Normal"),
+    ]
+
+    draft_style = models.CharField(
+        max_length=10,
+        choices=DRAFT_STYLE_CHOICES,
+        default="snake",
+        help_text="Draft style: snake or normal",
+    )
 
     def __str__(self):
         return f"Draft {self.pk} in {self.tournament.name}"
 
+    def _simulate_draft(self, draft_style="snake"):
+        """
+        Simulate a draft where each captain picks the highest MMR player available.
+        Returns a dict with team_id -> list of picked players (including captain).
+
+        Args:
+            draft_style: "snake" or "normal"
+        """
+        from cacheops import cached_as
+
+        @cached_as(Draft, Tournament, timeout=60 * 10)
+        def get_simulation_data():
+            teams = list(self.tournament.teams.order_by("draft_order"))
+            if not teams:
+                return {}
+
+            # Get all available players (excluding captains) sorted by MMR desc
+            available_players = list(
+                self.tournament.users.exclude(
+                    teams_as_captain__tournament=self.tournament
+                )
+                .order_by("-mmr")
+                .values_list("id", "mmr")
+            )
+
+            # Initialize team rosters with captains
+            team_rosters = {}
+            for team in teams:
+                captain_mmr = team.captain.mmr or 0
+                team_rosters[team.id] = [(team.captain.id, captain_mmr)]
+
+            # Simulate draft rounds (4 picks per team after captain)
+            picks_per_team = 4
+
+            for round_num in range(picks_per_team):
+                if draft_style == "snake":
+                    # Snake draft: alternate direction each round
+                    if round_num % 2 == 0:
+                        # Forward: 1st, 2nd, 3rd, 4th team
+                        pick_order = teams
+                    else:
+                        # Reverse: 4th, 3rd, 2nd, 1st team
+                        pick_order = list(reversed(teams))
+                else:  # normal
+                    # Normal: always same order
+                    pick_order = teams
+
+                # Each team in the pick order gets one pick this round
+                for team in pick_order:
+                    if available_players:
+                        # Pick highest MMR available player
+                        player_id, player_mmr = available_players.pop(0)
+                        team_rosters[team.id].append((player_id, player_mmr))
+
+            return team_rosters
+
+        return get_simulation_data()
+
     @property
+    def snake_first_pick_mmr(self):
+        """Calculate total MMR for first pick team in snake draft simulation."""
+        simulation = self._simulate_draft("snake")
+        if not simulation:
+            return 0
+
+        # First team in draft order
+        first_team = self.tournament.teams.order_by("draft_order").first()
+        if not first_team or first_team.id not in simulation:
+            return 0
+
+        return sum(mmr for _, mmr in simulation[first_team.id])
+
+    @property
+    def snake_last_pick_mmr(self):
+        """Calculate total MMR for last pick team in snake draft simulation."""
+        simulation = self._simulate_draft("snake")
+        if not simulation:
+            return 0
+
+        # Last team in draft order
+        last_team = self.tournament.teams.order_by("draft_order").last()
+        if not last_team or last_team.id not in simulation:
+            return 0
+
+        return sum(mmr for _, mmr in simulation[last_team.id])
+
+    @property
+    def normal_first_pick_mmr(self):
+        """Calculate total MMR for first pick team in normal draft simulation."""
+        simulation = self._simulate_draft("normal")
+        if not simulation:
+            return 0
+
+        # First team in draft order
+        first_team = self.tournament.teams.order_by("draft_order").first()
+        if not first_team or first_team.id not in simulation:
+            return 0
+
+        return sum(mmr for _, mmr in simulation[first_team.id])
+
+    @property
+    def normal_last_pick_mmr(self):
+        """Calculate total MMR for last pick team in normal draft simulation."""
+        simulation = self._simulate_draft("normal")
+        if not simulation:
+            return 0
+
+        # Last team in draft order
+        last_team = self.tournament.teams.order_by("draft_order").last()
+        if not last_team or last_team.id not in simulation:
+            return 0
+
+        return sum(mmr for _, mmr in simulation[last_team.id])
+
+    @property
+    def current_draft_first_pick_mmr(self):
+        """Calculate total MMR for first pick team using current draft style."""
+        simulation = self._simulate_draft(self.draft_style)
+        if not simulation:
+            return 0
+
+        first_team = self.tournament.teams.order_by("draft_order").first()
+        if not first_team or first_team.id not in simulation:
+            return 0
+
+        return sum(mmr for _, mmr in simulation[first_team.id])
+
+    @property
+    def current_draft_last_pick_mmr(self):
+        """Calculate total MMR for last pick team using current draft style."""
+        simulation = self._simulate_draft(self.draft_style)
+        if not simulation:
+            return 0
+
+        last_team = self.tournament.teams.order_by("draft_order").last()
+        if not last_team or last_team.id not in simulation:
+            return 0
+
+        return sum(mmr for _, mmr in simulation[last_team.id]) @ property
+
     def teams(self):
         if not self.tournament.teams.exists():
             return []
@@ -458,63 +615,73 @@ class Draft(models.Model):
                 team.save()
 
     def build_rounds(self):
-        logging.debug(f"Building draft rounds")
+        logging.debug(f"Building draft rounds with style: {self.draft_style}")
 
+        # Clear existing draft rounds
         for round in self.draft_rounds.all():
             logging.debug(
                 f"Draft round {round.pk} already exists for {self.tournament.name}"
             )
             round.delete()
 
-        max_picks = self.tournament.captains.count() * 4 + 1
+        teams = list(self.tournament.teams.order_by("draft_order"))
+        if not teams:
+            logging.error("No teams found for tournament")
+            return
 
-        pick = 1
+        num_teams = len(teams)
+        picks_per_team = 4  # Each team picks 4 players after captain
+        total_picks = num_teams * picks_per_team
+
+        pick_number = 1
         phase = 1
-        order = self.tournament.teams.order_by("draft_order")
 
-        def pick_player(draft, team, pick, phase):
+        def create_draft_round(draft, captain, pick_num, phase_num):
             try:
-                draftRound = DraftRound.objects.create(
+                draft_round = DraftRound.objects.create(
                     draft=draft,
-                    captain=team.captain,
-                    pick_number=pick,
-                    pick_phase=phase,
+                    captain=captain,
+                    pick_number=pick_num,
+                    pick_phase=phase_num,
                 )
-                draftRound.save()
-
+                logging.debug(
+                    f"Draft round {draft_round.pk} created for {captain.username} "
+                    f"in phase {phase_num}, pick {pick_num}"
+                )
+                return True
             except IntegrityError:
                 logging.error(
-                    f"IntegrityError: Draft round already exists for {team.name} in phase {phase}, pick {pick}"
+                    f"IntegrityError: Draft round already exists for {captain.username} "
+                    f"in phase {phase_num}, pick {pick_num}"
                 )
-                pick += 1
-                if pick % 5 == 0:
-                    phase += 1
-                return pick, phase
+                return False
 
-            logging.debug(
-                f"Draft round {draftRound.pk} created for {team.name} in phase {phase}, pick {pick}"
-            )
-            pick += 1
-            if pick % 5 == 0:
-                phase += 1
+        # Generate draft order based on style
+        for round_num in range(picks_per_team):
+            if self.draft_style == "snake":
+                # Snake draft: alternate direction each round
+                if round_num % 2 == 0:
+                    # Forward: 1st, 2nd, 3rd, 4th team
+                    pick_order = teams
+                else:
+                    # Reverse: 4th, 3rd, 2nd, 1st team
+                    pick_order = list(reversed(teams))
+            else:  # normal draft
+                # Normal draft: always same order
+                pick_order = teams
 
-            return pick, phase
+            # Create draft rounds for this phase
+            for team in pick_order:
+                if pick_number <= total_picks:
+                    create_draft_round(self, team.captain, pick_number, phase)
+                    pick_number += 1
 
-        while pick < max_picks:
-            for team in self.tournament.teams.order_by("draft_order").all():
-                pick, phase = pick_player(self, team, pick, phase)
-                logging.debug(f" phase {phase}, pick {pick}")
-                if pick >= max_picks:
-                    break
-            for team in self.tournament.teams.order_by("draft_order").reverse():
+            # Increment phase after all teams have picked
+            phase += 1
 
-                pick, phase = pick_player(self, team, pick, phase)
-                logging.debug(f" phase {phase}, pick {pick}")
-
-                if pick >= max_picks:
-                    break
-        for round in self.draft_rounds.all():
-            logging.debug(f"Draft round {round.pk} created for {self.tournament.name}")
+        logging.debug(
+            f"Created {pick_number - 1} draft rounds for {self.tournament.name}"
+        )
         self.save()
 
     def go_back(self):

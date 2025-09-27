@@ -35,6 +35,9 @@ def create_user(user_data):
     return user
 
 
+from tests.test_auth import createTestStaffUser, createTestSuperUser, createTestUser
+
+
 def populate_users(force=False):
     """
     Populates the database with Discord users.
@@ -45,7 +48,9 @@ def populate_users(force=False):
         force (bool): If True, populate users even if there are already more than 100 users.
     """
     current_count = CustomUser.objects.count()
-
+    createTestStaffUser()
+    createTestSuperUser()
+    createTestUser()
     if current_count > 100 and not force:
         print(
             f"Database already has {current_count} users (>100). Use force=True to populate anyway."

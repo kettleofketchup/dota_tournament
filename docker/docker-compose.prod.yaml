@@ -14,6 +14,8 @@ services:
     restart: always
     volumes:
       - ./backend/db.sqlite3:/app/backend/prod.db.sqlite3
+    depends_on:
+      - redis
   redis:
     image: redis:8.2.1-alpine
     container_name: redis

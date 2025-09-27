@@ -21,6 +21,8 @@ services:
       - ./backend/:/app/backend
       - ./poetry.lock/:/app/poetry.lock
       - ./pyproject.toml/:/app/pyproject.toml
+    depends_on:
+      - redis
   redis:
     image: redis:8.2.1-alpine
     container_name: redis

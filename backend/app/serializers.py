@@ -185,8 +185,22 @@ class DraftSerializer(serializers.ModelSerializer):
             "pk",
             "tournament",
             "draft_rounds",
+            "draft_style",
             "users_remaining",
             "latest_round",
+        )
+
+
+class DraftSerializerMMRs(serializers.ModelSerializer):
+
+    class Meta:
+        model = Draft
+        fields = (
+            "pk",
+            "snake_first_pick_mmr",
+            "snake_last_pick_mmr",
+            "normal_first_pick_mmr",
+            "normal_last_pick_mmr",
         )
 
 

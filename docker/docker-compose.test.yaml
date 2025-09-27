@@ -12,6 +12,7 @@ services:
       - /app/.react-router/
     restart: always
     command: ["npx", "react-router", "dev" , "--port", "3000", "--host", "0.0.0.0"]
+
   redis:
     image: redis:8.2.1-alpine
     container_name: redis
@@ -20,6 +21,7 @@ services:
     volumes:
       - ./backend/.redis_data:/data
     restart: always
+
   backend:
     container_name: backend
     env_file: "./docker/.env.test"
@@ -31,6 +33,8 @@ services:
       - ./backend/:/app/backend
       - ./poetry.lock/:/app/poetry.lock
       - ./pyproject.toml/:/app/pyproject.toml
+    depends_on:
+      - redis
   nginx:
     image: ghcr.io/kettleofketchup/dtx_website/nginx:latest
     container_name: nginx
