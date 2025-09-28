@@ -35,7 +35,7 @@ export const ChoosePlayerButton: React.FC<{
   useEffect(() => {}, [tournament.draft, tournament.teams]);
 
   const handleChange = async (e: FormEvent) => {
-    log.debug('createTeamFromCaptainHook', {
+    log.debug('ChoosePlayerButton: Tournament', {
       tournament,
     });
 

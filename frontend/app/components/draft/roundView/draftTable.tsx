@@ -16,13 +16,17 @@ import { RolePositions } from '../../user/positions';
 import { ChoosePlayerButton } from '../buttons/choosePlayerButtons';
 import type { DraftRoundType } from '../types';
 const log = getLogger('draftTable');
-interface DraftTableProps {
-  curRound: DraftRoundType;
-}
-export const DraftTable: React.FC<DraftTableProps> = ({ curRound }) => {
+interface DraftTableProps {}
+export const DraftTable: React.FC<DraftTableProps> = ({}) => {
   const tournament = useUserStore((state) => state.tournament);
-  const curDraft = useUserStore((state) => state.curDraft);
-  useEffect(() => {}, [curRound?.choice, curDraft.users_remaining]);
+  const curRound: DraftRoundType = useUserStore((state) => state.curDraftRound);
+  const draft = useUserStore((state) => state.draft);
+  useEffect(() => {
+    log.debug('rerender: Cur round choice changed');
+  }, [curRound?.choice]);
+  useEffect(() => {
+    log.debug('rerender: draft users_remaining changed changed');
+  }, [draft.users_remaining?.length]);
 
   const members = () => {
     const a = tournament?.draft?.users_remaining?.sort(

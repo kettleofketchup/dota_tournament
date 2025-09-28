@@ -18,11 +18,11 @@ export interface PickPlayerForRoundAPI {
 }
 
 export interface GetDraftStyleMMRsAPI {
-  draft_pk: number;
+  pk: number;
 }
 
 export interface DraftStyleMMRsAPIReturn {
-  draft_pk: number;
+  pk: number;
   snake_first_pick_mmr: number;
   snake_last_pick_mmr: number;
   normal_first_pick_mmr: number;

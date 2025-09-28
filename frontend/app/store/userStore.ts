@@ -3,6 +3,7 @@ import { createJSONStorage, persist } from 'zustand/middleware';
 import {
   fetchCurrentUser,
   fetchDraft,
+  fetchTournament,
   fetchUsers,
   get_dtx_members,
   getGames,
@@ -10,7 +11,6 @@ import {
   getTournaments,
   getTournamentsBasic,
 } from '~/components/api/api';
-import axios from '~/components/api/axios';
 import type { DraftRoundType, DraftType } from '~/components/draft/types';
 import type { TeamType, TournamentType } from '~/components/tournament/types';
 import { User } from '~/components/user/user';
@@ -51,8 +51,6 @@ interface UserState {
   tournaments: TournamentType[];
   curDraftRound: DraftRoundType;
   setCurDraftRound: (round: DraftRoundType) => void;
-  curDraft: DraftType;
-  setCurDraft: (draft: DraftType) => void;
 
   resetSelection: () => void;
   setGames: (games: GameType[]) => void;
@@ -117,16 +115,14 @@ export const useUserStore = create<UserState>()(
       games: [] as GameType[],
       teams: [] as TeamType[],
       team: {} as TeamType,
-      curDraft: {} as DraftType,
 
-      setCurDraft: (draft: DraftType) => set({ curDraft: draft }),
       updateCurrentDraft: async () => {
         if (!get().draft.pk) {
           console.debug('Current draft does not have a primary key (pk).');
           return;
         }
         const draft = await fetchDraft(get().draft.pk);
-        set({ curDraft: draft });
+        set({ draft: draft });
       },
       curDraftRound: {} as DraftRoundType,
 
@@ -307,15 +303,16 @@ export const useUserStore = create<UserState>()(
       setTournamentPK: (pk: number) => set({ tournamentPK: pk }),
       tournamentPK: null,
       getCurrentTournament: async () => {
-        if (get().tournament.pk) {
-          try {
-            const response = await axios.get(
-              `/tournaments/${get().tournament.pk}/`,
-            );
-            set({ tournament: response.data });
-          } catch (err) {
-            log.error('Failed to fetch tournament:', err);
-          }
+        let id = get().tournamentPK;
+        if (id === null || id === undefined) {
+          return;
+        }
+
+        try {
+          const response = await fetchTournament(id);
+          set({ tournament: response });
+        } catch (err) {
+          log.error('Failed to fetch tournament:', err);
         }
       },
 

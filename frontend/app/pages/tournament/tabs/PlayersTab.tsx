@@ -23,9 +23,6 @@ export const PlayersTab: React.FC = memo(() => {
   const setTournament = useUserStore((state) => state.setTournament); // Zustand settera
   const query = useUserStore((state) => state.userQuery);
   const setQuery = useUserStore((state) => state.setUserQuery); // Zustand setter
-  const getCurrentTournament = useUserStore(
-    (state) => state.getCurrentTournament,
-  ); // Zustand setter
 
   useEffect(() => {}, [tournament.users]);
   const addUserCallback = async (user: UserType) => {
@@ -119,9 +116,7 @@ export const PlayersTab: React.FC = memo(() => {
     );
   };
 
-  const renderGames = () => {
-    
-  }
+  const renderGames = () => {};
   return (
     <div className="py-5 px-3 mx-auto container bg-base-300 rounded-lg shadow-lg hover:bg-base-400 transition-shadow duration-300 ease-in-out">
       {hasErrors()}
@@ -144,7 +139,7 @@ export const PlayersTab: React.FC = memo(() => {
           />
         </div>
       </div>
-    
+
       {!tournament || !tournament.users || tournament.users.length === 0
         ? renderNoPlayers()
         : renderPlayers()}

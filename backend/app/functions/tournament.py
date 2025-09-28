@@ -41,6 +41,9 @@ class PickPlayerForRound(serializers.Serializer):
     user_pk = serializers.IntegerField(required=True)
 
 
+from cacheops import invalidate_model
+
+
 @api_view(["POST"])
 @permission_classes([IsStaff])
 def pick_player_for_round(request):
@@ -74,6 +77,11 @@ def pick_player_for_round(request):
         return Response({"error": "Tournament not found"}, status=404)
 
     draft_round.draft.save()
+    draft_round.save()
+
+    invalidate_model(Tournament)
+    invalidate_model(Draft)
+    invalidate_model(Team)
 
     return Response(TournamentSerializer(tournament).data, status=201)
 
@@ -111,9 +119,7 @@ def create_team_from_captain(request):
 
         # Create a new team and add the user as a member (or captain)
     try:
-        draft = tournament.draft.all()
-        for d in draft:
-            d.delete()
+        draft = tournament.draft
 
     except Draft.DoesNotExist:
         pass  # No draft exists, continue
@@ -145,8 +151,6 @@ def create_team_from_captain(request):
         draft_order=draft_order,
     )
     team.members.add(user)
-    team.save()
-
     return Response(TournamentSerializer(tournament).data, status=201)
 
 
@@ -172,17 +176,25 @@ def generate_draft_rounds(request):
         return Response({"error": "Tournament not found"}, status=404)
 
         # Create a new team and add the user as a member (or captain)
+
     try:
-        for draft in tournament.draft.all():
-            draft.delete()
+        draft = tournament.draft
     except Draft.DoesNotExist:
-        pass  # No draft to delete
-    logging.debug(f"Creating draft for tournament {tournament.name}")
-    draft = Draft.objects.create(tournament=tournament)
+        log.debug(f"Draft doesn't exist for {tournament.pk}, creating new one")
+        draft = Draft.objects.create(tournament=tournament)
+
+    logging.debug(f"Initialization draft for tournament {tournament.name}")
     draft.build_rounds()
-    draft.save()
+
     draft.rebuild_teams()
     draft.save()
+    tournament.draft = draft
+    tournament.save()
+
+    invalidate_model(Draft)
+    invalidate_model(Tournament)
+    invalidate_model(Team)
+
     return Response(TournamentSerializer(tournament).data, status=201)
 
 
@@ -206,16 +218,7 @@ def rebuild_team(request):
         # Create a new team and add the user as a member (or captain)
 
     try:
-        draft = tournament.draft.first()
-        if len(tournament.draft.all()) > 1:
-            logging.debug(
-                f"Multiple drafts found for tournament {tournament.name}, deleting all but the first"
-            )
-            tournament.draft.exclude(pk=draft.pk).delete()
-            logging.debug("Draft Issues")
-            draft.save()
-
-        draft = tournament.draft.first()
+        draft = tournament.draft
         if not draft:
             draft = Draft.objects.create(tournament=tournament)
             draft.build_rounds()
@@ -238,15 +241,16 @@ def rebuild_team(request):
 
     draft.rebuild_teams()
     draft.save()
-
+    tournament.draft = draft
     tournament = Tournament.objects.get(pk=tournament_pk)
     data = TournamentSerializer(tournament).data
     log.debug(data)
+
     return Response(data, status=201)
 
 
 class DraftPredictMMRSerializer(serializers.Serializer):
-    draft_pk = serializers.IntegerField(required=True)
+    pk = serializers.IntegerField(required=True)
 
 
 from cacheops import cached_as
@@ -258,7 +262,7 @@ def get_draft_style_mmrs(request):
     serializer = DraftPredictMMRSerializer(data=request.data)
 
     if serializer.is_valid():
-        draft_pk = serializer.validated_data["draft_pk"]
+        draft_pk = serializer.validated_data["pk"]
 
     else:
         return Response(serializer.errors, status=400)
@@ -267,8 +271,9 @@ def get_draft_style_mmrs(request):
         draft = Draft.objects.get(pk=draft_pk)
     except Draft.DoesNotExist:
         return Response({"error": "Draft not found"}, status=404)
+    cache_key = f"draft_sim_pk:{request.get_full_path()}"
 
-    @cached_as(Draft, timeout=60 * 15)
+    @cached_as(Draft, CustomUser, Tournament, Team, extra=cache_key, timeout=60 * 15)
     def get_data(request):
         return DraftSerializerMMRs(draft).data
 

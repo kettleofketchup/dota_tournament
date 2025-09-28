@@ -1,7 +1,7 @@
 import logging
 
 import requests
-from cacheops import cached_as
+from cacheops import cached_as, invalidate_model
 from django.conf import settings
 from django.core.exceptions import ValidationError as DjangoValidationError
 from django.db import models
@@ -223,7 +223,7 @@ class Tournament(models.Model):
     date_played = models.DateField()
     users = models.ManyToManyField(User, related_name="tournaments")
     # Removed teams field; handled by ForeignKey in Team
-    winning_team = models.ForeignKey(
+    winning_team = models.OneToOneField(
         "Team",
         null=True,
         blank=True,
@@ -359,9 +359,12 @@ class Game(models.Model):
         return [self.radiant_team, self.dire_team]
 
 
+from cacheops import cached_as
+
+
 class Draft(models.Model):
 
-    tournament = models.ForeignKey(
+    tournament = models.OneToOneField(
         Tournament,
         related_name="draft",
         on_delete=models.CASCADE,
@@ -383,6 +386,13 @@ class Draft(models.Model):
     def __str__(self):
         return f"Draft {self.pk} in {self.tournament.name}"
 
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        # Invalidate tournament cache when draft are made
+        from cacheops import invalidate_model, invalidate_obj
+
+        invalidate_obj(self.tournament)
+
     def _simulate_draft(self, draft_style="snake"):
         """
         Simulate a draft where each captain picks the highest MMR player available.
@@ -391,11 +401,10 @@ class Draft(models.Model):
         Args:
             draft_style: "snake" or "normal"
         """
-        from cacheops import cached_as
 
-        @cached_as(Draft, Tournament, timeout=60 * 10)
-        def get_simulation_data():
+        def get_simulation_data(draft_style=draft_style):
             teams = list(self.tournament.teams.order_by("draft_order"))
+            log.debug(f"Getting Simulation for {draft_style} teams: {teams}")
             if not teams:
                 return {}
 
@@ -416,6 +425,10 @@ class Draft(models.Model):
 
             # Simulate draft rounds (4 picks per team after captain)
             picks_per_team = 4
+            num_teams = len(teams)
+            total_picks = num_teams * picks_per_team
+            pick_number = 1
+            phase = 1
 
             for round_num in range(picks_per_team):
                 if draft_style == "snake":
@@ -432,14 +445,24 @@ class Draft(models.Model):
 
                 # Each team in the pick order gets one pick this round
                 for team in pick_order:
-                    if available_players:
+
+                    if pick_number <= total_picks and available_players:
                         # Pick highest MMR available player
                         player_id, player_mmr = available_players.pop(0)
+                        if player_mmr is None:
+                            player_mmr = 0
                         team_rosters[team.id].append((player_id, player_mmr))
+
+                        log.debug(
+                            f"{draft_style} sim: Team {team.name} picked player {player_id} with MMR {player_mmr}"
+                        )
+                        pick_number += 1
 
             return team_rosters
 
-        return get_simulation_data()
+        data = get_simulation_data(draft_style=draft_style)
+        log.debug(data)
+        return data
 
     @property
     def snake_first_pick_mmr(self):
@@ -452,7 +475,6 @@ class Draft(models.Model):
         first_team = self.tournament.teams.order_by("draft_order").first()
         if not first_team or first_team.id not in simulation:
             return 0
-
         return sum(mmr for _, mmr in simulation[first_team.id])
 
     @property
@@ -521,8 +543,9 @@ class Draft(models.Model):
         if not last_team or last_team.id not in simulation:
             return 0
 
-        return sum(mmr for _, mmr in simulation[last_team.id]) @ property
+        return sum(mmr for _, mmr in simulation[last_team.id])
 
+    @property
     def teams(self):
         if not self.tournament.teams.exists():
             return []
@@ -544,14 +567,24 @@ class Draft(models.Model):
         """
         if not self.tournament.users.exists():
             return []
-
-        return (
-            self.tournament.users.exclude(teams_as_member__tournament=self.tournament)
-            .exclude(teams_as_dropin__tournament=self.tournament)
-            .exclude(teams_as_left__tournament=self.tournament)
-            .exclude(teams_as_captain__tournament=self.tournament)
-            .distinct()
+        picked_user_ids = list(
+            self.draft_rounds.filter(choice__isnull=False).values_list(
+                "choice_id", flat=True
+            )
         )
+        log.debug(f"Picked user IDs: {list(picked_user_ids)}")
+        captain_ids = list(
+            self.tournament.teams.filter(captain__isnull=False).values_list(
+                "captain_id", flat=True
+            )
+        )
+        log.debug(f"Captain IDs: {captain_ids}")
+        excluded_ids = set(picked_user_ids + captain_ids)
+        log.debug(f"All excluded IDs: {excluded_ids}")
+        users = self.tournament.users.exclude(id__in=excluded_ids).distinct()
+
+        log.debug(f"Users remaining: {[user.pk for user in users ]}")
+        return users
 
     @property
     def captains(self):
@@ -724,6 +757,18 @@ class DraftRound(models.Model):
         null=True,
     )
 
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        # Invalidate tournament cache when draft picks are made
+        from cacheops import invalidate_model, invalidate_obj
+
+        invalidate_obj(self.draft.tournament)
+        invalidate_obj(self.draft)
+
+        invalidate_model(Tournament)
+        invalidate_model(Draft)
+        invalidate_model(Team)
+
     @property
     def team(self):
         if not self.draft:
@@ -741,13 +786,27 @@ class DraftRound(models.Model):
             f"Draft round {self.pk} picking player {user.username} for captain {self.captain.username}"
         )
         log.debug(self.draft.users_remaining)
-        log.debug(self.draft.users_remaining)
-        if self.draft.users_remaining.contains(user):
+
+        # Debug the current state
+        remaining_count_before = self.draft.users_remaining.count()
+        log.debug(f"Users remaining before pick: {remaining_count_before}")
+
+        if self.draft.users_remaining.filter(id=user.id).exists():
             self.choice = user
             self.team.members.add(user)
             self.team.save()
-            self.save()
+            self.save()  # This triggers cache invalidation
+
+            remaining_count_after = self.draft.users_remaining.count()
+            log.debug(f"Users remaining after pick: {remaining_count_after}")
+            log.debug(f"Successfully picked {user.username}")
         else:
+            available_users = list(
+                self.draft.users_remaining.values_list("username", flat=True)
+            )
+            log.error(
+                f"User {user.username} is not available. Available: {available_users}"
+            )
             raise ValueError("User is not available for drafting.")
 
     def __str__(self):

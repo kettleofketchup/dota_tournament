@@ -75,7 +75,6 @@ export const DraftModal: React.FC<DraftModalParams> = ({}) => {
     log.debug('Current round after update:', curDraftRound);
   };
   const onUpdate = useCallback(() => {
-    console.log(liveReload);
     if (!liveReload) return;
     if (liveReload) {
       log.debug('Live view is enabled, refreshing draft and tournament');
@@ -155,7 +154,7 @@ export const DraftModal: React.FC<DraftModalParams> = ({}) => {
   };
 
   useEffect(() => {
-    log.debug('Tournament Modal Initialized draft data:', tournament?.draft);
+    log.debug('rerender: Tournament Modal Initialized draft data:', tournament?.draft);
 
     if (tournament?.draft) {
       setDraft(tournament.draft);

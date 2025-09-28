@@ -155,7 +155,9 @@ class UserView(viewsets.ModelViewSet):
     def list(self, request, *args, **kwargs):
         cache_key = f"user_list:{request.get_full_path()}"
 
-        @cached_as(CustomUser.objects.all(), extra=cache_key, timeout=60 * 60)
+        @cached_as(
+            CustomUser.objects.all(), keep_fresh=True, extra=cache_key, timeout=60 * 60
+        )
         def get_data():
             queryset = self.filter_queryset(self.get_queryset())
             serializer = self.get_serializer(queryset, many=True)
@@ -168,7 +170,12 @@ class UserView(viewsets.ModelViewSet):
         pk = kwargs["pk"]
         cache_key = f"user_detail:{pk}"
 
-        @cached_as(CustomUser.objects.filter(pk=pk), extra=cache_key, timeout=60 * 60)
+        @cached_as(
+            CustomUser.objects.filter(pk=pk),
+            keep_fresh=True,
+            extra=cache_key,
+            timeout=60 * 60,
+        )
         def get_data():
             instance = self.get_object()
             serializer = self.get_serializer(instance)
@@ -214,7 +221,16 @@ class TournamentView(viewsets.ModelViewSet):
     def list(self, request, *args, **kwargs):
         cache_key = f"tournament_list:{request.get_full_path()}"
 
-        @cached_as(Tournament, extra=cache_key, timeout=60 * 10)
+        @cached_as(
+            Tournament,
+            Team,
+            CustomUser,
+            Draft,
+            Game,
+            DraftRound,
+            extra=cache_key,
+            timeout=60 * 10,
+        )
         def get_data():
             queryset = self.filter_queryset(self.get_queryset())
             serializer = self.get_serializer(queryset, many=True)
@@ -228,7 +244,7 @@ class TournamentView(viewsets.ModelViewSet):
         cache_key = f"tournament_detail:{pk}"
 
         @cached_as(
-            Tournament,
+            Tournament.objects.filter(pk=pk),
             Team,
             CustomUser,
             Game,
@@ -238,7 +254,10 @@ class TournamentView(viewsets.ModelViewSet):
             timeout=60 * 10,
         )
         def get_data():
+            log.debug("get_tournament: fetching data")
             instance = self.get_object()
+            log.debug("users_remaining:" + str(len(instance.draft.users_remaining)))
+
             serializer = self.get_serializer(instance)
             return serializer.data
 
@@ -275,8 +294,18 @@ class TeamView(viewsets.ModelViewSet):
     def list(self, request, *args, **kwargs):
         cache_key = f"team_list:{request.get_full_path()}"
 
-        @cached_as(Team.objects.all(), extra=cache_key, timeout=60 * 60)
+        @cached_as(
+            Team.objects.all(),
+            CustomUser,
+            Tournament,
+            Game,
+            Draft,
+            DraftRound,
+            extra=cache_key,
+            timeout=60 * 60,
+        )
         def get_data():
+            log.debug("get_team: fetching data")
             queryset = self.filter_queryset(self.get_queryset())
             serializer = self.get_serializer(queryset, many=True)
             return serializer.data
@@ -288,7 +317,17 @@ class TeamView(viewsets.ModelViewSet):
         pk = kwargs["pk"]
         cache_key = f"team_detail:{pk}"
 
-        @cached_as(Team.objects.filter(pk=pk), extra=cache_key, timeout=60 * 60)
+        @cached_as(
+            Team.objects.filter(pk=pk),
+            CustomUser,
+            Tournament,
+            Game,
+            Draft,
+            DraftRound,
+            keep_fresh=True,
+            extra=cache_key,
+            timeout=60 * 60,
+        )
         def get_data():
             instance = self.get_object()
             serializer = self.get_serializer(instance)
@@ -325,7 +364,15 @@ class DraftView(viewsets.ModelViewSet):
     def list(self, request, *args, **kwargs):
         cache_key = f"draft_list:{request.get_full_path()}"
 
-        @cached_as(Draft.objects.all(), extra=cache_key, timeout=60 * 60)
+        @cached_as(
+            Draft.objects.all(),
+            DraftRound,
+            Team,
+            Tournament,
+            CustomUser,
+            extra=cache_key,
+            timeout=60 * 60,
+        )
         def get_data():
             queryset = self.filter_queryset(self.get_queryset())
             serializer = self.get_serializer(queryset, many=True)
@@ -338,7 +385,15 @@ class DraftView(viewsets.ModelViewSet):
         pk = kwargs["pk"]
         cache_key = f"draft_detail:{pk}"
 
-        @cached_as(Draft.objects.filter(pk=pk), extra=cache_key, timeout=60 * 60)
+        @cached_as(
+            Draft.objects.filter(pk=pk),
+            DraftRound,
+            Team,
+            Tournament,
+            CustomUser,
+            extra=cache_key,
+            timeout=60 * 60,
+        )
         def get_data():
             instance = self.get_object()
             serializer = self.get_serializer(instance)
@@ -377,7 +432,14 @@ class DraftRoundView(viewsets.ModelViewSet):
     def list(self, request, *args, **kwargs):
         cache_key = f"draftround_list:{request.get_full_path()}"
 
-        @cached_as(DraftRound.objects.all(), extra=cache_key, timeout=60 * 10)
+        @cached_as(
+            DraftRound.objects.all(),
+            Team,
+            Tournament,
+            CustomUser,
+            extra=cache_key,
+            timeout=60 * 10,
+        )
         def get_data():
             queryset = self.filter_queryset(self.get_queryset())
             serializer = self.get_serializer(queryset, many=True)
@@ -390,7 +452,14 @@ class DraftRoundView(viewsets.ModelViewSet):
         pk = kwargs["pk"]
         cache_key = f"draftround_detail:{pk}"
 
-        @cached_as(DraftRound.objects.filter(pk=pk), extra=cache_key, timeout=60 * 10)
+        @cached_as(
+            DraftRound.objects.filter(pk=pk),
+            Team,
+            Tournament,
+            CustomUser,
+            extra=cache_key,
+            timeout=60 * 10,
+        )
         def get_data():
             instance = self.get_object()
             serializer = self.get_serializer(instance)
@@ -456,7 +525,14 @@ class GameView(viewsets.ModelViewSet):
     def list(self, request, *args, **kwargs):
         cache_key = f"game_list:{request.get_full_path()}"
 
-        @cached_as(Game.objects.all(), extra=cache_key, timeout=60 * 10)
+        @cached_as(
+            Game.objects.all(),
+            Team,
+            Tournament,
+            CustomUser,
+            extra=cache_key,
+            timeout=60 * 10,
+        )
         def get_data():
             queryset = self.filter_queryset(self.get_queryset())
             serializer = self.get_serializer(queryset, many=True)
@@ -469,7 +545,14 @@ class GameView(viewsets.ModelViewSet):
         pk = kwargs["pk"]
         cache_key = f"game_detail:{pk}"
 
-        @cached_as(Game.objects.filter(pk=pk), extra=cache_key, timeout=60 * 10)
+        @cached_as(
+            Game.objects.filter(pk=pk),
+            Team,
+            Tournament,
+            CustomUser,
+            extra=cache_key,
+            timeout=60 * 10,
+        )
         def get_data():
             instance = self.get_object()
             serializer = self.get_serializer(instance)
@@ -520,7 +603,14 @@ class TournamentsBasicView(viewsets.ModelViewSet):
     def list(self, request, *args, **kwargs):
         cache_key = f"tournaments_list:{request.get_full_path()}"
 
-        @cached_as(Tournament.objects.all(), extra=cache_key, timeout=60 * 10)
+        @cached_as(
+            Tournament.objects.all(),
+            Team,
+            CustomUser,
+            Game,
+            extra=cache_key,
+            timeout=60 * 10,
+        )
         def get_data():
             queryset = self.filter_queryset(self.get_queryset())
             serializer = self.get_serializer(queryset, many=True)

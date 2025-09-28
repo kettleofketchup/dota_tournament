@@ -38,7 +38,7 @@ export function DevScripts() {
       process.env.NODE_ENV,
     );
 
-    if (process.env.NODE_ENV === 'dev') {
+    if (process.env.NODE_ENV === 'dev' || process.env.NODE_ENV === 'test') {
       import('react-scan').then((module) => {
         module.scan({
           enabled: import.meta.env.DEV === true,

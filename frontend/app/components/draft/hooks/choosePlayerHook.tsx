@@ -24,11 +24,11 @@ export const choosePlayerHook = async ({
   setCurDraftRound,
 }: hookParams) => {
   if (!tournament || !tournament.pk) {
-    log.error('Creating tournamentNo tournament found');
+    log.error('No tournament found');
     return;
   }
   if (!player || !player.pk) {
-    log.error('No user found to update captain');
+    log.error('No user found to choose');
     return;
   }
   if (!curDraftRound || !curDraftRound.pk) {

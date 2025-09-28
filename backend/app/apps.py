@@ -15,10 +15,8 @@ class AppConfig(AppConfig):
         Invalidate cacheops cache on startup if Redis is available.
         """
 
-        if os.environ.get("DISABLE_CACHE", "true").lower() != "true":
-
+        if os.environ.get("DISABLE_CACHE", "false").lower() == "true":
             log.warning("✅ Cacheops cache disabled via DISABLE_CACHE env var")
-
             return
         try:
 

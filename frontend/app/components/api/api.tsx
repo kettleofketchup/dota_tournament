@@ -120,6 +120,7 @@ export async function updateTournament(
 }
 
 export async function fetchTournament(pk: number): Promise<TournamentType> {
+  log.debug(`Fetching tournament with pk: ${pk}`);
   const response = await axios.get<TournamentType>(`/tournaments/${pk}`);
   return response.data as TournamentType;
 }

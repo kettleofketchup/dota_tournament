@@ -23,9 +23,9 @@ export const useTournamentStore = create<TournamentState>((set, get) => ({
   toggleLiveReload: () => get().setLiveReload(!get().liveReload),
   setLiveReload: (liveReload: boolean) => set({ liveReload }),
   draftPredictedMMRs: {} as DraftStyleMMRsAPIReturn,
-  updateDraftPredictedMMRs: async (draft_pk: number) => {
+  updateDraftPredictedMMRs: async (pk: number) => {
     try {
-      const response = await getDraftStyleMMRs({ draft_pk });
+      const response = await getDraftStyleMMRs({ pk });
       set({ draftPredictedMMRs: response });
     } catch (error) {
       console.error('Failed to fetch draft predicted MMRs:', error);

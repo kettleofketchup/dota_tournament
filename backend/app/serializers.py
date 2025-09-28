@@ -141,6 +141,7 @@ class DraftSerializerForTournament(serializers.ModelSerializer):
             "draft_rounds",
             "users_remaining",
             "latest_round",
+            "draft_style",
         )
 
 
@@ -346,7 +347,7 @@ class TournamentSerializer(serializers.ModelSerializer):
         many=True, read_only=True
     )  # Return full team objects
     users = TournamentUserSerializer(many=True, read_only=True)
-    draft = serializers.SerializerMethodField()
+    draft = DraftSerializerForTournament(many=False, read_only=True)
 
     user_ids = serializers.PrimaryKeyRelatedField(
         source="users",
@@ -359,26 +360,11 @@ class TournamentSerializer(serializers.ModelSerializer):
     captains = TournamentUserSerializer(many=True, read_only=True)
     games = GameSerializerForTournament(many=True, read_only=True)
 
-    def get_draft(self, obj):
-        """
-        Get the draft for this tournament if it exists
-        """
-        try:
-            # Check if draft exists and get the first (and hopefully only) one
-            if hasattr(obj, "draft") and obj.draft.exists():
-                draft = obj.draft.first()
-                return DraftSerializerForTournament(draft).data
-            return None
-        except Exception as e:
-            # If there's no draft or any error, return None
-            return None
-
     class Meta:
         model = Tournament
         fields = (
             "pk",
             "name",
-            "date_played",
             "draft",
             "users",
             "teams",  # Include full team objects

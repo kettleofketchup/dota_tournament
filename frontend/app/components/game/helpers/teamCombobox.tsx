@@ -56,7 +56,6 @@ export const TeamComboBox: React.FC<Props> = ({
     return comboBox;
   };
   const onChoose = (currentValue: string) => {
-    console.log('TEst');
     setSelectedTeam(
       parseInt(currentValue) === selectedTeam ? 0 : parseInt(currentValue),
     );

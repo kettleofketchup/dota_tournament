@@ -29,11 +29,14 @@ import {
 import { useTournamentStore } from '~/store/tournamentStore';
 import { useUserStore } from '~/store/userStore';
 
+import { AdminOnlyButton } from '~/components/reusable/adminButton';
 import { Label } from '~/components/ui/label';
+import { getLogger } from '~/lib/logger';
 import { updateDraftStyleHook } from '../hooks/updateDraftStyleHook';
 import type { DraftType } from '../types';
-
+const log = getLogger('DraftStyleModal');
 export const DraftStyleModal: React.FC = () => {
+  const isStaff = useUserStore((state) => state.isStaff);
   const draft = useUserStore((state) => state.draft);
 
   const setDraft = useUserStore((state) => state.setDraft);
@@ -65,8 +68,10 @@ export const DraftStyleModal: React.FC = () => {
       // const updatedDraft = await updateDraftStyle(draft.pk, newStyle);
 
       // For now, update locally
+      log.debug('Handling style change', { draft, newStyle });
       const updatedDraft: DraftType = {
         ...draft,
+        pk: draft.pk,
         draft_style: newStyle as 'snake' | 'normal',
       };
 
@@ -121,16 +126,29 @@ export const DraftStyleModal: React.FC = () => {
     return null;
   }
 
-  const snakeBalance = calculateBalance(
-    draftPredictedMMRs.snake_first_pick_mmr || 0,
-    draftPredictedMMRs.snake_last_pick_mmr || 0,
-  );
+  const snakeBalance = () =>
+    calculateBalance(
+      draftPredictedMMRs.snake_first_pick_mmr || 0,
+      draftPredictedMMRs.snake_last_pick_mmr || 0,
+    );
 
-  const normalBalance = calculateBalance(
-    draftPredictedMMRs.normal_first_pick_mmr || 0,
-    draftPredictedMMRs.normal_last_pick_mmr || 0,
-  );
+  const normalBalance = () =>
+    calculateBalance(
+      draftPredictedMMRs.normal_first_pick_mmr || 0,
+      draftPredictedMMRs.normal_last_pick_mmr || 0,
+    );
+  const getButtons = () => {
+    if (!isStaff()) return <AdminOnlyButton />;
 
+    return (
+      <Button
+        onClick={() => handleStyleChange(selectedStyle)}
+        disabled={selectedStyle === draft.draft_style}
+      >
+        Apply {selectedStyle === 'snake' ? 'Snake' : 'Normal'} Draft
+      </Button>
+    );
+  };
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       {dialogButton()}
@@ -180,7 +198,7 @@ export const DraftStyleModal: React.FC = () => {
               <div className="flex items-center justify-between">
                 <h4 className="font-medium text-green-600">Snake Draft</h4>
                 <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded">
-                  {snakeBalance}% imbalance
+                  {snakeBalance()}% imbalance
                 </span>
               </div>
               <div className="grid grid-cols-2 gap-4 text-sm">
@@ -219,7 +237,7 @@ export const DraftStyleModal: React.FC = () => {
               <div className="flex items-center justify-between">
                 <h4 className="font-medium text-orange-600">Normal Draft</h4>
                 <span className="text-xs bg-orange-100 text-orange-800 px-2 py-1 rounded">
-                  {normalBalance}% imbalance
+                  {normalBalance()}% imbalance
                 </span>
               </div>
               <div className="grid grid-cols-2 gap-4 text-sm">
@@ -258,15 +276,15 @@ export const DraftStyleModal: React.FC = () => {
             <div className="bg-blue-50 dark:bg-blue-950/20 rounded-lg p-3">
               <p className="text-sm text-blue-800 dark:text-blue-200">
                 <strong>Recommendation:</strong>{' '}
-                {snakeBalance < normalBalance ? (
+                {snakeBalance() < normalBalance() ? (
                   <>
-                    Snake draft provides better balance ({snakeBalance}% vs{' '}
-                    {normalBalance}% imbalance)
+                    Snake draft provides better balance ({snakeBalance()}% vs{' '}
+                    {normalBalance()} % imbalance)
                   </>
                 ) : (
                   <>
-                    Normal draft provides better balance ({normalBalance}% vs{' '}
-                    {snakeBalance}% imbalance)
+                    Normal draft provides better balance ({normalBalance()}% vs{' '}
+                    {snakeBalance()}% imbalance)
                   </>
                 )}
               </p>
@@ -278,12 +296,7 @@ export const DraftStyleModal: React.FC = () => {
           <DialogClose asChild>
             <Button variant="outline">Cancel</Button>
           </DialogClose>
-          <Button
-            onClick={() => handleStyleChange(selectedStyle)}
-            disabled={selectedStyle === draft.draft_style}
-          >
-            Apply {selectedStyle === 'snake' ? 'Snake' : 'Normal'} Draft
-          </Button>
+          {getButtons()}
         </DialogFooter>
       </DialogContent>
     </Dialog>

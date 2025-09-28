@@ -23,9 +23,11 @@ export const TeamsTab: React.FC = memo(() => {
   ); // Zustand setter
   const [query, setQuery] = useState('');
 
-  useEffect(() => {
-    getCurrentTournament();
-  }, [allUsers, tournament.users?.length]);
+  useEffect(() => {}, [
+    tournament.teams?.length,
+    tournament.users?.length,
+    tournament.captains?.length,
+  ]);
 
   const filteredTeams =
     query === ''
@@ -49,15 +51,9 @@ export const TeamsTab: React.FC = memo(() => {
             return userMatches || teamNameMatch;
           })
           .sort((a: TeamType, b: TeamType) => a.name.localeCompare(b.name));
-
-  useEffect(() => {
-    log.debug('Tournament users:', tournament.users);
-  }, [tournament.users]);
-
   useEffect(() => {
     log.debug('Filtered teams:', filteredTeams);
   }, [tournament.teams?.length, filteredTeams?.length]);
-
   const teamButtonsView = () => {
     return (
       <div

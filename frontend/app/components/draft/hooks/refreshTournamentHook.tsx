@@ -18,7 +18,7 @@ export const refreshTournamentHook = async ({
   curDraftRound,
   setCurDraftRound,
 }: hookParams) => {
-  log.debug('Initialization draft', { tournament });
+  log.debug('Refreshing tournament', { tournament });
 
   if (!tournament) {
     log.error('Creating tournamentNo tournament found');
@@ -32,6 +32,7 @@ export const refreshTournamentHook = async ({
 
   try {
     log.debug('tournament has been refreshed');
+
     const data = await fetchTournament(tournament.pk);
     setTournament(data);
     if (setDraft) setDraft(data.draft);

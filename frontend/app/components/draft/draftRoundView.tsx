@@ -25,19 +25,23 @@ export const DraftRoundView: React.FC = () => {
   }, [tournament.teams?.length]);
 
   useEffect(() => {
-    log.debug('Tournament users updated:', tournament?.draft?.users_remaining);
-  }, [tournament?.draft?.users_remaining?.length]);
+    log.debug('rerender: Tournament users_remaining.length updated');
+  }, [draft?.users_remaining?.length]);
 
   useEffect(() => {
-    log.debug('Draft updated:', draft);
+    log.debug('rerender: Draft updated from pk:', draft);
   }, [draft?.pk]);
-  useEffect(() => {}, [curDraftRound?.pk]);
+
+  useEffect(() => {
+    log.debug(
+      'rerender: Draft updated from curDraftRound.pk:',
+      curDraftRound?.pk,
+    );
+  }, [curDraftRound?.pk]);
   const latestRound = () =>
     draft?.draft_rounds?.find(
       (round: DraftRoundType) => round.pk === draft?.latest_round,
     );
-  log.debug('Latest round:', latestRound());
-  log.debug('Current round:', curDraftRound);
   const noDraftView = () => {
     return (
       <>
@@ -78,8 +82,8 @@ export const DraftRoundView: React.FC = () => {
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-2xl font-bold">Draft View</h2>
         </div>
-        <CurrentTeamView curRound={curDraftRound} />
-        <PlayerChoiceView curRound={curDraftRound} />
+        <CurrentTeamView />
+        <PlayerChoiceView />
       </div>
     </>
   );

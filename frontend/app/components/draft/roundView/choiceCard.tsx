@@ -1,21 +1,25 @@
 import { useEffect } from 'react';
 import type { UserClassType } from '~/index';
 import { getLogger } from '~/lib/logger';
+import { useUserStore } from '~/store/userStore';
 import { UserCard } from '../../user';
-import type { DraftRoundType } from '../types';
 import { DraftTable } from './draftTable';
 const log = getLogger('choiceCard');
-interface PlayerChoiceViewProps {
-  curRound: DraftRoundType;
-}
-export const PlayerChoiceView: React.FC<PlayerChoiceViewProps> = ({
-  curRound,
-}) => {
+interface PlayerChoiceViewProps {}
+export const PlayerChoiceView: React.FC<PlayerChoiceViewProps> = ({}) => {
+  const draft = useUserStore((state) => state.draft);
+  const curRound = useUserStore((state) => state.curDraftRound);
   useEffect(() => {
-    log.debug('Current choice updated:', curRound?.choice);
+    log.debug('rerender: Current choice updated:', curRound?.choice);
   }, [curRound?.choice]);
+  useEffect(() => {
+    log.debug(
+      'rerender: draft users remaining updated:',
+      draft?.users_remaining?.length,
+    );
+  }, [draft?.users_remaining?.length]);
 
-  if (!curRound || !curRound?.choice) return <DraftTable curRound={curRound} />;
+  if (!curRound || !curRound?.choice) return <DraftTable />;
 
   return (
     <div className="mb-4">

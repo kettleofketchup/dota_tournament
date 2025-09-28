@@ -14,6 +14,8 @@ export const hasErrors = () => {
   ); // Zustand setter
 
   const createBadUsers = useCallback(async () => {
+      log.debug("useCallback: Tournament.users' length changed");
+
     setBadUsers([]); // Reset bad users
 
     var newBadUsers = [] as UserType[];
@@ -25,14 +27,16 @@ export const hasErrors = () => {
     }
     setBadUsers(newBadUsers);
     log.debug('Getting bad users', newBadUsers, tournament.users);
-  }, [tournament.users]);
+  }, [tournament?.users?.length]);
 
   useEffect(() => {
+
+    log.debug("Rerender: Tournament.users' length changed")
     if (!tournament || !tournament.users) {
       return;
     }
     createBadUsers();
-  }, [tournament.users, allUsers]);
+  }, [tournament?.users?.length]);
 
   return (
     <>

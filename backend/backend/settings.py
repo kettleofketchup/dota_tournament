@@ -70,11 +70,14 @@ TEST = env_bool("TEST")
 RELEASE = env_bool("RELEASE")
 DEBUG = env_bool("DEBUG")
 
-if DEBUG:
+if DEBUG or TEST:
     logging.basicConfig(level=logging.DEBUG)
+
+
 # Application definition
 if "NODE_ENV" in os.environ:
     NODE_ENV = os.environ.get("NODE_ENV")
+
 INSTALLED_APPS = [
     "django.contrib.admin",
     "django.contrib.auth",

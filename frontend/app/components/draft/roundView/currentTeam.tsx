@@ -3,14 +3,13 @@ import { TeamTable } from '~/components/team/teamTable/teamTable';
 import type { DraftRoundType } from '~/index';
 import { getLogger } from '~/lib/logger';
 import { Spinner } from '../helpers/spinner';
-
+import { useUserStore } from '~/store/userStore';
 const log = getLogger('CurrentTeamView');
 interface CurrentTeamViewProps {
-  curRound: DraftRoundType;
 }
 export const CurrentTeamView: React.FC<CurrentTeamViewProps> = ({
-  curRound,
 }) => {
+  const curRound: DraftRoundType = useUserStore((state) => state.curDraftRound);
   const [updating, setUpdating] = useState(false);
 
   useEffect(() => {
@@ -31,9 +30,7 @@ export const CurrentTeamView: React.FC<CurrentTeamViewProps> = ({
     return () => clearTimeout(timer);
   }, [curRound?.choice, curRound?.pk]);
 
-  if (updating) {
-    return <Spinner />;
-  }
+
   return (
     <Suspense fallback={<Spinner />}>
       <TeamTable team={curRound?.team} />

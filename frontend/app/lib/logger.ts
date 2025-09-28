@@ -3,7 +3,8 @@ import { consola } from 'consola/browser';
 
 export function getLogger(loggerName: string): ConsolaInstance {
   const log = consola.withTag(loggerName);
-  if (process.env.NODE_ENV === 'dev') log.level = 5;
+  if (process.env.NODE_ENV === 'dev' || process.env.NODE_ENV === 'test')
+    log.level = 5;
   else log.level = 1;
   return log;
 }
