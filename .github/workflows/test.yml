@@ -31,33 +31,6 @@ jobs:
     - name: start containers
       run:  docker compose --project-directory $PWD -f docker/docker-compose.test.yaml up -d
     
-    - name: Wait for backend container to be ready
-      run: |
-        echo "Waiting for backend container to be ready..."
-        max_attempts=20
-        attempt=1
-        
-        while [ $attempt -le $max_attempts ]; do
-          echo "Attempt $attempt/$max_attempts: Checking backend container status..."
-          
-          if docker compose --project-directory $PWD -f docker/docker-compose.test.yaml ps backend | grep -q "running"; then
-            echo "Backend container is running. Testing responsiveness..."
-            if docker compose --project-directory $PWD -f docker/docker-compose.test.yaml exec -T backend echo "Backend ready" > /dev/null 2>&1; then
-              echo "Backend container is ready!"
-              break
-            fi
-          fi
-          
-          if [ $attempt -eq $max_attempts ]; then
-            echo "ERROR: Backend container failed to become ready"
-            docker compose --project-directory $PWD -f docker/docker-compose.test.yaml ps backend || true
-            docker compose --project-directory $PWD -f docker/docker-compose.test.yaml logs backend || true
-            exit 1
-          fi
-          
-          sleep 5
-          attempt=$((attempt + 1))
-        done
     
     - name: populate database
       run: docker compose --project-directory $PWD -f docker/docker-compose.test.yaml exec -T backend poetry run inv db.populate.all
