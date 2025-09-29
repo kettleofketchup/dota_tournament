@@ -14,9 +14,10 @@
 // ***********************************************************
 
 // Import commands.js using ES2015 syntax:
-import 'cypress-runner-themes';
-import { mount } from 'cypress/react';
 import './commands';
+
+// Note: cypress-runner-themes and cypress/react are only needed for component testing
+// For E2E testing, we don't need these imports
 
 // Alternatively you can use CommonJS syntax:
 // require('./commands')
@@ -24,10 +25,12 @@ import './commands';
 const app = window.top;
 if (!app?.document.head.querySelector('[data-hide-command-log-request]')) {
   const style = app?.document.createElement('style');
-  style.innerHTML =
-    '.command-name-request, .command-name-xhr { display: none }';
-  style.setAttribute('data-hide-command-log-request', '');
-  app?.document.head.appendChild(style);
+  if (style) {
+    style.innerHTML =
+      '.command-name-request, .command-name-xhr { display: none }';
+    style.setAttribute('data-hide-command-log-request', '');
+    app?.document.head.appendChild(style);
+  }
 }
 
 // Set global defaults
@@ -87,10 +90,10 @@ Cypress.on('uncaught:exception', (err, runnable) => {
     'FiraCode-VF.woff2',
     'fonts.googleapis.com',
     'font loading',
-    'server rendered HTML didn\'t match the client',
+    "server rendered HTML didn't match the client",
     'This can happen if a SSR-ed Client Component used',
     'Variable input such as',
-    'Date formatting in a user\'s locale',
+    "Date formatting in a user's locale",
     'External changing data without sending a snapshot',
     'Invalid HTML tag nesting',
     'browser extension installed which messes with the HTML',
