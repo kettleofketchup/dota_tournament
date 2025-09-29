@@ -366,6 +366,7 @@ class TournamentSerializer(serializers.ModelSerializer):
             "pk",
             "name",
             "draft",
+            "date_played",
             "users",
             "teams",  # Include full team objects
             "winning_team",

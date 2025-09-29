@@ -12,15 +12,19 @@ RUN --mount=type=cache,target=/root/.npm npm ci --omit=dev
 
 # ---- Dev/Test ----
 FROM deps AS deps-dev
+ENV CYPRESS_CACHE_FOLDER=/root/.cache/Cypress
+
 RUN --mount=type=cache,target=/root/.npm \
     npm ci --include=dev --ignore-scripts
 
+# Install Cypress binaries and copy to permanent location
+RUN --mount=type=cache,target=/tmp/cypress-cache \
+    CYPRESS_CACHE_FOLDER=/tmp/cypress-cache npx cypress install && \
+    mkdir -p /root/.cache/Cypress && \
+    cp -r /tmp/cypress-cache/* /root/.cache/Cypress/ 2>/dev/null || true
 
-ENV CYPRESS_CACHE_FOLDER=/root/.cache/Cypress
-
-    # Then install Cypress binaries (cached separately)
-RUN --mount=type=cache,target=/root/.cache/Cypress \
-    npx cypress install
+# Verify Cypress installation
+RUN npx cypress --version
 
 # ---- Source  ----
     # Intermediate stage to cache source and source for faster rebuilds
@@ -54,5 +58,6 @@ ENV PROD=false
 ENV NODE_ENV="dev"
 ENV RELEASE=false
 ENV TEST=false
+ENV CYPRESS_CACHE_FOLDER=/root/.cache/Cypress
 EXPOSE 3000
 CMD ["npx", "react-router", "dev" ,"--port", "3000", "--host", "0.0.0.0"]

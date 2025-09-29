@@ -3,7 +3,6 @@ services:
     container_name: frontend
     image: ghcr.io/kettleofketchup/dtx_website/frontend-dev:latest
     env_file: "./docker/.env.test"
-
     ports:
       - "3000:3000"   # Internal Nginx in frontend container
     volumes:
@@ -12,6 +11,8 @@ services:
       - /app/.react-router/
     restart: always
     command: ["npx", "react-router", "dev" , "--port", "3000", "--host", "0.0.0.0"]
+    networks:
+      - test-network
 
   redis:
     image: redis:8.2.1-alpine
@@ -21,6 +22,8 @@ services:
     volumes:
       - ./backend/.redis_data:/data
     restart: always
+    networks:
+      - test-network
 
   backend:
     container_name: backend
@@ -35,6 +38,35 @@ services:
       - ./pyproject.toml/:/app/pyproject.toml
     depends_on:
       - redis
+    networks:
+      - test-network
+
+  cypress:
+    container_name: cypress
+    image: cypress/included:latest
+    working_dir: /app
+    network_mode: "host"
+
+    volumes:
+      - ./frontend:/app
+      - ./frontend/cypress/videos:/app/cypress/videos
+      - ./frontend/cypress/screenshots:/app/cypress/screenshots
+    environment:
+      - CI=true
+      - CYPRESS_baseUrl=https://localhost
+      - ELECTRON_ENABLE_LOGGING=false
+      - CYPRESS_VIDEO=true
+      - CYPRESS_SCREENSHOTS_FOLDER=/app/cypress/screenshots
+      - CYPRESS_VIDEOS_FOLDER=/app/cypress/videos
+      - NODE_TLS_REJECT_UNAUTHORIZED=0
+      - CYPRESS_VERIFY_SSL=false
+    command: ["cypress", "run", "--headless", "--browser", "chrome"]
+    depends_on:
+      - nginx
+      - frontend
+      - backend
+    profiles:
+      - testing
   nginx:
     image: ghcr.io/kettleofketchup/dtx_website/nginx:latest
     container_name: nginx
@@ -52,8 +84,14 @@ services:
       - ./nginx/data/certbot/work/:/lib/letsencrypt/
       - ./nginx/data/certbot/configs/:/etc/letsencrypt/
       - ./nginx/data/certbot/logs/:/var/log/letsencrypt/
-
-
     depends_on:
       - frontend
       - backend
+    networks:
+      test-network:
+        aliases:
+          - localhost
+
+networks:
+  test-network:
+    driver: bridge
