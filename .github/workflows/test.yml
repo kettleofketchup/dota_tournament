@@ -33,9 +33,32 @@ jobs:
   
     - name: populate database
       run: docker compose --project-directory $PWD -f docker/docker-compose.test.yaml exec -T backend poetry run inv db.populate.all
-    
-    - name: Run Cypress tests
-      run: docker compose --project-directory $PWD -f docker/docker-compose.test.yaml --profile testing run --rm cypress
+    - name: Install Cypress dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y \
+          libgtk2.0-0 \
+          libgtk-3-0 \
+          libgbm-dev \
+          libnotify-dev \
+          libgconf-2-4 \
+          libnss3 \
+          libxss1 \
+          libasound2 \
+          libxtst6 \
+          xauth \
+          xvfb
+
+    - name: Use Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20.x'
+
+    - name: Install and run tests
+      working-directory: ./frontend
+      run: |
+        npm ci
+        npm run test:e2e:headless
 
     - name: Upload Cypress screenshots
       if: failure()

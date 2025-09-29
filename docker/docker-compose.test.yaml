@@ -41,32 +41,32 @@ services:
     networks:
       - test-network
 
-  cypress:
-    container_name: cypress
-    image:  ghcr.io/kettleofketchup/dtx_website/cypress:latest
-    working_dir: /app
-    network_mode: "host"
+  # cypress:
+  #   container_name: cypress
+  #   image:  ghcr.io/kettleofketchup/dtx_website/cypress:latest
+  #   working_dir: /app
+  #   network_mode: "host"
 
-    volumes:
-      - ./frontend:/app
-      - ./frontend/cypress/videos:/app/cypress/videos
-      - ./frontend/cypress/screenshots:/app/cypress/screenshots
-    environment:
-      - CI=true
-      - CYPRESS_baseUrl=https://localhost
-      - ELECTRON_ENABLE_LOGGING=false
-      - CYPRESS_VIDEO=true
-      - CYPRESS_SCREENSHOTS_FOLDER=/app/cypress/screenshots
-      - CYPRESS_VIDEOS_FOLDER=/app/cypress/videos
-      - NODE_TLS_REJECT_UNAUTHORIZED=0
-      - CYPRESS_VERIFY_SSL=false
-    command: ["cypress", "run", "--headless", "--browser", "chrome"]
-    depends_on:
-      - nginx
-      - frontend
-      - backend
-    profiles:
-      - testing
+  #   volumes:
+  #     - ./frontend:/app
+  #     - ./frontend/cypress/videos:/app/cypress/videos
+  #     - ./frontend/cypress/screenshots:/app/cypress/screenshots
+  #   environment:
+  #     - CI=true
+  #     - CYPRESS_baseUrl=https://localhost
+  #     - ELECTRON_ENABLE_LOGGING=false
+  #     - CYPRESS_VIDEO=true
+  #     - CYPRESS_SCREENSHOTS_FOLDER=/app/cypress/screenshots
+  #     - CYPRESS_VIDEOS_FOLDER=/app/cypress/videos
+  #     - NODE_TLS_REJECT_UNAUTHORIZED=0
+  #     - CYPRESS_VERIFY_SSL=false
+  #   command: ["cypress", "run", "--headless", "--browser", "chrome"]
+  #   depends_on:
+  #     - nginx
+  #     - frontend
+  #     - backend
+  #   profiles:
+  #     - testing
   nginx:
     image: ghcr.io/kettleofketchup/dtx_website/nginx:latest
     container_name: nginx
