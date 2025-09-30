@@ -3,15 +3,12 @@ services:
   frontend:
     env_file: "./docker/.env.release"
     image: ghcr.io/kettleofketchup/dtx_website/frontend:${VERSION}
-    ports:
-      - "3000:3000"   # Internal Nginx in frontend container
     restart: always
 
   backend:
     env_file: "./docker/.env.release"
     image: ghcr.io/kettleofketchup/dtx_website/backend:${VERSION}
-    ports:
-      - "8000:8000"
+    # No ports exposed - accessed only through nginx reverse proxy
     restart: always
     volumes:
       - ./backend/prod.db.sqlite3:/app/backend/prod.db.sqlite3

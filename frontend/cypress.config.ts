@@ -1,12 +1,17 @@
 import { defineConfig } from 'cypress';
 
 export default defineConfig({
+  screenshotOnRunFailure: true,
+  downloadsFolder: 'tests/cypress/downloads',
+  screenshotsFolder: 'tests/cypress/screenshots',
+  videosFolder: 'tests/cypress/videos',
+  video: false,
   e2e: {
     experimentalStudio: true, //fixes hydration issues
     baseUrl: 'https://localhost',
     viewportWidth: 1280,
     viewportHeight: 720,
-    video: false,
+    trashAssetsBeforeRuns: true,
     screenshotOnRunFailure: true,
     setupNodeEvents(on, config) {
       // implement node event listeners here
@@ -14,9 +19,6 @@ export default defineConfig({
     specPattern: 'tests/cypress/e2e/**/*.cy.{js,jsx,ts,tsx}',
     supportFile: 'tests/cypress/support/e2e.ts',
     fixturesFolder: 'tests/cypress/fixtures',
-    downloadsFolder: 'tests/cypress/downloads',
-    screenshotsFolder: 'tests/cypress/screenshots',
-    videosFolder: 'tests/cypress/videos',
   },
 
   component: {

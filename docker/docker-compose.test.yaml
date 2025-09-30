@@ -3,8 +3,6 @@ services:
     container_name: frontend
     image: ghcr.io/kettleofketchup/dtx_website/frontend-dev:latest
     env_file: "./docker/.env.test"
-    ports:
-      - "3000:3000"   # Internal Nginx in frontend container
     volumes:
       - ./frontend:/app
       - /app/node_modules/.vite/
@@ -17,8 +15,6 @@ services:
   redis:
     image: redis:8.2.1-alpine
     container_name: redis
-    ports:
-      - "6379:6379"
     volumes:
       - ./backend/.redis_data:/data
     restart: always
@@ -29,8 +25,6 @@ services:
     container_name: backend
     env_file: "./docker/.env.test"
     image: ghcr.io/kettleofketchup/dtx_website/backend-dev:latest
-    ports:
-      - "8000:8000"
     restart: always
     volumes:
       - ./backend/:/app/backend
@@ -40,33 +34,6 @@ services:
       - redis
     networks:
       - test-network
-
-  # cypress:
-  #   container_name: cypress
-  #   image:  ghcr.io/kettleofketchup/dtx_website/cypress:latest
-  #   working_dir: /app
-  #   network_mode: "host"
-
-  #   volumes:
-  #     - ./frontend:/app
-  #     - ./frontend/cypress/videos:/app/cypress/videos
-  #     - ./frontend/cypress/screenshots:/app/cypress/screenshots
-  #   environment:
-  #     - CI=true
-  #     - CYPRESS_baseUrl=https://localhost
-  #     - ELECTRON_ENABLE_LOGGING=false
-  #     - CYPRESS_VIDEO=true
-  #     - CYPRESS_SCREENSHOTS_FOLDER=/app/cypress/screenshots
-  #     - CYPRESS_VIDEOS_FOLDER=/app/cypress/videos
-  #     - NODE_TLS_REJECT_UNAUTHORIZED=0
-  #     - CYPRESS_VERIFY_SSL=false
-  #   command: ["cypress", "run", "--headless", "--browser", "chrome"]
-  #   depends_on:
-  #     - nginx
-  #     - frontend
-  #     - backend
-  #   profiles:
-  #     - testing
   nginx:
     image: ghcr.io/kettleofketchup/dtx_website/nginx:latest
     container_name: nginx

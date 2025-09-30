@@ -41,8 +41,16 @@ export default function Tournament() {
     setLoading(false);
   }, []);
 
+  useEffect(() => {
+    setLoading(false);
+  }, [tournaments.length]);
+
   if (loading) {
-    return <div className="flex justify-center">Loading...</div>;
+    return (
+      <div className="flex justify-center align-middle content-center pt-10">
+        Loading...
+      </div>
+    );
   }
 
   // Helper component to manage individual card state

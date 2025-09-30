@@ -36,13 +36,12 @@ def setup(c):
 
     from backend.tasks import populate_all
     from scripts.docker import docker_build_all, docker_pull_all
-    from scripts.update import all_test
+    from scripts.update import update_for_test
 
     load_dotenv(paths.TEST_ENV_FILE)
-    all_test(c)
-    populate_all(c)
-    docker_pull_all(c)
+    update_for_test(c)
     docker_build_all(c)
+    populate_all(c)
     dev_test(c)
 
 

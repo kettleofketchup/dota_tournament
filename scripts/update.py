@@ -38,7 +38,7 @@ from scripts.utils import hasWANConnection
 
 
 @task
-def all_test(c):
+def update_for_test(c):
 
     if hasWANConnection():
         npm(c)
@@ -60,4 +60,4 @@ ns_update.add_task(git, name="git")
 ns_update.add_task(python, name="python")
 ns_update.add_task(npm, name="npm")
 ns_update.add_task(all, name="all")
-ns_update.add_task(all_test, name="all_test")
+ns_update.add_task(update_for_test, name="all_test")

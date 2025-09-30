@@ -7,8 +7,6 @@ services:
       context: ./frontend
       dockerfile: frontend/Dockerfile
       target: runtime-dev   # 👈 choose your stage:
-    ports:
-      - "3000:3000"   # Internal Nginx in frontend container
     volumes:
       - ./frontend:/app
       - /app/node_modules/
@@ -16,8 +14,6 @@ services:
     container_name: backend
     env_file: "./docker/.env.dev"
     image: ghcr.io/kettleofketchup/dtx_website/backend-dev:latest
-    ports:
-      - "8000:8000"
     restart: always
     volumes:
       - ./backend/:/app/backend
@@ -28,8 +24,6 @@ services:
   redis:
     image: redis:8.2.1-alpine
     container_name: redis
-    ports:
-      - "6379:6379"
     volumes:
       - ./backend/.redis_data:/data
     restart: always
@@ -51,8 +45,6 @@ services:
       - ./nginx/data/certbot/work/:/lib/letsencrypt/
       - ./nginx/data/certbot/configs/:/etc/letsencrypt/
       - ./nginx/data/certbot/logs/:/var/log/letsencrypt/
-
-
     depends_on:
       - frontend
       - backend

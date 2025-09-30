@@ -41,6 +41,7 @@ export const TournamentRemoveButton: React.FC<PropsRemoveButton> = ({
   const delTournamentStore = useUserStore(
     useShallow((state) => state.delTournament),
   );
+  const isStaff = useUserStore((state) => state.isStaff);
 
   const handleChange = () => {
     if (!tournament || !tournament.pk) {
@@ -95,7 +96,7 @@ export const TournamentRemoveButton: React.FC<PropsRemoveButton> = ({
       </div>
     );
   };
-
+  if (!isStaff()) return <> </>;
   return (
     <TooltipProvider>
       <Tooltip>

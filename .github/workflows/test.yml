@@ -8,76 +8,97 @@ on:
 
 jobs:
   test:
-    permissions:
-      contents: read
-      packages: read   # 👈 required for ghcr.io
     runs-on: ubuntu-latest
-    steps:
+    services:
+      docker:
+        image: docker:dind
+        options: --privileged
 
+    steps:
     - name: Checkout code
       uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.12'
+        cache: 'pip'   # <-- adds pip cache support
+        cache-dependency-path: |
+          **/requirements.txt
+          poetry.lock
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20' # explicit, avoids "latest" drift
+        cache: 'npm'
+        cache-dependency-path: frontend/package-lock.json
+
+
+    - name: Install Poetry
+      uses: snok/install-poetry@v1
+      with:
+        version: '2.2.0'
+        virtualenvs-create: true
+        virtualenvs-in-project: true
+
+    - name: Cache Poetry dependencies
+      uses: actions/cache@v3
+      with:
+        path: .venv
+        key: poetry-${{ runner.os }}-${{ hashFiles('poetry.lock') }}
+        restore-keys: |
+          poetry-${{ runner.os }}-
+
+    - name: Install Python dependencies
+      run: |
+        poetry install --no-interaction --no-ansi
+
+    - name: Install frontend dependencies
+      run: |
+        cd frontend
+        npm install
+
+    # Cache Cypress binary (~1 min save)
+    - name: Cache Cypress binary
+      uses: actions/cache@v3
+      with:
+        path: ~/.cache/Cypress
+        key: cypress-${{ runner.os }}-${{ hashFiles('frontend/package-lock.json') }}
+        restore-keys: |
+          cypress-${{ runner.os }}-
+
+
+    - name: Install Cypress binary
+      run: |
+        cd frontend
+        npx cypress install
+
+          
+    # Docker build caching
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v3
 
-    - name: Log in to GitHub Container Registry
-      uses: docker/login-action@v3
+    - name: Cache Docker layers
+      uses: actions/cache@v3
       with:
-        registry: ghcr.io
-        username: ${{ github.actor }}
-        password: ${{ secrets.GITHUB_TOKEN }}
+        path: /tmp/.buildx-cache
+        key: buildx-${{ runner.os }}-${{ github.sha }}
+        restore-keys: |
+          buildx-${{ runner.os }}-
 
-    - name: pull images
-      run:  docker compose --project-directory $PWD -f docker/docker-compose.test.yaml pull
-    - name: start containers
-      run:  docker compose --project-directory $PWD -f docker/docker-compose.test.yaml up -d
-  
-    - name: populate database
-      run: docker compose --project-directory $PWD -f docker/docker-compose.test.yaml exec -T backend poetry run inv db.populate.all
-    - name: Install Cypress dependencies
+    - name: Run headless tests
       run: |
-        sudo apt-get update
-        sudo apt-get install -y \
-          libgtk2.0-0 \
-          libgtk-3-0 \
-          libgbm-dev \
-          libnotify-dev \
-          libgconf-2-4 \
-          libnss3 \
-          libxss1 \
-          libasound2 \
-          libxtst6 \
-          xauth \
-          xvfb
-
-    - name: Use Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: '20.x'
-
-    - name: Install and run tests
-      working-directory: ./frontend
-      run: |
-        npm ci
-        npm run test:e2e:headless
-
-    - name: Upload Cypress screenshots
-      if: failure()
-      uses: actions/upload-artifact@v4
-      with:
-        name: cypress-screenshots
-        path: frontend/cypress/screenshots/
-        if-no-files-found: ignore
-        retention-days: 30
-
-    - name: Upload Cypress videos
-      if: failure()
-      uses: actions/upload-artifact@v4
-      with:
-        name: cypress-videos
-        path: frontend/cypress/videos/
-        if-no-files-found: ignore
-        retention-days: 30
-
+        poetry run inv test.headless
+      env:
+        DOCKER_BUILDKIT: 1
+        COMPOSE_DOCKER_CLI_BUILD: 1
+        # Suppress D-Bus errors in CI environment
+        DBUS_SESSION_BUS_ADDRESS: ""
+        # Set terminal for tput
+        TERM: xterm-256color
+        # Cypress CI optimizations
+        CI: true
+        ELECTRON_ENABLE_LOGGING: false
 
     - name: Clean up Docker containers
       if: always()
