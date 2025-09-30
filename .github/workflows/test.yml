@@ -9,19 +9,21 @@ on:
 jobs:
 
   test:
-    permissions:
-      contents: read
-      packages: write   # 👈 required for ghcr.io
+
     runs-on: ubuntu-latest
     services:
       docker:
         image: docker:dind
         options: --privileged
-
+    permissions:
+      contents: read
+      packages: write   # 👈 required for ghcr.io
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
-
+    - name: 'Login to GitHub Container Registry'
+      run: |
+        echo ${{ secrets.GITHUB_TOKEN }} | docker login ghcr.io -u ${{ github.actor }} --password-stdin
     - name: Set up Python
       uses: actions/setup-python@v4
       with:
