@@ -2,6 +2,9 @@ import {
   suppressHydrationErrors,
   visitAndWaitForHydration,
 } from 'tests/cypress/support/utils';
+
+import { addPlayerToTournament } from 'tests/cypress/helpers/tournament';
+import { getUserCard, getUserRemoveButton } from 'tests/cypress/helpers/users';
 import { playername } from './constants';
 describe('Tournament UI Elements (e2e)', () => {
   beforeEach(() => {
@@ -26,36 +29,17 @@ describe('Tournament UI Elements (e2e)', () => {
     cy.get('[data-testid="playersTabContent"]').should('be.visible');
   });
 
-  it(`should check if ${playername} user is already in tournament`, () => {
+  it(`should ensure that ${playername} user is already in tournament`, () => {
     // Check if the specific user is already in the tournament
 
-    if (
-      !cy
-        .get(`[data-testid="usercard-${playername}"]`)
-        .scrollIntoView()
-        .should('be.visible')
-    ) {
-      cy.get(`[data-testid="tournamentAddPlayerBtn"]`)
-        .should('be.visible')
-        .click({ force: true });
-      cy.get('[data-testid="playerSearchInput"]').type(playername, {
-        force: true,
-      });
-      cy.get(`[data-testid="playerOption-${playername}"]`)
-        .should('be.visible')
-        .click({ force: true });
-
-      cy.contains(/added|created/i, { timeout: 5000 }).should('be.visible');
+    if (!getUserCard(cy, playername).scrollIntoView().should('be.visible')) {
+      addPlayerToTournament(cy, playername);
     }
-
-    cy.get(`[data-testid^="playerRemoveBtn-${playername}"]`)
-      .should('exist')
-      .and('be.visible');
   });
 
   it(`should remove ${playername} from tournament`, () => {
     // Find and click the specific remove button for kettleofketchup
-    cy.get(`[data-testid="removePlayerBtn-${playername}"]`)
+    getUserRemoveButton(cy, playername)
       .scrollIntoView()
       .should('be.visible')
       .click({ force: true });
@@ -66,16 +50,11 @@ describe('Tournament UI Elements (e2e)', () => {
 
   it(`should add ${playername} to tournament`, () => {
     // Find and click the specific add button for kettleofketchup
-    cy.get(`[data-testid="tournamentAddPlayerBtn"]`)
-      .should('be.visible')
-      .click({ force: true });
-    cy.get('[data-testid="playerSearchInput"]').type(playername, {
-      force: true,
-    });
-    cy.get(`[data-testid="playerOption-${playername}"]`)
-      .should('be.visible')
-      .click({ force: true });
+    addPlayerToTournament(cy, playername);
+  });
 
-    cy.contains(/added/i, { timeout: 5000 }).should('be.visible');
+  it(`should verify that ${playername} is back in the tournament`, () => {
+    // Verify the user is back in the tournament
+    getUserCard(cy, playername).scrollIntoView().should('be.visible');
   });
 });

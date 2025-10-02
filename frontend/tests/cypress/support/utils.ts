@@ -5,6 +5,10 @@
 /**
  * Visit a page and wait for React hydration to complete
  */
+
+export type cyType = Cypress.cy & CyEventEmitter;
+
+
 export function visitAndWaitForHydration(url: string) {
   cy.visit(url);
 
