@@ -1,3 +1,29 @@
+## Environment Management
+
+Each environment (dev, test, prod) has consistent docker compose commands:
+
+```bash
+source .venv/bin/activate
+
+# Development
+inv dev.up        # Start dev environment
+inv dev.down      # Stop and remove containers
+inv dev.logs      # Follow container logs
+inv dev.ps        # List running containers
+
+# Testing
+inv test.up       # Start test environment
+inv test.down     # Stop and remove containers
+
+# Production
+inv prod.up       # Start prod environment
+inv prod.down     # Stop and remove containers
+```
+
+All environments support: `up`, `down`, `logs`, `ps`, `restart`, `stop`, `build`, `pull`, `top`, `exec`
+
+---
+
 ## Building and Pushing Docker Images (using paths.py)
 
 This project provides a `paths.py` utility to help manage Docker image tags and paths for backend, frontend, and nginx.

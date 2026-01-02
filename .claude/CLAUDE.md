@@ -222,6 +222,27 @@ mkdocs build
 
 Docs available at http://127.0.0.1:8000
 
+## Agent Consultation Rules
+
+**IMPORTANT**: When modifying certain files, always consult the appropriate agents to keep documentation in sync.
+
+### When modifying `tasks.py` or `scripts/*.py`:
+1. Consult `mkdocs-documentation` agent to update:
+   - `docs/development/invoke-tasks.md`
+   - `docs/architecture/docker.md` (if docker-related)
+2. Check `README.md` for consistency
+3. Update this file (`.claude/CLAUDE.md`) if commands change
+
+### When modifying Docker configurations:
+1. Consult `docker-ops` agent
+2. Update `docs/architecture/docker.md`
+
+### Documentation files to keep in sync:
+- `.claude/CLAUDE.md` - Quick reference
+- `docs/development/invoke-tasks.md` - Full task reference
+- `docs/architecture/docker.md` - Docker operations
+- `README.md` - Project overview
+
 ## Agents Available
 
 - `python-backend` - Django/Python backend expertise
@@ -233,3 +254,7 @@ Docs available at http://127.0.0.1:8000
 ## Skills Available
 
 - `visual-debugging` - Chrome MCP browser automation for debugging
+
+## Hooks
+
+A PostToolUse hook is configured to remind about documentation sync when invoke task files are modified. See `.claude/hooks/check-docs-sync.sh`.
