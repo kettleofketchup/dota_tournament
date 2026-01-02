@@ -148,9 +148,35 @@ inv docker.all.pull
 
 # Start development
 inv dev.debug
+```
 
-# Start production locally
-inv dev.prod
+## Environment Management
+
+Each environment (dev, test, prod) has consistent docker compose commands:
+
+### Development
+```bash
+inv dev.up        # Start dev environment
+inv dev.down      # Stop and remove containers
+inv dev.logs      # Follow container logs
+inv dev.ps        # List running containers
+inv dev.restart   # Restart services
+inv dev.exec backend bash  # Shell into backend
+```
+
+### Testing
+```bash
+inv test.up       # Start test environment
+inv test.down     # Stop and remove containers
+inv test.ps       # List running containers
+```
+
+### Production
+```bash
+inv prod.up       # Start prod environment
+inv prod.down     # Stop and remove containers
+inv prod.logs     # Follow container logs
+inv prod.ps       # List running containers
 ```
 
 ## Networking

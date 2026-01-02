@@ -21,6 +21,7 @@ This project uses [Python Invoke](https://www.pyinvoke.org/) for task automation
 
 ## Development Tasks (`inv dev.*`)
 
+### Start/Stop Commands
 ```bash
 inv dev.debug     # Start with hot reload
 inv dev.live      # Start with tmux
@@ -28,6 +29,20 @@ inv dev.prod      # Run production images locally
 inv dev.release   # Run release images
 inv dev.test      # Start test environment
 inv dev.mac       # macOS M1 specific
+```
+
+### Environment Management
+```bash
+inv dev.up        # Start dev environment
+inv dev.down      # Stop and remove containers
+inv dev.logs      # Follow container logs
+inv dev.ps        # List running containers
+inv dev.restart   # Restart services
+inv dev.stop      # Stop without removing
+inv dev.build     # Build images
+inv dev.pull      # Pull images
+inv dev.top       # Show running processes
+inv dev.exec <service> <cmd>  # Execute command in container
 ```
 
 ## Docker Tasks (`inv docker.*`)
@@ -74,10 +89,25 @@ inv db.populate.all         # Reset and populate all
 
 ## Test Tasks (`inv test.*`)
 
+### Cypress Testing
 ```bash
 inv test.setup      # Full setup
 inv test.open       # Cypress interactive
 inv test.headless   # Cypress headless
+```
+
+### Environment Management
+```bash
+inv test.up        # Start test environment
+inv test.down      # Stop and remove containers
+inv test.logs      # Follow container logs
+inv test.ps        # List running containers
+inv test.restart   # Restart services
+inv test.stop      # Stop without removing
+inv test.build     # Build images
+inv test.pull      # Pull images
+inv test.top       # Show running processes
+inv test.exec <service> <cmd>  # Execute command in container
 ```
 
 ## Update Tasks (`inv update.*`)
@@ -102,8 +132,23 @@ inv version.tag           # Git tag and bump
 
 ## Production Tasks (`inv prod.*`)
 
+### SSL
 ```bash
 inv prod.certbot    # SSL certificate renewal
+```
+
+### Environment Management
+```bash
+inv prod.up        # Start prod environment
+inv prod.down      # Stop and remove containers
+inv prod.logs      # Follow container logs
+inv prod.ps        # List running containers
+inv prod.restart   # Restart services
+inv prod.stop      # Stop without removing
+inv prod.build     # Build images
+inv prod.pull      # Pull images
+inv prod.top       # Show running processes
+inv prod.exec <service> <cmd>  # Execute command in container
 ```
 
 ## Task Files
