@@ -49,6 +49,8 @@ export interface BracketState {
 
 // React Flow node data - index signature required for @xyflow/react Node<T> compatibility
 export interface MatchNodeData extends BracketMatch {
+  // Badge mapping for this node (passed from parent)
+  badgeMapping?: BadgeMapping;
   // Additional display properties can go here
   [key: string]: unknown;
 }
