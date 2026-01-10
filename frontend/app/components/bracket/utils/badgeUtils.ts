@@ -1,3 +1,5 @@
+import type { BracketMatch, BadgeMapping } from '../types';
+
 /**
  * Badge utilities for linking winners bracket games to losers bracket destinations.
  */
@@ -75,4 +77,33 @@ export function getLoserSlotBadgeLetter(
     sourceGame.position,
     true
   );
+}
+
+/**
+ * Build a mapping of losers bracket slots to their source badge letters.
+ * This pre-computes which badge each losers bracket slot should display.
+ */
+export function buildBadgeMapping(matches: BracketMatch[]): BadgeMapping {
+  const mapping: BadgeMapping = {};
+
+  // Find all winners bracket games with loser paths
+  const winnersWithLoserPath = matches.filter(
+    (m) => m.bracketType === 'winners' && m.loserNextMatchId && m.loserNextMatchSlot
+  );
+
+  for (const game of winnersWithLoserPath) {
+    const letter = getBadgeLetter(
+      game.bracketType,
+      game.round,
+      game.position,
+      true
+    );
+
+    if (letter && game.loserNextMatchId && game.loserNextMatchSlot) {
+      const key = `${game.loserNextMatchId}:${game.loserNextMatchSlot}`;
+      mapping[key] = letter;
+    }
+  }
+
+  return mapping;
 }
