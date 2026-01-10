@@ -155,3 +155,90 @@ class UtilsTest(TestCase):
 
         sync_send_templated_embed(template)
         self.assertTrue(mock_post.called)
+
+
+class ScheduledEventTaskTest(TestCase):
+    def setUp(self):
+        self.template = EventTemplate.objects.create(
+            name="Test Event",
+            template_type="announcement",
+            title="Test",
+            description="Test description",
+            color="#FF0000",
+            channel_id="123456789012345678",
+        )
+
+    @patch("discordbot.tasks.sync_send_templated_embed")
+    @patch("discordbot.tasks.sync_add_reactions")
+    def test_check_scheduled_events_posts_due_events(self, mock_reactions, mock_send):
+        """check_scheduled_events posts events that are due."""
+        from datetime import timedelta
+
+        from django.utils import timezone
+
+        from discordbot.tasks import check_scheduled_events
+
+        mock_send.return_value = {"id": "999888777"}
+
+        # Create a due event (next_post_at in the past)
+        event = ScheduledEvent.objects.create(
+            template=self.template,
+            next_post_at=timezone.now() - timedelta(minutes=5),
+            is_active=True,
+        )
+
+        check_scheduled_events()
+
+        mock_send.assert_called_once()
+        event.refresh_from_db()
+        self.assertEqual(event.discord_message_id, "999888777")
+
+    @patch("discordbot.tasks.sync_send_templated_embed")
+    def test_check_scheduled_events_skips_future_events(self, mock_send):
+        """check_scheduled_events skips events not yet due."""
+        from datetime import timedelta
+
+        from django.utils import timezone
+
+        from discordbot.tasks import check_scheduled_events
+
+        # Create a future event
+        ScheduledEvent.objects.create(
+            template=self.template,
+            next_post_at=timezone.now() + timedelta(hours=1),
+            is_active=True,
+        )
+
+        check_scheduled_events()
+
+        mock_send.assert_not_called()
+
+    @patch("discordbot.tasks.sync_send_templated_embed")
+    @patch("discordbot.tasks.sync_add_reactions")
+    def test_recurring_event_reschedules(self, mock_reactions, mock_send):
+        """Recurring events get rescheduled after posting."""
+        from datetime import time, timedelta
+
+        from django.utils import timezone
+
+        from discordbot.tasks import check_scheduled_events
+
+        mock_send.return_value = {"id": "111222333"}
+
+        original_time = timezone.now() - timedelta(minutes=5)
+        event = ScheduledEvent.objects.create(
+            template=self.template,
+            is_recurring=True,
+            day_of_week=0,
+            time_of_day=time(19, 0),
+            next_post_at=original_time,
+            is_active=True,
+        )
+
+        check_scheduled_events()
+
+        event.refresh_from_db()
+        # Should be rescheduled 7 days later
+        self.assertGreater(event.next_post_at, original_time)
+        # discord_message_id should be cleared for next posting
+        self.assertIsNone(event.discord_message_id)
