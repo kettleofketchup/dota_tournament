@@ -446,7 +446,7 @@ function BracketFlowInner({ tournamentId }: BracketViewProps) {
 
       {/* Single ReactFlow instance for entire bracket */}
       {matches.length > 0 && (
-        <div className="h-[700px] border rounded-lg overflow-hidden bg-background">
+        <div className="h-[700px] border rounded-lg overflow-hidden bg-background" data-testid="bracketContainer">
           <ReactFlow
             nodes={nodes}
             edges={edges}

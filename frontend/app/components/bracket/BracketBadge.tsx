@@ -36,7 +36,10 @@ export const BracketBadge = memo(function BracketBadge({
   );
 
   return (
-    <div className={cn(positionClasses, className)}>
+    <div
+      className={cn(positionClasses, className)}
+      data-testid={`bracket-badge-${letter}-${position}${slot ? `-${slot}` : ''}`}
+    >
       {/* Connecting line */}
       <div
         className={cn(
@@ -49,6 +52,7 @@ export const BracketBadge = memo(function BracketBadge({
       <div
         className="flex items-center justify-center w-5 h-5 rounded-full text-xs font-bold text-black"
         style={{ backgroundColor: color }}
+        data-testid={`bracket-badge-letter-${letter}`}
       >
         {letter}
       </div>
