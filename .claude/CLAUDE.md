@@ -149,9 +149,14 @@ inv prod.up            # Start prod environment
 inv prod.down          # Stop prod environment
 # ... (same commands as dev)
 
-# Database
-inv db.migrate         # Run migrations
-inv db.populate.all    # Reset and populate test DB
+# Database (local)
+inv db.migrate         # Run migrations locally
+inv db.populate.all    # Reset and populate test DB locally
+
+# Database (Docker) - IMPORTANT: Docker has separate DB
+inv dev.exec backend 'python manage.py migrate'      # Run migrations in dev container
+inv test.exec backend 'python manage.py migrate'     # Run migrations in test container
+inv dev.exec backend 'python manage.py shell -c "from tests.populate import populate_all; populate_all(force=True)"'  # Populate in Docker
 
 # Docker Images
 inv docker.all.build   # Build all images
@@ -260,7 +265,20 @@ cp /home/kettle/git_repos/website/backend/.env ./backend/.env
 
 # 4. Install frontend deps
 cd frontend && npm install
+
+# 5. Start Docker environment and run migrations
+cd /home/kettle/git_repos/website/.worktrees/feature-name
+source .venv/bin/activate
+inv test.up  # or inv dev.up for dev environment
+
+# 6. Run migrations INSIDE Docker (Docker has separate DB!)
+inv test.exec backend 'python manage.py migrate'
+
+# 7. Populate test data (optional, for testing)
+inv test.exec backend 'python manage.py shell -c "from tests.populate import populate_all; populate_all(force=True)"'
 ```
+
+**IMPORTANT**: Docker containers have their own database. Running `inv db.migrate` locally does NOT migrate the Docker database. Always use `inv test.exec backend 'python manage.py migrate'` after starting Docker.
 
 ### Using Invoke in Worktrees
 
