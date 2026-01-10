@@ -246,6 +246,13 @@ class Tournament(models.Model):
         max_length=20, choices=TOURNAMNET_TYPE_CHOICES, default="double_elimination"
     )
 
+    league_id = models.IntegerField(
+        null=True,
+        blank=True,
+        default=settings.DEFAULT_LEAGUE_ID,
+        help_text="Steam league ID for match linking",
+    )
+
     def __str__(self):
         return self.name
 
