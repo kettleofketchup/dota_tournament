@@ -8,4 +8,3 @@ export * from './controls';
 export * from './modals';
 export * from './hooks';
 export * from './utils';
-export * from './utils/badgeUtils';
