@@ -65,3 +65,9 @@ export interface BracketResponse {
   tournamentId: number;
   matches: BracketMatch[];
 }
+
+// Badge mapping for losers bracket slots
+// Maps losers game ID + slot to the badge letter
+export interface BadgeMapping {
+  [gameIdAndSlot: string]: string; // e.g., "l-1-0:radiant" -> "A"
+}
