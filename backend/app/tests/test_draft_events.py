@@ -149,6 +149,223 @@ class DraftEventSerializerTest(TestCase):
         self.assertEqual(data["event_type"], "player_picked")
 
 
+class ShuffleDraftEventIntegrationTest(TestCase):
+    def setUp(self):
+        self.positions = PositionsModel.objects.create()
+
+        # Create 4 captains with different MMRs
+        self.captains = []
+        for i in range(4):
+            captain = CustomUser.objects.create_user(
+                username=f"captain{i}",
+                password="testpass",
+                positions=PositionsModel.objects.create(),
+            )
+            captain.mmr = 5000 + (i * 100)  # 5000, 5100, 5200, 5300
+            captain.save()
+            self.captains.append(captain)
+
+        # Create tournament
+        self.tournament = Tournament.objects.create(
+            name="Test Tournament",
+            date_played=date.today(),
+        )
+        for captain in self.captains:
+            self.tournament.users.add(captain)
+
+        # Create teams
+        self.teams = []
+        for i, captain in enumerate(self.captains):
+            team = Team.objects.create(
+                name=f"Team {i}",
+                tournament=self.tournament,
+                captain=captain,
+                draft_order=i,
+            )
+            team.members.add(captain)
+            self.teams.append(team)
+
+        # Create draft
+        self.draft = Draft.objects.create(
+            tournament=self.tournament,
+            draft_style="shuffle",
+        )
+
+    @patch("app.functions.shuffle_draft.broadcast_event")
+    def test_build_shuffle_rounds_creates_draft_started_event(self, mock_broadcast):
+        """Building shuffle rounds creates a draft_started event."""
+        from app.functions.shuffle_draft import build_shuffle_rounds
+
+        build_shuffle_rounds(self.draft)
+
+        events = DraftEvent.objects.filter(draft=self.draft, event_type="draft_started")
+        self.assertEqual(events.count(), 1)
+        event = events.first()
+        self.assertEqual(event.payload["draft_style"], "shuffle")
+        self.assertEqual(event.payload["team_count"], 4)
+        # Verify broadcast was called
+        mock_broadcast.assert_called_once()
+
+    @patch("app.functions.shuffle_draft.broadcast_event")
+    def test_assign_next_shuffle_captain_creates_captain_assigned_event(
+        self, mock_broadcast
+    ):
+        """Assigning next captain creates a captain_assigned event."""
+        from app.functions.shuffle_draft import (
+            assign_next_shuffle_captain,
+            build_shuffle_rounds,
+        )
+
+        build_shuffle_rounds(self.draft)
+
+        # Clear events from build to isolate test
+        DraftEvent.objects.filter(draft=self.draft).delete()
+        mock_broadcast.reset_mock()
+
+        # Make a pick to trigger next captain assignment
+        first_round = self.draft.draft_rounds.first()
+        first_round.choice = self.captains[1]  # Pick someone
+        first_round.save()
+
+        assign_next_shuffle_captain(self.draft)
+
+        events = DraftEvent.objects.filter(
+            draft=self.draft, event_type="captain_assigned"
+        )
+        self.assertEqual(events.count(), 1)
+        # Verify broadcast was called
+        mock_broadcast.assert_called()
+
+
+class TournamentEventIntegrationTest(TestCase):
+    def setUp(self):
+        self.positions = PositionsModel.objects.create()
+
+        # Create captain
+        self.captain = CustomUser.objects.create_user(
+            username="captain",
+            password="testpass",
+            positions=PositionsModel.objects.create(),
+            is_staff=True,
+        )
+        self.captain.mmr = 5000
+        self.captain.save()
+
+        # Create player to be picked
+        self.player = CustomUser.objects.create_user(
+            username="player",
+            password="testpass",
+            positions=PositionsModel.objects.create(),
+        )
+        self.player.mmr = 4500
+        self.player.save()
+
+        # Create tournament
+        self.tournament = Tournament.objects.create(
+            name="Test Tournament",
+            date_played=date.today(),
+        )
+        self.tournament.users.add(self.captain)
+        self.tournament.users.add(self.player)
+
+        # Create team
+        self.team = Team.objects.create(
+            name="Test Team",
+            tournament=self.tournament,
+            captain=self.captain,
+        )
+        self.team.members.add(self.captain)
+
+        # Create draft
+        self.draft = Draft.objects.create(
+            tournament=self.tournament,
+            draft_style="snake",
+        )
+
+        # Create draft round
+        from app.models import DraftRound
+
+        self.draft_round = DraftRound.objects.create(
+            draft=self.draft,
+            captain=self.captain,
+            pick_number=1,
+        )
+
+    @patch("app.functions.tournament.broadcast_event")
+    def test_pick_player_for_round_creates_player_picked_event(self, mock_broadcast):
+        """Picking a player creates a player_picked event."""
+        from rest_framework.test import APIRequestFactory
+
+        from app.functions.tournament import pick_player_for_round
+
+        factory = APIRequestFactory()
+        request = factory.post(
+            "/api/pick/",
+            {
+                "draft_round_pk": self.draft_round.pk,
+                "user_pk": self.player.pk,
+            },
+            format="json",
+        )
+        request.user = self.captain
+
+        response = pick_player_for_round(request)
+
+        self.assertEqual(response.status_code, 201)
+
+        events = DraftEvent.objects.filter(draft=self.draft, event_type="player_picked")
+        self.assertEqual(events.count(), 1)
+        event = events.first()
+        self.assertEqual(event.payload["picked_id"], self.player.pk)
+        self.assertEqual(event.payload["captain_id"], self.captain.pk)
+        self.assertEqual(event.actor, self.captain)
+        mock_broadcast.assert_called()
+
+    @patch("app.functions.tournament.broadcast_event")
+    def test_undo_last_pick_creates_pick_undone_event(self, mock_broadcast):
+        """Undoing a pick creates a pick_undone event."""
+        from rest_framework.test import APIRequestFactory
+
+        from app.functions.tournament import pick_player_for_round, undo_last_pick
+
+        factory = APIRequestFactory()
+
+        # First make a pick
+        pick_request = factory.post(
+            "/api/pick/",
+            {
+                "draft_round_pk": self.draft_round.pk,
+                "user_pk": self.player.pk,
+            },
+            format="json",
+        )
+        pick_request.user = self.captain
+        pick_player_for_round(pick_request)
+
+        # Clear events to isolate undo test
+        DraftEvent.objects.filter(draft=self.draft).delete()
+        mock_broadcast.reset_mock()
+
+        # Now undo the pick
+        undo_request = factory.post(
+            "/api/undo/",
+            {"draft_pk": self.draft.pk},
+            format="json",
+        )
+        undo_request.user = self.captain
+
+        response = undo_last_pick(undo_request)
+
+        self.assertEqual(response.status_code, 200)
+
+        events = DraftEvent.objects.filter(draft=self.draft, event_type="pick_undone")
+        self.assertEqual(events.count(), 1)
+        event = events.first()
+        self.assertEqual(event.payload["undone_player_id"], self.player.pk)
+        self.assertEqual(event.actor, self.captain)
+        mock_broadcast.assert_called()
+
+
 class BroadcastEventTest(TestCase):
     def setUp(self):
         self.positions = PositionsModel.objects.create()

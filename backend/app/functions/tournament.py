@@ -20,7 +20,8 @@ from social_django.models import USER_MODEL  # fix: skip
 from social_django.models import AbstractUserSocialAuth, DjangoStorage
 from social_django.utils import load_strategy, psa
 
-from app.models import CustomUser, Draft, DraftRound, Team, Tournament
+from app.broadcast import broadcast_event
+from app.models import CustomUser, Draft, DraftEvent, DraftRound, Team, Tournament
 from app.permissions import IsStaff
 from app.serializers import (
     DraftRoundSerializer,
@@ -108,6 +109,24 @@ def pick_player_for_round(request):
     draft = draft_round.draft
     draft.save()
     draft_round.save()
+
+    # Create player_picked event
+    team = draft_round.team
+    picked_event = DraftEvent.objects.create(
+        draft=draft,
+        event_type="player_picked",
+        actor=request.user,
+        payload={
+            "pick_number": draft_round.pick_number,
+            "captain_id": draft_round.captain.pk,
+            "captain_name": draft_round.captain.username,
+            "picked_id": user.pk,
+            "picked_name": user.username,
+            "team_id": team.pk if team else None,
+            "team_name": team.name if team else None,
+        },
+    )
+    broadcast_event(picked_event)
 
     # For shuffle draft, assign next captain
     tie_data = None
@@ -402,6 +421,21 @@ def undo_last_pick(request):
 
     # Note: latest_round is a computed property that automatically returns
     # the first round without a choice. No need to set it manually.
+
+    # Create pick_undone event
+    undone_event = DraftEvent.objects.create(
+        draft=draft,
+        event_type="pick_undone",
+        actor=request.user,
+        payload={
+            "pick_number": last_round_with_choice.pick_number,
+            "undone_player_id": player.pk,
+            "undone_player_name": player.username,
+            "team_id": team.pk if team else None,
+            "team_name": team.name if team else None,
+        },
+    )
+    broadcast_event(undone_event)
 
     tournament = draft.tournament
 

@@ -18,6 +18,10 @@ def broadcast_event(event):
 
     Args:
         event: DraftEvent instance to broadcast
+
+    Note:
+        This function gracefully handles connection errors (e.g., Redis unavailable)
+        to allow draft operations to proceed even without real-time broadcasting.
     """
     channel_layer = get_channel_layer()
     if channel_layer is None:
@@ -25,26 +29,33 @@ def broadcast_event(event):
         return
 
     payload = DraftEventSerializer(event).data
-
-    # Send to draft-specific channel
-    async_to_sync(channel_layer.group_send)(
-        f"draft_{event.draft_id}",
-        {
-            "type": "draft.event",
-            "payload": payload,
-        },
-    )
-
-    # Send to tournament channel
     tournament_id = event.draft.tournament_id
-    async_to_sync(channel_layer.group_send)(
-        f"tournament_{tournament_id}",
-        {
-            "type": "draft.event",
-            "payload": payload,
-        },
-    )
 
-    log.debug(
-        f"Broadcast {event.event_type} to draft_{event.draft_id} and tournament_{tournament_id}"
-    )
+    try:
+        # Send to draft-specific channel
+        async_to_sync(channel_layer.group_send)(
+            f"draft_{event.draft_id}",
+            {
+                "type": "draft.event",
+                "payload": payload,
+            },
+        )
+
+        # Send to tournament channel
+        async_to_sync(channel_layer.group_send)(
+            f"tournament_{tournament_id}",
+            {
+                "type": "draft.event",
+                "payload": payload,
+            },
+        )
+
+        log.debug(
+            f"Broadcast {event.event_type} to draft_{event.draft_id} and tournament_{tournament_id}"
+        )
+    except Exception as e:
+        # Log the error but don't fail the draft operation
+        log.warning(
+            f"Failed to broadcast {event.event_type} to channels: {e}. "
+            "WebSocket clients will not receive real-time updates for this event."
+        )
