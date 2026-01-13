@@ -1,5 +1,6 @@
 # backend/app/tests/test_draft_events.py
 from datetime import date
+from unittest.mock import AsyncMock, MagicMock, patch
 
 from django.test import TestCase
 
@@ -146,3 +147,67 @@ class DraftEventSerializerTest(TestCase):
         self.assertIn("actor", data)
         self.assertIn("created_at", data)
         self.assertEqual(data["event_type"], "player_picked")
+
+
+class BroadcastEventTest(TestCase):
+    def setUp(self):
+        self.positions = PositionsModel.objects.create()
+        self.user = CustomUser.objects.create_user(
+            username="testcaptain",
+            password="testpass",
+            positions=self.positions,
+        )
+        self.tournament = Tournament.objects.create(
+            name="Test Tournament",
+            date_played=date.today(),
+        )
+        self.draft = Draft.objects.create(
+            tournament=self.tournament,
+            draft_style="shuffle",
+        )
+
+    @patch("app.broadcast.get_channel_layer")
+    def test_broadcast_event_sends_to_draft_group(self, mock_get_channel_layer):
+        """Broadcast sends event to draft channel group."""
+        from app.broadcast import broadcast_event
+
+        mock_channel_layer = MagicMock()
+        mock_channel_layer.group_send = AsyncMock()
+        mock_get_channel_layer.return_value = mock_channel_layer
+
+        event = DraftEvent.objects.create(
+            draft=self.draft,
+            event_type="player_picked",
+            payload={"round": 1},
+        )
+
+        broadcast_event(event)
+
+        # Verify group_send was called for draft group
+        calls = mock_channel_layer.group_send.call_args_list
+        draft_call = [c for c in calls if f"draft_{self.draft.pk}" in str(c)]
+        self.assertEqual(len(draft_call), 1)
+
+    @patch("app.broadcast.get_channel_layer")
+    def test_broadcast_event_sends_to_tournament_group(self, mock_get_channel_layer):
+        """Broadcast sends event to tournament channel group."""
+        from app.broadcast import broadcast_event
+
+        mock_channel_layer = MagicMock()
+        mock_channel_layer.group_send = AsyncMock()
+        mock_get_channel_layer.return_value = mock_channel_layer
+
+        event = DraftEvent.objects.create(
+            draft=self.draft,
+            event_type="player_picked",
+            payload={"round": 1},
+        )
+
+        broadcast_event(event)
+
+        # Verify group_send was called for tournament group
+        calls = mock_channel_layer.group_send.call_args_list
+        tournament_call = [
+            c for c in calls if f"tournament_{self.tournament.pk}" in str(c)
+        ]
+        self.assertEqual(len(tournament_call), 1)
