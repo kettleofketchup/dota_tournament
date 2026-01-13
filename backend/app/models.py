@@ -1004,3 +1004,45 @@ class DraftRound(models.Model):
 
     def __str__(self):
         return f"{self.picker.username} picked {self.choice.username} in {self.tournament.name}"
+
+
+class DraftEvent(models.Model):
+    """Tracks draft lifecycle events for history and WebSocket broadcast."""
+
+    EVENT_TYPE_CHOICES = [
+        ("draft_started", "Draft Started"),
+        ("draft_completed", "Draft Completed"),
+        ("captain_assigned", "Captain Assigned"),
+        ("player_picked", "Player Picked"),
+        ("tie_roll", "Tie Roll"),
+        ("pick_undone", "Pick Undone"),
+    ]
+
+    draft = models.ForeignKey(
+        Draft,
+        related_name="events",
+        on_delete=models.CASCADE,
+    )
+    event_type = models.CharField(
+        max_length=32,
+        choices=EVENT_TYPE_CHOICES,
+    )
+    payload = models.JSONField(
+        default=dict,
+        help_text="Event-specific data (JSON)",
+    )
+    actor = models.ForeignKey(
+        User,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="draft_events_triggered",
+        help_text="User who triggered this event",
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return f"{self.event_type} - Draft {self.draft_id} at {self.created_at}"
