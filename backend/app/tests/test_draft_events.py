@@ -4,6 +4,7 @@ from datetime import date
 from django.test import TestCase
 
 from app.models import CustomUser, Draft, DraftEvent, PositionsModel, Team, Tournament
+from app.serializers import DraftEventSerializer
 
 
 class DraftEventModelTest(TestCase):
@@ -109,3 +110,39 @@ class DraftEventModelTest(TestCase):
         events = list(DraftEvent.objects.all())
         self.assertEqual(events[0], event2)
         self.assertEqual(events[1], event1)
+
+
+class DraftEventSerializerTest(TestCase):
+    def setUp(self):
+        self.positions = PositionsModel.objects.create()
+        self.user = CustomUser.objects.create_user(
+            username="testcaptain",
+            password="testpass",
+            positions=self.positions,
+        )
+        self.tournament = Tournament.objects.create(
+            name="Test Tournament",
+            date_played=date.today(),
+        )
+        self.draft = Draft.objects.create(
+            tournament=self.tournament,
+            draft_style="shuffle",
+        )
+
+    def test_serializer_contains_expected_fields(self):
+        """Serializer includes all required fields."""
+        event = DraftEvent.objects.create(
+            draft=self.draft,
+            event_type="player_picked",
+            payload={"round": 1, "captain_name": "TestCaptain"},
+            actor=self.user,
+        )
+        serializer = DraftEventSerializer(event)
+        data = serializer.data
+
+        self.assertIn("pk", data)
+        self.assertIn("event_type", data)
+        self.assertIn("payload", data)
+        self.assertIn("actor", data)
+        self.assertIn("created_at", data)
+        self.assertEqual(data["event_type"], "player_picked")

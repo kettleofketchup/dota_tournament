@@ -10,6 +10,7 @@ log = getLogger(__name__)
 from .models import (
     CustomUser,
     Draft,
+    DraftEvent,
     DraftRound,
     Game,
     PositionsModel,
@@ -556,3 +557,17 @@ class BracketGenerateSerializer(serializers.Serializer):
     seeding_method = serializers.ChoiceField(
         choices=["random", "mmr_total", "captain_mmr"], default="mmr_total"
     )
+
+
+class DraftEventSerializer(serializers.ModelSerializer):
+    actor = TournamentUserSerializer(read_only=True)
+
+    class Meta:
+        model = DraftEvent
+        fields = (
+            "pk",
+            "event_type",
+            "payload",
+            "actor",
+            "created_at",
+        )
