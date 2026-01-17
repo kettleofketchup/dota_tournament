@@ -2,6 +2,7 @@ from ast import alias
 from logging import getLogger
 from typing import TypeAlias
 
+import nh3
 from django.contrib.auth.models import User
 from django.db import transaction
 from rest_framework import serializers
@@ -14,6 +15,8 @@ from .models import (
     DraftRound,
     Game,
     Joke,
+    League,
+    Organization,
     PositionsModel,
     Team,
     Tournament,
@@ -106,6 +109,77 @@ class TournamentsSerializer(serializers.ModelSerializer):
             "captains",
             "winner",
         )
+
+
+class OrganizationSerializer(serializers.ModelSerializer):
+    admins = TournamentUserSerializer(many=True, read_only=True)
+    staff = TournamentUserSerializer(many=True, read_only=True)
+    admin_ids = serializers.PrimaryKeyRelatedField(
+        queryset=CustomUser.objects.all(),
+        many=True,
+        write_only=True,
+        source="admins",
+        required=False,
+    )
+    staff_ids = serializers.PrimaryKeyRelatedField(
+        queryset=CustomUser.objects.all(),
+        many=True,
+        write_only=True,
+        source="staff",
+        required=False,
+    )
+    # Use annotated fields from ViewSet queryset (avoids N+1)
+    league_count = serializers.IntegerField(read_only=True)
+    tournament_count = serializers.IntegerField(read_only=True)
+
+    class Meta:
+        model = Organization
+        fields = (
+            "pk",
+            "name",
+            "description",
+            "logo",
+            "rules_template",
+            "admins",
+            "staff",
+            "admin_ids",
+            "staff_ids",
+            "default_league",
+            "league_count",
+            "tournament_count",
+            "created_at",
+            "updated_at",
+        )
+        read_only_fields = (
+            "pk",
+            "created_at",
+            "updated_at",
+            "league_count",
+            "tournament_count",
+        )
+
+    def validate_description(self, value):
+        """Sanitize markdown to prevent XSS."""
+        if value:
+            return nh3.clean(value)
+        return value
+
+    def validate_rules_template(self, value):
+        """Sanitize markdown to prevent XSS."""
+        if value:
+            return nh3.clean(value)
+        return value
+
+
+class OrganizationsSerializer(serializers.ModelSerializer):
+    """Lightweight serializer for organization list view."""
+
+    league_count = serializers.IntegerField(read_only=True)
+
+    class Meta:
+        model = Organization
+        fields = ("pk", "name", "logo", "league_count", "created_at")
+        read_only_fields = ("pk", "league_count", "created_at")
 
 
 class DraftRoundForDraftSerializer(serializers.ModelSerializer):
