@@ -27,37 +27,32 @@ FROM deps AS deps-dev
 RUN --mount=type=cache,target=$POETRY_CACHE_DIR poetry install --no-root --with dev
 
 
-FROM deps AS source
-WORKDIR /app
-COPY __init__.py paths.py tasks.py /app/
-COPY ./scripts /app/scripts
-COPY ./backend /app/backend
-
-
-FROM deps-dev AS source-dev
-WORKDIR /app
-COPY __init__.py paths.py tasks.py /app/
-COPY ./scripts /app/scripts
-COPY ./backend /app/backend
-
 # ---- Runtime (production) ----
-FROM source AS runtime
+FROM deps AS runtime
 LABEL org.opencontainers.image.source "https://github.com/kettleofketchup/dota_tournament"
+WORKDIR /app
 
-# Set ownership for appuser (user created in poetry stage)
-RUN chown -R appuser:appuser /app
+# Copy with ownership set directly (avoids slow recursive chown)
+COPY --chown=appuser:appuser __init__.py paths.py tasks.py /app/
+COPY --chown=appuser:appuser ./scripts /app/scripts
+COPY --chown=appuser:appuser ./backend /app/backend
 
 WORKDIR /app/backend
 EXPOSE 8000
+USER appuser
 ENTRYPOINT ["daphne", "-b", "0.0.0.0", "-p", "8000", "backend.asgi:application"]
 
 # ---- Runtime for dev/test ----
-FROM source-dev AS runtime-dev
+FROM deps-dev AS runtime-dev
 LABEL org.opencontainers.image.source "https://github.com/kettleofketchup/dota_tournament"
+WORKDIR /app
 
-# Set ownership for appuser (user created in poetry stage)
-RUN chown -R appuser:appuser /app
+# Copy with ownership set directly (avoids slow recursive chown)
+COPY --chown=appuser:appuser __init__.py paths.py tasks.py /app/
+COPY --chown=appuser:appuser ./scripts /app/scripts
+COPY --chown=appuser:appuser ./backend /app/backend
 
 WORKDIR /app/backend
 EXPOSE 8000
+USER appuser
 ENTRYPOINT ["daphne", "-b", "0.0.0.0", "-p", "8000", "backend.asgi:application"]
