@@ -9,6 +9,27 @@ from django.conf import settings
 
 log = logging.getLogger(__name__)
 
+
+def is_site_admin():
+    """Check if user is an admin in the Django database by discordId."""
+
+    async def predicate(interaction: discord.Interaction) -> bool:
+        from app.models import CustomUser
+
+        discord_id = str(interaction.user.id)
+        try:
+            user = CustomUser.objects.get(discordId=discord_id)
+            if user.is_staff:
+                return True
+            raise app_commands.CheckFailure("You are not a site admin.")
+        except CustomUser.DoesNotExist:
+            raise app_commands.CheckFailure(
+                "Your Discord account is not linked to the site."
+            )
+
+    return app_commands.check(predicate)
+
+
 # Emoji mappings for RSVP
 RSVP_EMOJIS = {
     "\u2705": "yes",  # checkmark
@@ -125,7 +146,7 @@ async def roles_command(interaction: discord.Interaction):
 
 
 @bot.tree.command(name="event", description="Create a new event (Admin only)")
-@app_commands.checks.has_permissions(administrator=True)
+@is_site_admin()
 async def event_command(
     interaction: discord.Interaction,
     name: str,
@@ -162,7 +183,9 @@ async def event_command(
 @event_command.error
 async def event_error(interaction: discord.Interaction, error):
     """Handle permission errors for event command."""
-    if isinstance(error, app_commands.MissingPermissions):
+    if isinstance(error, app_commands.CheckFailure):
+        await interaction.response.send_message(str(error), ephemeral=True)
+    elif isinstance(error, app_commands.MissingPermissions):
         await interaction.response.send_message(
             "You need administrator permissions to create events.", ephemeral=True
         )
