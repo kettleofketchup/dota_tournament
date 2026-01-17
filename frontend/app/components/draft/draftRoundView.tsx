@@ -1,5 +1,5 @@
 // Holds the general draft view
-import { useCallback, useEffect } from 'react';
+import { useEffect } from 'react';
 import { Separator } from '~/components/ui/separator';
 
 import type { DraftRoundType, DraftType, TournamentType } from '~/index';
@@ -10,9 +10,7 @@ import { PlayerChoiceView } from './roundView/choiceCard';
 import { CurrentTeamView } from './roundView/currentTeam';
 import { TurnIndicator } from './roundView/TurnIndicator';
 import { ShufflePickOrder } from './shuffle/ShufflePickOrder';
-import { useDraftWebSocket } from './hooks/useDraftWebSocket';
-import { DraftEventFab } from './DraftEventFab';
-import { refreshTournamentHook } from './hooks/refreshTournamentHook';
+
 const log = getLogger('DraftRoundView');
 
 export const DraftRoundView: React.FC = () => {
@@ -22,32 +20,6 @@ export const DraftRoundView: React.FC = () => {
   const draftIndex: number = useUserStore((state) => state.draftIndex);
   const tournament: TournamentType = useUserStore((state) => state.tournament);
   const draft: DraftType = useUserStore((state) => state.draft);
-  const setTournament = useUserStore((state) => state.setTournament);
-  const setDraft = useUserStore((state) => state.setDraft);
-  const setCurDraftRound = useUserStore((state) => state.setCurDraftRound);
-
-  // Refresh tournament data when WebSocket notifies of changes
-  const handleRefreshNeeded = useCallback(() => {
-    if (tournament?.pk) {
-      refreshTournamentHook({
-        tournament,
-        setTournament,
-        setDraft,
-        curDraftRound,
-        setCurDraftRound,
-      });
-    }
-  }, [tournament, setTournament, setDraft, curDraftRound, setCurDraftRound]);
-
-  const {
-    events: draftEvents,
-    isConnected,
-    hasNewEvent,
-    clearNewEventFlag,
-  } = useDraftWebSocket({
-    draftId: draft?.pk ?? null,
-    onRefreshNeeded: handleRefreshNeeded,
-  });
 
   useEffect(() => {
     log.debug('Current draft round changed:', curDraftRound);
@@ -71,10 +43,12 @@ export const DraftRoundView: React.FC = () => {
       curDraftRound?.pk,
     );
   }, [curDraftRound?.pk]);
+
   const latestRound = () =>
     draft?.draft_rounds?.find(
       (round: DraftRoundType) => round.pk === draft?.latest_round,
     );
+
   const noDraftView = () => {
     return (
       <>
@@ -86,11 +60,12 @@ export const DraftRoundView: React.FC = () => {
 
   if (!draft || !draft.draft_rounds) return <>{noDraftView()}</>;
 
-  if (
+  const isNotLatestRound =
     draft?.latest_round &&
     draft?.latest_round !== curDraftRound?.pk &&
-    !curDraftRound?.choice
-  ) {
+    !curDraftRound?.choice;
+
+  if (isNotLatestRound) {
     log.debug('Not latest round', draft);
     return (
       <>
@@ -108,14 +83,6 @@ export const DraftRoundView: React.FC = () => {
           </h4>
           <p className="text-gray-500">This is not the current draft round.</p>
         </div>
-        {draft?.pk && (
-          <DraftEventFab
-            events={draftEvents}
-            hasNewEvent={hasNewEvent}
-            onViewed={clearNewEventFlag}
-            isConnected={isConnected}
-          />
-        )}
       </>
     );
   }
@@ -141,14 +108,6 @@ export const DraftRoundView: React.FC = () => {
         </div>
         <PlayerChoiceView />
       </div>
-      {draft?.pk && (
-        <DraftEventFab
-          events={draftEvents}
-          hasNewEvent={hasNewEvent}
-          onViewed={clearNewEventFlag}
-          isConnected={isConnected}
-        />
-      )}
     </>
   );
 };

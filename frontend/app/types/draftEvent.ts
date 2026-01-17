@@ -39,7 +39,7 @@ export interface DraftCompletedPayload {
 }
 
 export interface CaptainAssignedPayload {
-  round: number;
+  pick_number: number;
   captain_id: number;
   captain_name: string;
   team_id: number;
@@ -47,12 +47,13 @@ export interface CaptainAssignedPayload {
 }
 
 export interface PlayerPickedPayload {
-  round: number;
+  pick_number: number;
   captain_id: number;
   captain_name: string;
   picked_id: number;
   picked_name: string;
-  team_id: number;
+  team_id: number | null;
+  team_name: string | null;
 }
 
 export interface TieRollPayload {
@@ -70,13 +71,36 @@ export interface TieRollPayload {
 }
 
 export interface PickUndonePayload {
-  round: number;
-  captain_name: string;
-  picked_name: string;
+  pick_number: number;
+  undone_player_id: number;
+  undone_player_name: string;
+  team_id: number | null;
+  team_name: string | null;
+}
+
+/**
+ * Draft state included in WebSocket messages to avoid additional API calls.
+ * This matches the DraftSerializerForTournament from the backend.
+ */
+export interface WebSocketDraftState {
+  pk: number;
+  draft_rounds: Array<{
+    pk: number;
+    [key: string]: unknown;
+  }>;
+  users_remaining: Array<{
+    pk: number;
+    username: string;
+    [key: string]: unknown;
+  }>;
+  latest_round: number | null;
+  draft_style: string;
 }
 
 export interface WebSocketMessage {
   type: "initial_events" | "draft_event";
   events?: DraftEvent[];
   event?: DraftEvent;
+  /** Full draft state included to allow state updates without API calls */
+  draft_state?: WebSocketDraftState;
 }

@@ -215,6 +215,11 @@ def create_team_from_captain(request):
         draft_order=draft_order,
     )
     team.members.add(user)
+
+    # Invalidate caches after team creation
+    invalidate_model(Tournament)
+    invalidate_model(Team)
+
     return Response(TournamentSerializer(tournament).data, status=201)
 
 
@@ -309,6 +314,12 @@ def rebuild_team(request):
     tournament = Tournament.objects.get(pk=tournament_pk)
     data = TournamentSerializer(tournament).data
     log.debug(data)
+
+    # Invalidate caches after rebuilding teams
+    invalidate_model(Draft)
+    invalidate_model(Tournament)
+    invalidate_model(Team)
+    invalidate_model(DraftRound)
 
     return Response(data, status=201)
 

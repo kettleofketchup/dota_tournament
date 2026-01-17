@@ -44,6 +44,13 @@ class PositionsModel(models.Model):
     def __str__(self):
         return f"Carry: {self.carry}, Mid: {self.mid}, Offlane: {self.offlane}, Soft Support: {self.soft_support}, Hard Support: {self.hard_support}"
 
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        # Invalidate CustomUser cache since positions are embedded in user serializations
+        from cacheops import invalidate_model
+
+        invalidate_model(CustomUser)
+
 
 # Enum for Dota2 positions
 class PositionEnum(IntEnum):
@@ -186,7 +193,7 @@ class CustomUser(AbstractUser):
     def save(self, *args, **kwargs):
         """
         Override save method to automatically create a PositionsModel instance
-        if the user doesn't have one.
+        if the user doesn't have one, and invalidate dependent caches.
         """
         if not self.positions_id:  # Check if positions is not set
             # Create a default PositionsModel with all positions set to 0
@@ -194,6 +201,11 @@ class CustomUser(AbstractUser):
             self.positions = default_positions
 
         super().save(*args, **kwargs)
+
+        # Invalidate caches that depend on CustomUser
+        from cacheops import invalidate_model
+
+        invalidate_model(CustomUser)
 
     @property
     def avatarUrl(self):
@@ -426,6 +438,15 @@ class Game(models.Model):
     @property
     def teams(self):
         return [self.radiant_team, self.dire_team]
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        # Invalidate tournament and team caches when games are modified
+        from cacheops import invalidate_model, invalidate_obj
+
+        if self.tournament_id:
+            invalidate_obj(self.tournament)
+        invalidate_model(Team)
 
 
 from cacheops import cached_as

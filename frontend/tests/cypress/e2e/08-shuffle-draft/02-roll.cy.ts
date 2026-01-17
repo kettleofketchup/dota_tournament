@@ -20,7 +20,7 @@ describe('Shuffle Draft - Roll Results Display', () => {
   it('should display draft event FAB with event count', () => {
     // Use the shuffle_draft_captain_turn tournament which has an active draft
     cy.visit('/tournament/1');
-    cy.contains('h1', { timeout: 10000 }).should('be.visible');
+    cy.get('h1', { timeout: 10000 }).should('be.visible');
 
     // The draft event FAB should be visible if there are events
     cy.get('[data-testid="draft-event-fab"]', { timeout: 5000 }).then(($fab) => {
@@ -34,7 +34,7 @@ describe('Shuffle Draft - Roll Results Display', () => {
 
   it('should show tie roll event in modal when FAB has events', () => {
     cy.visit('/tournament/1');
-    cy.contains('h1', { timeout: 10000 }).should('be.visible');
+    cy.get('h1', { timeout: 10000 }).should('be.visible');
 
     // Try to find and click the draft event FAB
     cy.get('[data-testid="draft-event-fab"]', { timeout: 5000 }).then(($fab) => {
@@ -90,7 +90,7 @@ describe('Shuffle Draft - Roll Results Display', () => {
   it('should display tie roll with captain names and roll values', () => {
     // Use a tournament config that has equal MMR captains
     cy.visit('/tournament/1');
-    cy.contains('h1', { timeout: 10000 }).should('be.visible');
+    cy.get('h1', { timeout: 10000 }).should('be.visible');
 
     cy.get('[data-testid="draft-event-fab"]', { timeout: 5000 }).then(($fab) => {
       if ($fab.length > 0) {
@@ -131,7 +131,7 @@ describe('Shuffle Draft - Roll Results Display', () => {
 
   it('should update event FAB badge when new events occur', () => {
     cy.visit('/tournament/1');
-    cy.contains('h1', { timeout: 10000 }).should('be.visible');
+    cy.get('h1', { timeout: 10000 }).should('be.visible');
 
     cy.get('[data-testid="draft-event-fab"]', { timeout: 5000 }).then(($fab) => {
       if ($fab.length > 0) {
@@ -157,7 +157,7 @@ describe('Shuffle Draft - Roll Results Display', () => {
 
   it('should show all event types in history modal', () => {
     cy.visit('/tournament/1');
-    cy.contains('h1', { timeout: 10000 }).should('be.visible');
+    cy.get('h1', { timeout: 10000 }).should('be.visible');
 
     cy.get('[data-testid="draft-event-fab"]', { timeout: 5000 }).then(($fab) => {
       if ($fab.length > 0) {
@@ -192,7 +192,7 @@ describe('Shuffle Draft - Roll Results Display', () => {
 
   it('should handle modal close gracefully', () => {
     cy.visit('/tournament/1');
-    cy.contains('h1', { timeout: 10000 }).should('be.visible');
+    cy.get('h1', { timeout: 10000 }).should('be.visible');
 
     cy.get('[data-testid="draft-event-fab"]', { timeout: 5000 }).then(($fab) => {
       if ($fab.length > 0) {

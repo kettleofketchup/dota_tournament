@@ -2,23 +2,20 @@ import { memo, useCallback, useState } from "react";
 import { Button } from "~/components/ui/button";
 import { Badge } from "~/components/ui/badge";
 import { History } from "lucide-react";
-import { cn } from "~/lib/utils";
 import type { DraftEvent } from "~/types/draftEvent";
-import { DraftEventModal } from "./DraftEventModal";
+import { DraftEventModal } from "../DraftEventModal";
 
-interface DraftEventFabProps {
+interface DraftHistoryButtonProps {
   events: DraftEvent[];
   hasNewEvent: boolean;
   onViewed: () => void;
-  isConnected: boolean;
 }
 
-export const DraftEventFab = memo(function DraftEventFab({
+export const DraftHistoryButton = memo(function DraftHistoryButton({
   events,
   hasNewEvent,
   onViewed,
-  isConnected,
-}: DraftEventFabProps) {
+}: DraftHistoryButtonProps) {
   const [modalOpen, setModalOpen] = useState(false);
 
   const handleOpenChange = useCallback((open: boolean) => {
@@ -36,30 +33,23 @@ export const DraftEventFab = memo(function DraftEventFab({
   return (
     <>
       <Button
-        data-testid="draft-event-fab"
-        variant="default"
-        size="icon"
-        className={cn(
-          "fixed bottom-6 right-6 h-14 w-14 rounded-full shadow-lg z-50",
-          hasNewEvent && "animate-pulse"
-        )}
+        data-testid="draft-history-button"
+        variant="outline"
         onClick={handleClick}
+        className="relative"
       >
-        <History className="h-6 w-6" />
+        <History className="mr-2 h-4 w-4" />
+        History
         {events.length > 0 && (
           <Badge
             variant={hasNewEvent ? "destructive" : "secondary"}
-            className="absolute -top-1 -right-1 h-6 min-w-6 rounded-full"
+            className="absolute -top-2 -right-2 h-5 min-w-5 rounded-full text-xs"
           >
             {events.length}
           </Badge>
         )}
-        {!isConnected && (
-          <span className="absolute bottom-0 right-0 h-3 w-3 rounded-full bg-yellow-500 border-2 border-background" />
-        )}
       </Button>
 
-      {/* Only render modal when open to avoid Dialog interference with hover */}
       {modalOpen && (
         <DraftEventModal
           open={modalOpen}

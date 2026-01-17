@@ -40,8 +40,8 @@ function getEventDescription(event: DraftEvent): string {
     case "draft_completed":
       return "Draft completed";
     case "player_picked": {
-      const payload = event.payload as { captain_name: string; picked_name: string; round: number };
-      return `${payload.captain_name} picked ${payload.picked_name} (Round ${payload.round})`;
+      const payload = event.payload as { captain_name: string; picked_name: string; pick_number: number };
+      return `${payload.captain_name} picked ${payload.picked_name} (Pick ${payload.pick_number})`;
     }
     case "tie_roll": {
       const payload = event.payload as {
@@ -59,8 +59,8 @@ function getEventDescription(event: DraftEvent): string {
       return `${payload.captain_name} is picking next`;
     }
     case "pick_undone": {
-      const payload = event.payload as { captain_name: string; picked_name: string; round: number };
-      return `Round ${payload.round} pick undone (${payload.picked_name})`;
+      const payload = event.payload as { undone_player_name: string; pick_number: number };
+      return `Pick ${payload.pick_number} undone (${payload.undone_player_name})`;
     }
     default:
       return "Unknown event";

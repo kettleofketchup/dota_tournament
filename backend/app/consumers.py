@@ -50,14 +50,14 @@ class DraftConsumer(AsyncWebsocketConsumer):
 
     async def draft_event(self, event):
         """Handle draft.event messages from channel layer."""
-        await self.send(
-            text_data=json.dumps(
-                {
-                    "type": "draft_event",
-                    "event": event["payload"],
-                }
-            )
-        )
+        message = {
+            "type": "draft_event",
+            "event": event["payload"],
+        }
+        # Include draft state if available (allows clients to update without API calls)
+        if "draft_state" in event:
+            message["draft_state"] = event["draft_state"]
+        await self.send(text_data=json.dumps(message))
 
     @database_sync_to_async
     def draft_exists(self, draft_id):
@@ -111,14 +111,14 @@ class TournamentConsumer(AsyncWebsocketConsumer):
 
     async def draft_event(self, event):
         """Handle draft.event messages from channel layer."""
-        await self.send(
-            text_data=json.dumps(
-                {
-                    "type": "draft_event",
-                    "event": event["payload"],
-                }
-            )
-        )
+        message = {
+            "type": "draft_event",
+            "event": event["payload"],
+        }
+        # Include draft state if available (allows clients to update without API calls)
+        if "draft_state" in event:
+            message["draft_state"] = event["draft_state"]
+        await self.send(text_data=json.dumps(message))
 
     @database_sync_to_async
     def tournament_exists(self, tournament_id):
