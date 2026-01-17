@@ -14,17 +14,6 @@ interface DraftEventModalProps {
   events: DraftEvent[];
 }
 
-// Build Discord avatar URL from discord_id and avatar hash
-function getDiscordAvatarUrl(discordId?: string | null, avatarHash?: string | null): string | null {
-  if (!discordId) return null;
-  if (avatarHash) {
-    return `https://cdn.discordapp.com/avatars/${discordId}/${avatarHash}.png?size=32`;
-  }
-  // Default Discord avatar based on discriminator (use id mod 5 for new usernames)
-  const defaultIndex = Number(BigInt(discordId) % BigInt(5));
-  return `https://cdn.discordapp.com/embed/avatars/${defaultIndex}.png`;
-}
-
 function getEventIcon(eventType: DraftEvent["event_type"]): string {
   switch (eventType) {
     case "draft_started":
@@ -54,11 +43,11 @@ function getEventAvatars(event: DraftEvent): EventAvatars {
 
   if (event.event_type === "player_picked") {
     const payload = event.payload as PlayerPickedPayload;
-    avatars.captain = payload.captain_avatar || getDiscordAvatarUrl(payload.captain_discord_id);
-    avatars.picked = payload.picked_avatar || getDiscordAvatarUrl(payload.picked_discord_id);
+    avatars.captain = payload.captain_avatar_url;
+    avatars.picked = payload.picked_avatar_url;
   } else if (event.event_type === "captain_assigned") {
     const payload = event.payload as CaptainAssignedPayload;
-    avatars.captain = payload.captain_avatar || getDiscordAvatarUrl(payload.captain_discord_id);
+    avatars.captain = payload.captain_avatar_url;
   }
 
   return avatars;
