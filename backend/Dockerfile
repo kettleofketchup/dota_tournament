@@ -5,6 +5,10 @@ WORKDIR /app
 
 RUN pip install poetry==2.1.2
 
+# Create non-root user early so it's cached for all downstream stages
+RUN groupadd --gid 1000 appuser && \
+    useradd --uid 1000 --gid 1000 --shell /bin/bash --create-home appuser
+
 ENV POETRY_NO_INTERACTION=1 \
     POETRY_VIRTUALENVS_IN_PROJECT=1 \
     POETRY_VIRTUALENVS_CREATE=1 \
@@ -40,10 +44,8 @@ COPY ./backend /app/backend
 FROM source AS runtime
 LABEL org.opencontainers.image.source "https://github.com/kettleofketchup/dota_tournament"
 
-# Create non-root user for running services (especially Celery)
-RUN groupadd --gid 1000 appuser && \
-    useradd --uid 1000 --gid 1000 --shell /bin/bash --create-home appuser && \
-    chown -R appuser:appuser /app
+# Set ownership for appuser (user created in poetry stage)
+RUN chown -R appuser:appuser /app
 
 WORKDIR /app/backend
 EXPOSE 8000
@@ -53,10 +55,8 @@ ENTRYPOINT ["daphne", "-b", "0.0.0.0", "-p", "8000", "backend.asgi:application"]
 FROM source-dev AS runtime-dev
 LABEL org.opencontainers.image.source "https://github.com/kettleofketchup/dota_tournament"
 
-# Create non-root user for running services (especially Celery)
-RUN groupadd --gid 1000 appuser && \
-    useradd --uid 1000 --gid 1000 --shell /bin/bash --create-home appuser && \
-    chown -R appuser:appuser /app
+# Set ownership for appuser (user created in poetry stage)
+RUN chown -R appuser:appuser /app
 
 WORKDIR /app/backend
 EXPOSE 8000
