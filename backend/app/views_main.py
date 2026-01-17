@@ -238,6 +238,16 @@ class TournamentView(viewsets.ModelViewSet):
         "trace",
     ]
 
+    def get_queryset(self):
+        queryset = Tournament.objects.all().order_by("-date_played")
+        org_id = self.request.query_params.get("organization")
+        league_id = self.request.query_params.get("league")
+        if org_id:
+            queryset = queryset.filter(league__organization_id=org_id)
+        if league_id:
+            queryset = queryset.filter(league_id=league_id)
+        return queryset
+
     def list(self, request, *args, **kwargs):
         cache_key = f"tournament_list:{request.get_full_path()}"
 
