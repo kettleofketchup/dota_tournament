@@ -87,6 +87,13 @@ class CustomUser(AbstractUser):
     discordUsername = models.TextField(null=True, blank=True)
     discordNickname = models.TextField(null=True, blank=True)
     guildNickname = models.TextField(null=True, blank=True)
+    default_organization = models.ForeignKey(
+        "Organization",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="default_for_users",
+    )
 
     def createFromDiscordData(self, data):
         self.username = data["user"]["username"]
@@ -245,6 +252,13 @@ class Organization(models.Model):
         "CustomUser",
         related_name="staff_organizations",
         blank=True,
+    )
+    default_league = models.ForeignKey(
+        "League",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="default_for_organization",
     )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
