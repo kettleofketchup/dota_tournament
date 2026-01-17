@@ -182,6 +182,88 @@ class OrganizationsSerializer(serializers.ModelSerializer):
         read_only_fields = ("pk", "league_count", "created_at")
 
 
+class LeagueSerializer(serializers.ModelSerializer):
+    admins = TournamentUserSerializer(many=True, read_only=True)
+    staff = TournamentUserSerializer(many=True, read_only=True)
+    admin_ids = serializers.PrimaryKeyRelatedField(
+        queryset=CustomUser.objects.all(),
+        many=True,
+        write_only=True,
+        source="admins",
+        required=False,
+    )
+    staff_ids = serializers.PrimaryKeyRelatedField(
+        queryset=CustomUser.objects.all(),
+        many=True,
+        write_only=True,
+        source="staff",
+        required=False,
+    )
+    tournament_count = serializers.IntegerField(read_only=True)
+    organization_name = serializers.CharField(
+        source="organization.name", read_only=True
+    )
+
+    class Meta:
+        model = League
+        fields = (
+            "pk",
+            "organization",
+            "organization_name",
+            "steam_league_id",
+            "name",
+            "description",
+            "rules",
+            "prize_pool",
+            "admins",
+            "staff",
+            "admin_ids",
+            "staff_ids",
+            "tournament_count",
+            "last_synced",
+            "created_at",
+            "updated_at",
+        )
+        read_only_fields = (
+            "pk",
+            "created_at",
+            "updated_at",
+            "tournament_count",
+            "organization_name",
+        )
+
+    def validate_description(self, value):
+        if value:
+            return nh3.clean(value)
+        return value
+
+    def validate_rules(self, value):
+        if value:
+            return nh3.clean(value)
+        return value
+
+
+class LeaguesSerializer(serializers.ModelSerializer):
+    """Lightweight serializer for league list view."""
+
+    tournament_count = serializers.IntegerField(read_only=True)
+    organization_name = serializers.CharField(
+        source="organization.name", read_only=True
+    )
+
+    class Meta:
+        model = League
+        fields = (
+            "pk",
+            "organization",
+            "organization_name",
+            "steam_league_id",
+            "name",
+            "tournament_count",
+        )
+        read_only_fields = ("pk", "tournament_count", "organization_name")
+
+
 class DraftRoundForDraftSerializer(serializers.ModelSerializer):
 
     captain = TournamentUserSerializer(many=False, read_only=True)
