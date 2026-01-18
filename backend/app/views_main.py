@@ -8,12 +8,12 @@ from django.contrib.auth import login
 from django.contrib.auth import logout as auth_logout
 from django.contrib.auth.decorators import login_required
 from django.db import transaction
-from django.db.models import Count
+from django.db.models import Count, Q
 from django.http import HttpResponse, HttpResponseBadRequest, JsonResponse
 from django.shortcuts import redirect, render
 from django.utils import timezone
 from rest_framework import generics, permissions, status, viewsets
-from rest_framework.decorators import api_view, permission_classes
+from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.generics import GenericAPIView
 from rest_framework.permissions import AllowAny, IsAdminUser, IsAuthenticated
 from rest_framework.response import Response
@@ -49,6 +49,7 @@ from .serializers import (
     DraftRoundSerializer,
     DraftSerializer,
     GameSerializer,
+    LeagueMatchSerializer,
     LeagueSerializer,
     LeaguesSerializer,
     OrganizationSerializer,
@@ -660,11 +661,15 @@ class OrganizationView(viewsets.ModelViewSet):
         return OrganizationSerializer
 
     def get_queryset(self):
-        """Annotate counts to avoid N+1 queries."""
-        return Organization.objects.annotate(
-            league_count=Count("leagues", distinct=True),
-            tournament_count=Count("leagues__tournaments", distinct=True),
-        ).order_by("name")
+        """Annotate counts and prefetch M2M to avoid N+1 queries."""
+        return (
+            Organization.objects.prefetch_related("admins", "staff")
+            .annotate(
+                league_count=Count("leagues", distinct=True),
+                tournament_count=Count("leagues__tournaments", distinct=True),
+            )
+            .order_by("name")
+        )
 
     def get_permissions(self):
         if self.action in ["create", "destroy"]:
@@ -712,9 +717,10 @@ class LeagueView(viewsets.ModelViewSet):
         return LeagueSerializer
 
     def get_queryset(self):
-        """Optimize with select_related and annotations."""
+        """Optimize with select_related, prefetch_related, and annotations."""
         queryset = (
             League.objects.select_related("organization")
+            .prefetch_related("admins", "staff")
             .annotate(
                 tournament_count=Count("tournaments", distinct=True),
             )
@@ -742,12 +748,12 @@ class LeagueView(viewsets.ModelViewSet):
                 org = Organization.objects.get(pk=org_id)
                 if not has_org_admin_access(request.user, org):
                     return Response(
-                        {"error": "Must be organization admin to create league"},
+                        {"detail": "Must be organization admin to create league"},
                         status=status.HTTP_403_FORBIDDEN,
                     )
             except Organization.DoesNotExist:
                 return Response(
-                    {"error": "Organization not found"},
+                    {"detail": "Organization not found"},
                     status=status.HTTP_404_NOT_FOUND,
                 )
         return super().create(request, *args, **kwargs)
@@ -776,6 +782,35 @@ class LeagueView(viewsets.ModelViewSet):
 
         data = get_data()
         return Response(data)
+
+    @action(detail=True, methods=["get"])
+    def matches(self, request, pk=None):
+        """Get all matches for this league (direct or via tournaments)."""
+        league = self.get_object()
+        # Games directly belonging to league OR games in tournaments belonging to league
+        games = (
+            Game.objects.filter(Q(league=league) | Q(tournament__league=league))
+            .select_related(
+                "tournament",
+                "league",
+                "radiant_team__captain",
+                "dire_team__captain",
+                "winning_team",
+            )
+            .order_by("-pk")
+        )
+
+        # Optional filtering
+        tournament_pk = request.query_params.get("tournament")
+        if tournament_pk:
+            games = games.filter(tournament_id=tournament_pk)
+
+        linked_only = request.query_params.get("linked_only")
+        if linked_only == "true":
+            games = games.filter(gameid__isnull=False)
+
+        serializer = LeagueMatchSerializer(games, many=True)
+        return Response(serializer.data)
 
 
 class TeamCreateView(generics.CreateAPIView):
