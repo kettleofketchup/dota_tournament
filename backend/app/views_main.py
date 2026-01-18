@@ -793,7 +793,9 @@ class LeagueView(viewsets.ModelViewSet):
             .select_related(
                 "tournament",
                 "league",
+                "radiant_team",
                 "radiant_team__captain",
+                "dire_team",
                 "dire_team__captain",
                 "winning_team",
             )

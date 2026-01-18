@@ -757,16 +757,26 @@ class LeagueMatchSerializer(serializers.ModelSerializer):
     """Serializer for matches in a league context with captain info."""
 
     radiant_captain = TournamentUserSerializer(
-        source="radiant_team.captain", read_only=True
+        source="radiant_team.captain", read_only=True, allow_null=True
     )
-    dire_captain = TournamentUserSerializer(source="dire_team.captain", read_only=True)
+    dire_captain = TournamentUserSerializer(
+        source="dire_team.captain", read_only=True, allow_null=True
+    )
     radiant_team_name = serializers.CharField(
-        source="radiant_team.name", read_only=True
+        source="radiant_team.name", read_only=True, allow_null=True
     )
-    dire_team_name = serializers.CharField(source="dire_team.name", read_only=True)
-    tournament_name = serializers.CharField(source="tournament.name", read_only=True)
-    tournament_pk = serializers.IntegerField(source="tournament.pk", read_only=True)
-    date_played = serializers.DateField(source="tournament.date_played", read_only=True)
+    dire_team_name = serializers.CharField(
+        source="dire_team.name", read_only=True, allow_null=True
+    )
+    tournament_name = serializers.CharField(
+        source="tournament.name", read_only=True, allow_null=True
+    )
+    tournament_pk = serializers.IntegerField(
+        source="tournament.pk", read_only=True, allow_null=True
+    )
+    date_played = serializers.DateField(
+        source="tournament.date_played", read_only=True, allow_null=True
+    )
 
     class Meta:
         model = Game
