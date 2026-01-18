@@ -1,64 +1,122 @@
-import { Trophy } from 'lucide-react';
-import { useParams } from 'react-router';
-import { Badge } from '~/components/ui/badge';
-import { useLeague } from '~/components/league';
+import { useParams, useNavigate } from 'react-router';
+import { useState, useEffect } from 'react';
+import { Trophy, Building2, Loader2, Pencil } from 'lucide-react';
 
-export default function LeagueDetailPage() {
-  const { leagueId } = useParams();
+import { Badge } from '~/components/ui/badge';
+import { Button } from '~/components/ui/button';
+import { useLeague, LeagueTabs, EditLeagueModal } from '~/components/league';
+import { useUserStore } from '~/store/userStore';
+
+export default function LeaguePage() {
+  const { leagueId, tab } = useParams<{ leagueId: string; tab?: string }>();
+  const navigate = useNavigate();
   const pk = leagueId ? parseInt(leagueId, 10) : undefined;
-  const { league, isLoading, error } = useLeague(pk);
+
+  const { league, isLoading, error, refetch } = useLeague(pk);
+  const currentUser = useUserStore((state) => state.currentUser);
+  const tournaments = useUserStore((state) => state.tournaments);
+  const getTournaments = useUserStore((state) => state.getTournaments);
+
+  const [activeTab, setActiveTab] = useState(tab || 'info');
+  const [editModalOpen, setEditModalOpen] = useState(false);
+
+  // Fetch tournaments
+  useEffect(() => {
+    getTournaments();
+  }, [getTournaments]);
+
+  // Sync tab with URL
+  useEffect(() => {
+    if (tab && tab !== activeTab) {
+      setActiveTab(tab);
+    }
+  }, [tab, activeTab]);
+
+  const handleTabChange = (newTab: string) => {
+    setActiveTab(newTab);
+    navigate(`/leagues/${leagueId}/${newTab}`, { replace: true });
+  };
+
+  // Filter tournaments for this league
+  const leagueTournaments = tournaments?.filter(
+    (t) => t.league === pk
+  ) || [];
+
+  // Permission check for edit
+  const canEdit = currentUser?.is_staff ||
+    currentUser?.is_superuser ||
+    (league?.admin_ids && currentUser?.pk && league.admin_ids.includes(currentUser.pk));
 
   if (isLoading) {
     return (
-      <div className="container mx-auto p-4 text-center">Loading league...</div>
+      <div className="flex items-center justify-center min-h-[400px]">
+        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+      </div>
     );
   }
 
   if (error || !league) {
     return (
-      <div className="container mx-auto p-4 text-center">League not found</div>
+      <div className="text-center py-12 text-destructive">
+        {error?.message || 'League not found'}
+      </div>
     );
   }
 
   return (
-    <div className="container mx-auto p-4">
-      <div className="flex items-center gap-4 mb-6">
-        <Trophy className="w-12 h-12" />
-        <div>
-          <div className="flex items-center gap-2">
-            <h1 className="text-2xl font-bold">{league.name}</h1>
-            <Badge variant="secondary">#{league.steam_league_id}</Badge>
+    <div className="container mx-auto py-6 space-y-6">
+      {/* Header */}
+      <div className="flex items-start justify-between">
+        <div className="space-y-2">
+          <div className="flex items-center gap-3">
+            <Trophy className="h-8 w-8 text-primary" />
+            <h1 className="text-3xl font-bold">{league.name}</h1>
           </div>
-          <p className="text-muted-foreground">
-            {league.organization_name} &middot; {league.tournament_count}{' '}
-            tournaments
-          </p>
-        </div>
-      </div>
-
-      {league.description && (
-        <div className="mb-6">
-          <h2 className="text-lg font-semibold mb-2">Description</h2>
-          <p className="text-muted-foreground">{league.description}</p>
-        </div>
-      )}
-
-      {league.rules && (
-        <div className="mb-6">
-          <h2 className="text-lg font-semibold mb-2">Rules</h2>
-          <div className="prose prose-sm dark:prose-invert">
-            {league.rules}
+          <div className="flex items-center gap-2 text-muted-foreground">
+            {league.organization_name && (
+              <Badge variant="outline" className="flex items-center gap-1">
+                <Building2 className="h-3 w-3" />
+                {league.organization_name}
+              </Badge>
+            )}
+            {league.steam_league_id && (
+              <Badge variant="secondary">
+                Steam ID: {league.steam_league_id}
+              </Badge>
+            )}
           </div>
         </div>
-      )}
 
-      <div>
-        <h2 className="text-lg font-semibold mb-4">Tournaments</h2>
-        <p className="text-muted-foreground">
-          Tournament list will be filtered here (TODO: integrate with
-          TournamentFilterBar)
-        </p>
+        {canEdit && (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setEditModalOpen(true)}
+            data-testid="edit-league-button"
+          >
+            <Pencil className="h-4 w-4 mr-2" />
+            Edit League
+          </Button>
+        )}
       </div>
+
+      {/* Tabs */}
+      <LeagueTabs
+        league={league}
+        tournaments={leagueTournaments}
+        activeTab={activeTab}
+        onTabChange={handleTabChange}
+      />
+
+      {/* Edit Modal */}
+      {canEdit && league && (
+        <EditLeagueModal
+          open={editModalOpen}
+          onOpenChange={setEditModalOpen}
+          league={league}
+          onSuccess={refetch}
+        />
+      )}
     </div>
   );
 }
