@@ -1,17 +1,57 @@
+# serializers.py
 from rest_framework import serializers
+from steam.models import Player, Match, MatchPlayer, LeagueTeam, Pause, Objective, Pick
 
-from .models import Match, PlayerMatchStats
 
-
-class PlayerMatchStatsSerializer(serializers.ModelSerializer):
+class PlayerSerializer(serializers.ModelSerializer):
     class Meta:
-        model = PlayerMatchStats
-        exclude = ["match"]  # Exclude the direct link to the match to avoid redundancy
+        model = Player
+        fields = '__all__'
+
+
+class LeagueTeamSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = LeagueTeam
+        fields = '__all__'
+
+
+class MatchPlayerSerializer(serializers.ModelSerializer):
+    account = PlayerSerializer()
+    hero_name = serializers.CharField(source='get_hero_display')
+    
+    class Meta:
+        model = MatchPlayer
+        fields = '__all__'
+
+
+class PauseSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Pause
+        fields = '__all__'
+
+
+class ObjectiveSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Objective
+        fields = '__all__'
+
+
+class PickSerializer(serializers.ModelSerializer):
+    hero_name = serializers.CharField(source='get_hero_display')
+    
+    class Meta:
+        model = Pick
+        fields = '__all__'
 
 
 class MatchSerializer(serializers.ModelSerializer):
-    players = PlayerMatchStatsSerializer(many=True, read_only=True)
-
+    radiant_team = LeagueTeamSerializer()
+    dire_team = LeagueTeamSerializer()
+    players = MatchPlayerSerializer(many=True)
+    pauses = PauseSerializer(many=True)
+    objectives = ObjectiveSerializer(many=True)
+    picks = PickSerializer(many=True)
+    
     class Meta:
         model = Match
-        fields = "__all__"
+        fields = '__all__'

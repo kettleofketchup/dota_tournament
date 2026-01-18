@@ -168,7 +168,7 @@ class Match(models.Model):
     patch = models.IntegerField()
     loser_max_gold_adv = models.IntegerField()
     loser_max_gold_disadv = models.IntegerField()
-    winner_max_gold_disadv = models.IntegerField()
+    winner_max_gold_adv = models.IntegerField()
     winner_max_gold_disadv = models.IntegerField()
     replay_url = models.TextField(max_length=150)
 
@@ -243,7 +243,7 @@ class MatchPlayer(models.Model):
         return f'{self.account.steam_name or self.account.account_id} in match {self.match.match_id}'
 
 class Pause(models.Model):
-    match = models.ForeignKey(Match, on_delete=models.CASCADE, related_name='picks')
+    match = models.ForeignKey(Match, on_delete=models.CASCADE, related_name='pauses')
     time = models.IntegerField()
     duration = models.IntegerField()
 
