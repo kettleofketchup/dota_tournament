@@ -16,11 +16,11 @@ export const OrganizationSchema = z.object({
   updated_at: z.string().optional(),
 });
 
-export const CreateOrganizationSchema = OrganizationSchema.pick({
-  name: true,
-  description: true,
-  logo: true,
-  rules_template: true,
+export const CreateOrganizationSchema = z.object({
+  name: z.string().min(1, 'Name is required').max(255),
+  description: z.string(),
+  logo: z.union([z.string().url(), z.literal('')]),
+  rules_template: z.string(),
 });
 
 // Inferred types from Zod schemas

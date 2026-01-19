@@ -1,4 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { createLeague } from '~/components/api/api';
@@ -35,12 +36,13 @@ export function CreateLeagueModal({
   organizationId,
 }: CreateLeagueModalProps) {
   const getLeagues = useUserStore((state) => state.getLeagues);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const form = useForm<CreateLeagueInput>({
     resolver: zodResolver(CreateLeagueSchema),
     defaultValues: {
       organization: organizationId,
-      steam_league_id: undefined,
+      steam_league_id: undefined as number | undefined,
       name: '',
       description: '',
       rules: '',
@@ -48,16 +50,19 @@ export function CreateLeagueModal({
   });
 
   async function onSubmit(data: CreateLeagueInput) {
-    toast.promise(createLeague({ ...data, organization: organizationId }), {
-      loading: 'Creating league...',
-      success: () => {
-        getLeagues(organizationId);
-        onOpenChange(false);
-        form.reset();
-        return 'League created successfully';
-      },
-      error: 'Failed to create league',
-    });
+    if (isSubmitting) return;
+    setIsSubmitting(true);
+    try {
+      await createLeague({ ...data, organization: organizationId });
+      toast.success('League created successfully');
+      getLeagues(organizationId);
+      onOpenChange(false);
+      form.reset();
+    } catch {
+      toast.error('Failed to create league');
+    } finally {
+      setIsSubmitting(false);
+    }
   }
 
   return (
@@ -124,15 +129,36 @@ export function CreateLeagueModal({
               )}
             />
 
+            <FormField
+              control={form.control}
+              name="rules"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Rules</FormLabel>
+                  <FormControl>
+                    <Textarea
+                      placeholder="League rules and guidelines"
+                      rows={4}
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
             <DialogFooter>
               <Button
                 type="button"
                 variant="outline"
                 onClick={() => onOpenChange(false)}
+                disabled={isSubmitting}
               >
                 Cancel
               </Button>
-              <Button type="submit">Create</Button>
+              <Button type="submit" disabled={isSubmitting}>
+                {isSubmitting ? 'Creating...' : 'Create'}
+              </Button>
             </DialogFooter>
           </form>
         </Form>

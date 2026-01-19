@@ -1,4 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { createOrganization } from '~/components/api/api';
@@ -33,6 +34,7 @@ export function CreateOrganizationModal({
   onOpenChange,
 }: CreateOrganizationModalProps) {
   const getOrganizations = useUserStore((state) => state.getOrganizations);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const form = useForm<CreateOrganizationInput>({
     resolver: zodResolver(CreateOrganizationSchema),
@@ -45,16 +47,19 @@ export function CreateOrganizationModal({
   });
 
   async function onSubmit(data: CreateOrganizationInput) {
-    toast.promise(createOrganization(data), {
-      loading: 'Creating organization...',
-      success: () => {
-        getOrganizations();
-        onOpenChange(false);
-        form.reset();
-        return 'Organization created successfully';
-      },
-      error: 'Failed to create organization',
-    });
+    if (isSubmitting) return;
+    setIsSubmitting(true);
+    try {
+      await createOrganization(data);
+      toast.success('Organization created successfully');
+      getOrganizations();
+      onOpenChange(false);
+      form.reset();
+    } catch {
+      toast.error('Failed to create organization');
+    } finally {
+      setIsSubmitting(false);
+    }
   }
 
   return (
@@ -120,10 +125,13 @@ export function CreateOrganizationModal({
                 type="button"
                 variant="outline"
                 onClick={() => onOpenChange(false)}
+                disabled={isSubmitting}
               >
                 Cancel
               </Button>
-              <Button type="submit">Create</Button>
+              <Button type="submit" disabled={isSubmitting}>
+                {isSubmitting ? 'Creating...' : 'Create'}
+              </Button>
             </DialogFooter>
           </form>
         </Form>

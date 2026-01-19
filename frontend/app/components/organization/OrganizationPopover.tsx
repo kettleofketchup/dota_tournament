@@ -21,6 +21,17 @@ export function OrganizationPopover({
 
   const handleMouseEnter = useCallback(() => setOpen(true), []);
   const handleMouseLeave = useCallback(() => setOpen(false), []);
+  const handleKeyDown = useCallback(
+    (e: React.KeyboardEvent) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        setOpen((prev) => !prev);
+      } else if (e.key === 'Escape') {
+        setOpen(false);
+      }
+    },
+    [],
+  );
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -28,9 +39,11 @@ export function OrganizationPopover({
         asChild
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
+        onKeyDown={handleKeyDown}
         role="button"
         tabIndex={0}
         aria-expanded={open}
+        aria-label={`View details for ${organization.name}`}
       >
         {children}
       </PopoverTrigger>

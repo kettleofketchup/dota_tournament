@@ -1,23 +1,31 @@
-import { useCallback, useEffect } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useUserStore } from '~/store/userStore';
 
 export function useOrganizations() {
   const organizations = useUserStore((state) => state.organizations);
   const getOrganizations = useUserStore((state) => state.getOrganizations);
+  const [isLoading, setIsLoading] = useState(true);
+  const [hasFetched, setHasFetched] = useState(false);
 
-  const refetch = useCallback(() => {
-    getOrganizations();
+  const refetch = useCallback(async () => {
+    setIsLoading(true);
+    try {
+      await getOrganizations();
+    } finally {
+      setIsLoading(false);
+      setHasFetched(true);
+    }
   }, [getOrganizations]);
 
   useEffect(() => {
-    if (organizations.length === 0) {
+    if (!hasFetched) {
       refetch();
     }
-  }, [organizations.length, refetch]);
+  }, [hasFetched, refetch]);
 
   return {
     organizations,
-    isLoading: organizations.length === 0,
+    isLoading,
     refetch,
   };
 }
