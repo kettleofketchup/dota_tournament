@@ -76,19 +76,21 @@ export function TournamentFilterBar() {
               Organization
             </label>
             <Select
-              value={selectedOrgId || ''}
-              onValueChange={(v) => setFilter('organization', v || null)}
+              value={selectedOrgId || 'all'}
+              onValueChange={(v) => setFilter('organization', v === 'all' ? null : v)}
             >
               <SelectTrigger>
                 <SelectValue placeholder="All organizations" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All organizations</SelectItem>
-                {organizations.map((org) => (
-                  <SelectItem key={org.pk} value={org.pk?.toString() || ''}>
-                    {org.name}
-                  </SelectItem>
-                ))}
+                <SelectItem value="all">All organizations</SelectItem>
+                {organizations
+                  .filter((org) => org.pk != null)
+                  .map((org) => (
+                    <SelectItem key={org.pk} value={org.pk!.toString()}>
+                      {org.name}
+                    </SelectItem>
+                  ))}
               </SelectContent>
             </Select>
           </div>
@@ -97,19 +99,21 @@ export function TournamentFilterBar() {
             <div className="w-48">
               <label className="text-sm font-medium mb-1 block">League</label>
               <Select
-                value={selectedLeagueId || ''}
-                onValueChange={(v) => setFilter('league', v || null)}
+                value={selectedLeagueId || 'all'}
+                onValueChange={(v) => setFilter('league', v === 'all' ? null : v)}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="All leagues" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All leagues</SelectItem>
-                  {leagues.map((league) => (
-                    <SelectItem key={league.pk} value={league.pk?.toString() || ''}>
-                      {league.name}
-                    </SelectItem>
-                  ))}
+                  <SelectItem value="all">All leagues</SelectItem>
+                  {leagues
+                    .filter((league) => league.pk != null)
+                    .map((league) => (
+                      <SelectItem key={league.pk} value={league.pk!.toString()}>
+                        {league.name}
+                      </SelectItem>
+                    ))}
                 </SelectContent>
               </Select>
             </div>

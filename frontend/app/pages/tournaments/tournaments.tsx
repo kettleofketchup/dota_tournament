@@ -29,16 +29,23 @@ export default function Tournament() {
         });
 
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchTournaments = async () => {
       setLoading(true);
-      const response = await getTournaments({
-        organizationId: orgId ? parseInt(orgId, 10) : undefined,
-        leagueId: leagueId ? parseInt(leagueId, 10) : undefined,
-      });
-      setTournaments(response as TournamentType[]);
-      setLoading(false);
+      setError(null);
+      try {
+        const response = await getTournaments({
+          organizationId: orgId ? parseInt(orgId, 10) : undefined,
+          leagueId: leagueId ? parseInt(leagueId, 10) : undefined,
+        });
+        setTournaments(response as TournamentType[]);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Failed to load tournaments');
+      } finally {
+        setLoading(false);
+      }
     };
     fetchTournaments();
   }, [orgId, leagueId, setTournaments]);
@@ -47,6 +54,14 @@ export default function Tournament() {
     return (
       <div className="flex justify-center align-middle content-center pt-10">
         Loading...
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex justify-center align-middle content-center pt-10 text-red-500">
+        Error: {error}
       </div>
     );
   }
