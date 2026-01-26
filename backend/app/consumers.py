@@ -4,10 +4,12 @@ WebSocket consumers for draft event broadcasting.
 
 import json
 import logging
+from datetime import timedelta
 
 from channels.db import database_sync_to_async
 from channels.generic.websocket import AsyncWebsocketConsumer
 from django.core.exceptions import ObjectDoesNotExist
+from django.utils import timezone
 
 log = logging.getLogger(__name__)
 
@@ -254,18 +256,26 @@ class HeroDraftConsumer(AsyncWebsocketConsumer):
 
     async def herodraft_event(self, event):
         """Handle herodraft.event messages from channel layer."""
-        await self.send(
-            text_data=json.dumps(
-                {
-                    "type": "herodraft_event",
-                    "event_type": event.get("event_type"),
-                    "event_id": event.get("event_id"),
-                    "draft_team": event.get("draft_team"),
-                    "draft_state": event.get("draft_state"),
-                    "timestamp": event.get("timestamp"),
-                }
-            )
-        )
+        # Build message with only fields that have actual values
+        # Using .get() with missing keys returns None, which serializes to null
+        # and fails Zod validation where .optional() expects undefined, not null
+        message = {
+            "type": "herodraft_event",
+            "event_type": event.get("event_type"),
+        }
+        # Only include optional fields if they have values
+        if "event_id" in event and event["event_id"] is not None:
+            message["event_id"] = event["event_id"]
+        if "draft_team" in event and event["draft_team"] is not None:
+            message["draft_team"] = event["draft_team"]
+        if "draft_state" in event and event["draft_state"] is not None:
+            message["draft_state"] = event["draft_state"]
+        if "timestamp" in event and event["timestamp"] is not None:
+            message["timestamp"] = event["timestamp"]
+        if "metadata" in event and event["metadata"] is not None:
+            message["metadata"] = event["metadata"]
+
+        await self.send(text_data=json.dumps(message))
 
     async def herodraft_tick(self, event):
         """Handle tick updates during active drafting."""
@@ -308,7 +318,12 @@ class HeroDraftConsumer(AsyncWebsocketConsumer):
         from django.db import transaction
 
         from app.broadcast import broadcast_herodraft_state
-        from app.models import HeroDraft, HeroDraftEvent, HeroDraftState
+        from app.models import DraftTeam, HeroDraft, HeroDraftEvent, HeroDraftState
+
+        # Track what to do after transaction commits
+        broadcast_event_type = None
+        should_broadcast = False
+        should_restart_tick_broadcaster = False
 
         try:
             with transaction.atomic():
@@ -334,11 +349,10 @@ class HeroDraftConsumer(AsyncWebsocketConsumer):
 
                     # Handle pause/resume on disconnect - only during DRAFTING phase
                     # (when timers are running and picks matter)
-                    state_changed = False
                     if not is_connected and draft.state == HeroDraftState.DRAFTING:
                         draft.state = HeroDraftState.PAUSED
+                        draft.paused_at = timezone.now()
                         draft.save()
-                        state_changed = True
                         HeroDraftEvent.objects.create(
                             draft=draft,
                             event_type="draft_paused",
@@ -348,15 +362,44 @@ class HeroDraftConsumer(AsyncWebsocketConsumer):
                         log.info(
                             f"HeroDraft {draft_id} paused: captain {user.username} disconnected"
                         )
+                        broadcast_event_type = "draft_paused"
+                        should_broadcast = True
                     elif is_connected and draft.state == HeroDraftState.PAUSED:
-                        # Check if both captains connected
-                        all_connected = all(
-                            t.is_connected for t in draft.draft_teams.all()
-                        )
+                        # Check if both captains connected - use fresh query to avoid
+                        # Django ORM caching issues with related manager
+                        all_connected = not DraftTeam.objects.filter(
+                            draft_id=draft_id, is_connected=False
+                        ).exists()
                         if all_connected:
+                            # Broadcast countdown before changing state
+                            broadcast_herodraft_state(
+                                draft,
+                                "resume_countdown",
+                                metadata={"countdown_seconds": 3},
+                            )
+
+                            # Calculate pause duration and adjust active round timing
+                            pause_duration = None
+                            if draft.paused_at:
+                                pause_duration = timezone.now() - draft.paused_at
+                                current_round = draft.rounds.filter(
+                                    state="active"
+                                ).first()
+                                if current_round and current_round.started_at:
+                                    # Add 3 seconds for countdown to total adjustment
+                                    total_adjustment = pause_duration + timedelta(
+                                        seconds=3
+                                    )
+                                    current_round.started_at += total_adjustment
+                                    current_round.save(update_fields=["started_at"])
+                                    log.info(
+                                        f"HeroDraft {draft_id} adjusted round {current_round.round_number} "
+                                        f"started_at by {total_adjustment.total_seconds():.2f}s (includes 3s countdown)"
+                                    )
+
                             draft.state = HeroDraftState.DRAFTING
+                            draft.paused_at = None
                             draft.save()
-                            state_changed = True
                             HeroDraftEvent.objects.create(
                                 draft=draft,
                                 event_type="draft_resumed",
@@ -365,14 +408,45 @@ class HeroDraftConsumer(AsyncWebsocketConsumer):
                             log.info(
                                 f"HeroDraft {draft_id} resumed: all captains connected"
                             )
+                            broadcast_event_type = "draft_resumed"
+                            should_broadcast = True
+                            should_restart_tick_broadcaster = True
+                        else:
+                            # Still waiting for other captain - broadcast connection status
+                            broadcast_event_type = event_type
+                            should_broadcast = True
+                    else:
+                        # Always broadcast connection status changes so UI updates
+                        broadcast_event_type = event_type
+                        should_broadcast = True
 
-                    # Broadcast state change to all clients
-                    if state_changed:
-                        broadcast_event_type = (
-                            "draft_paused"
-                            if draft.state == HeroDraftState.PAUSED
-                            else "draft_resumed"
-                        )
-                        broadcast_herodraft_state(draft, broadcast_event_type)
         except HeroDraft.DoesNotExist:
             return
+
+        # Broadcast AFTER transaction commits to ensure other connections see changes
+        if should_broadcast and broadcast_event_type:
+            try:
+                # Re-fetch draft to get committed state
+                draft = HeroDraft.objects.prefetch_related(
+                    "draft_teams__tournament_team__captain",
+                    "draft_teams__tournament_team__members",
+                    "rounds",
+                ).get(id=draft_id)
+                broadcast_herodraft_state(draft, broadcast_event_type)
+                log.debug(
+                    f"HeroDraft {draft_id} broadcast {broadcast_event_type} after transaction commit"
+                )
+            except Exception as e:
+                log.error(f"Failed to broadcast herodraft state: {e}")
+
+        # Restart tick broadcaster AFTER transaction commits
+        if should_restart_tick_broadcaster:
+            from app.tasks.herodraft_tick import start_tick_broadcaster
+
+            try:
+                start_tick_broadcaster(draft_id)
+                log.debug(f"HeroDraft {draft_id} tick broadcaster restarted")
+            except Exception as e:
+                log.warning(
+                    f"Failed to restart tick broadcaster for draft {draft_id}: {e}"
+                )

@@ -1,7 +1,13 @@
-import { ClipboardPen, EyeIcon } from 'lucide-react';
+import { ChevronUp, ClipboardPen, EyeIcon, X } from 'lucide-react';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router';
 import { Button } from '~/components/ui/button';
+import { DestructiveButton } from '~/components/ui/buttons';
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from '~/components/ui/collapsible';
 import {
   Dialog,
   DialogClose,
@@ -19,14 +25,15 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '~/components/ui/tooltip';
+import { cn } from '~/lib/utils';
 import { getLogger } from '~/lib/logger';
 import { useTournamentStore } from '~/store/tournamentStore';
 import { useUserStore } from '~/store/userStore';
 import { TEAMS_BUTTONS_WIDTH } from '../constants';
 import { DIALOG_CSS, SCROLLAREA_CSS } from '../reusable/modal';
 import { DraftHistoryButton } from './buttons/DraftHistoryButton';
+import { DraftModerationDropdown } from './buttons/DraftModerationDropdown';
 import { DraftStyleModal } from './buttons/draftStyleModal';
-import { InitDraftButton } from './buttons/initDraftDialog';
 import { LatestRoundButton } from './buttons/latestButton';
 import { NextRoundButton } from './buttons/nextButton';
 import { PrevRoundButton } from './buttons/prevButton';
@@ -62,26 +69,27 @@ export const DraftModal: React.FC<DraftModalParams> = ({}) => {
   const setLive = useTournamentStore((state) => state.setLive);
   const activeTab = useTournamentStore((state) => state.activeTab);
   const [open, setOpen] = useState(live);
+  const [draftStyleOpen, setDraftStyleOpen] = useState(false);
+  const [footerDrawerOpen, setFooterDrawerOpen] = useState(false);
   const isStaff = useUserStore((state) => state.isStaff);
   const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
   const { pk } = useParams<{ pk: string }>();
 
   // Sync URL with modal open/close state
+  // Note: Don't call setLive here - TournamentDetailPage handles live state based on URL
   const handleOpenChange = useCallback((isOpen: boolean) => {
     setOpen(isOpen);
     if (pk) {
       if (isOpen) {
-        // Add /draft to URL when opening
-        navigate(`/tournament/${pk}/${activeTab}/draft`, { replace: true });
-        setLive(true);
+        // Add /draft to URL when opening - TournamentDetailPage will set live=true
+        navigate(`/tournament/${pk}/teams/draft`, { replace: true });
       } else {
-        // Remove /draft from URL when closing
-        navigate(`/tournament/${pk}/${activeTab}`, { replace: true });
-        setLive(false);
+        // Remove /draft from URL when closing - TournamentDetailPage will set live=false
+        navigate(`/tournament/${pk}/teams`, { replace: true });
       }
     }
-  }, [pk, activeTab, navigate, setLive]);
+  }, [pk, navigate]);
 
   // Auto-open modal when ?draft=open is in URL (from share URL)
   useEffect(() => {
@@ -319,11 +327,14 @@ export const DraftModal: React.FC<DraftModalParams> = ({}) => {
     log.debug('Current round after update:', curDraftRound);
   };
 
+  // Initialize draft data when tournament.draft becomes available
   useEffect(() => {
-    log.debug(
-      'rerender: Tournament Modal Initialized draft data:',
-      tournament?.draft,
-    );
+    // Skip initialization if tournament or draft not loaded yet
+    if (!tournament?.pk) {
+      return;
+    }
+
+    log.debug('Initializing draft data from tournament:', tournament?.draft?.pk);
 
     if (tournament?.draft) {
       setDraft(tournament.draft);
@@ -339,15 +350,13 @@ export const DraftModal: React.FC<DraftModalParams> = ({}) => {
         setCurDraftRound(tournament.draft.draft_rounds[0]);
         log.debug('Set initial draft round:', tournament.draft.draft_rounds[0]);
       } else {
-        log.warn('No draft rounds available');
+        log.debug('No draft rounds available yet');
         setCurDraftRound({} as DraftRoundType);
       }
     } else {
-      log.warn('No draft data available in tournament');
-      setDraft({} as DraftType);
-      setCurDraftRound({} as DraftRoundType);
+      log.debug('No draft data in tournament yet');
     }
-  }, []);
+  }, [tournament?.pk, tournament?.draft?.pk]);
 
   // Log modal state changes for debugging live updates
   useEffect(() => {
@@ -426,13 +435,53 @@ export const DraftModal: React.FC<DraftModalParams> = ({}) => {
           <ScrollBar orientation="horizontal" />
         </ScrollArea>
 
+        {/* Mobile Footer Drawer */}
+        <div className="md:hidden">
+          <Collapsible open={footerDrawerOpen} onOpenChange={setFooterDrawerOpen}>
+            <div className="flex items-center justify-between p-2 border-t">
+              {choiceButtons()}
+              <CollapsibleTrigger asChild>
+                <Button variant="outline" size="sm" className="ml-2">
+                  <ChevronUp className={cn(
+                    "h-4 w-4 transition-transform",
+                    footerDrawerOpen && "rotate-180"
+                  )} />
+                  <span className="ml-1">Actions</span>
+                </Button>
+              </CollapsibleTrigger>
+            </div>
+            <CollapsibleContent className="border-t bg-muted/50 p-4 space-y-3">
+              <div className="flex flex-wrap gap-2 justify-center">
+                <DraftModerationDropdown onOpenDraftStyleModal={() => setDraftStyleOpen(true)} />
+                <UndoPickButton />
+              </div>
+              <div className="flex flex-wrap gap-2 justify-center">
+                <DraftHistoryButton
+                  events={draftEvents}
+                  hasNewEvent={hasNewEvent}
+                  onViewed={clearNewEventFlag}
+                />
+                <ShareDraftButton />
+              </div>
+              <div className="flex justify-center">
+                <DialogClose asChild>
+                  <DestructiveButton onClick={() => handleOpenChange(false)}>
+                    <X className="h-4 w-4 mr-1" />
+                    Close
+                  </DestructiveButton>
+                </DialogClose>
+              </div>
+            </CollapsibleContent>
+          </Collapsible>
+        </div>
+
+        {/* Desktop Footer */}
         <DialogFooter
           id="DraftFootStarter"
-          className="w-full  flex flex-col rounded-full items-center gap-4 mb-4 md:flex-row align-center sm:shadow-md sm:shadow-black/10 /50 sm:p-6 sm:m-0"
+          className="hidden md:flex w-full flex-col rounded-full items-center gap-4 mb-4 md:flex-row align-center sm:shadow-md sm:shadow-black/10 /50 sm:p-6 sm:m-0"
         >
           <div className="flex w-full justify-center md:justify-start gap-2">
-            <InitDraftButton />
-            <DraftStyleModal />
+            <DraftModerationDropdown onOpenDraftStyleModal={() => setDraftStyleOpen(true)} />
             <UndoPickButton />
           </div>
           {choiceButtons()}
@@ -445,10 +494,20 @@ export const DraftModal: React.FC<DraftModalParams> = ({}) => {
             <ShareDraftButton />
 
             <DialogClose asChild>
-              <Button onClick={() => handleOpenChange(false)}>Close</Button>
+              <DestructiveButton onClick={() => handleOpenChange(false)}>
+                <X className="h-4 w-4 mr-1" />
+                Close
+              </DestructiveButton>
             </DialogClose>
           </div>
         </DialogFooter>
+
+        {/* Externally controlled Draft Style Modal */}
+        <DraftStyleModal
+          externalOpen={draftStyleOpen}
+          onExternalOpenChange={setDraftStyleOpen}
+          showTrigger={false}
+        />
       </DialogContent>
     </Dialog>
   );

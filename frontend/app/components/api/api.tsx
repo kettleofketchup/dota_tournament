@@ -90,7 +90,8 @@ export async function getTournaments(filters?: {
     params.append('league', filters.leagueId.toString());
   }
   const queryString = params.toString() ? `?${params.toString()}` : '';
-  const response = await axios.get<TournamentsType>(`/tournaments/${queryString}`);
+  // Use lightweight endpoint for list view (no nested teams/users)
+  const response = await axios.get<TournamentsType>(`/tournaments-list/${queryString}`);
   return response.data as TournamentsType;
 }
 
@@ -315,6 +316,19 @@ export async function deleteOrganization(pk: number): Promise<void> {
 export async function getLeagues(organizationId?: number): Promise<LeaguesType> {
   const params = organizationId ? `?organization=${organizationId}` : '';
   const response = await axios.get<LeaguesType>(`/leagues/${params}`);
+  return response.data;
+}
+
+// Home page stats - optimized endpoint returning only counts
+export interface HomeStats {
+  tournament_count: number;
+  game_count: number;
+  organization_count: number;
+  league_count: number;
+}
+
+export async function getHomeStats(): Promise<HomeStats> {
+  const response = await axios.get<HomeStats>('/home-stats/');
   return response.data;
 }
 

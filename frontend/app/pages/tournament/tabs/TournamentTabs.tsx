@@ -1,21 +1,27 @@
-// import { Tab, TabGroup, TabList, TabPanel, TabPanels } from '@headlessui/react';
-
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '~/components/ui/tabs';
+import { ScrollArea, ScrollBar } from '~/components/ui/scroll-area';
 import { GamesTab } from './GamesTab';
 import { PlayersTab } from './PlayersTab';
 import { TeamsTab } from './TeamsTab';
 
-import { useEffect, useMemo } from 'react';
+import { useCallback, useEffect, useMemo } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
 import { useShallow } from 'zustand/react/shallow';
 import { useTournamentStore } from '~/store/tournamentStore';
 import { useUserStore } from '~/store/userStore';
 
 export default function TournamentTabs() {
-  const users = useUserStore((state) => state.users); // Zustand setter
+  const { pk } = useParams<{ pk: string }>();
+  const navigate = useNavigate();
+  const users = useUserStore((state) => state.users);
   const activeTab = useTournamentStore((state) => state.activeTab);
-  const setActiveTab = useTournamentStore((state) => state.setActiveTab);
 
-  const getUsers = useUserStore((state) => state.getUsers); // Zustand setter
+  const handleTabChange = useCallback((tab: string) => {
+    // Navigate using URL path, which will update the store via TournamentDetailPage
+    navigate(`/tournament/${pk}/${tab}`, { replace: true });
+  }, [pk, navigate]);
+
+  const getUsers = useUserStore((state) => state.getUsers);
   useEffect(() => {
     getUsers();
   }, []);
@@ -48,27 +54,38 @@ export default function TournamentTabs() {
   return (
     <Tabs
       value={activeTab}
-      onValueChange={setActiveTab}
-      className="flex justify-center rounded-full  align-middle gap-4 sm:-p1 sm:gap-2 sm:w-full"
+      onValueChange={handleTabChange}
+      className="w-full"
     >
-      <TabsList
-        className="container content-center flex w-full justify-center gap-2 rounded-full "
-        data-testid="tournamentTabsList"
-      >
-        <TabsTrigger
-          className="w-full active:p-1"
-          value="players"
-          data-testid="playersTab"
+      <ScrollArea className="w-full whitespace-nowrap pb-2">
+        <TabsList
+          className="inline-flex w-full min-w-max gap-1 sm:gap-2 p-1"
+          data-testid="tournamentTabsList"
         >
-          Players ({playerCount})
-        </TabsTrigger>
-        <TabsTrigger className="w-full" value="teams" data-testid="teamsTab">
-          Teams ({teamCount})
-        </TabsTrigger>
-        <TabsTrigger value="bracket" data-testid="bracketTab">
-          Bracket ({gameCount})
-        </TabsTrigger>
-      </TabsList>
+          <TabsTrigger
+            className="flex-1 min-w-[100px] min-h-11"
+            value="players"
+            data-testid="playersTab"
+          >
+            Players ({playerCount})
+          </TabsTrigger>
+          <TabsTrigger
+            className="flex-1 min-w-[100px] min-h-11"
+            value="teams"
+            data-testid="teamsTab"
+          >
+            Teams ({teamCount})
+          </TabsTrigger>
+          <TabsTrigger
+            className="flex-1 min-w-[100px] min-h-11"
+            value="bracket"
+            data-testid="bracketTab"
+          >
+            Bracket ({gameCount})
+          </TabsTrigger>
+        </TabsList>
+        <ScrollBar orientation="horizontal" className="h-1.5" />
+      </ScrollArea>
       <TabsContent value="players" data-testid="playersTabContent">
         {' '}
         <PlayersTab />

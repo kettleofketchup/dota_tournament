@@ -119,6 +119,49 @@ class TournamentsSerializer(serializers.ModelSerializer):
         )
 
 
+class LeagueMinimalSerializer(serializers.ModelSerializer):
+    """Minimal league info for tournament list cards."""
+
+    organization_name = serializers.SerializerMethodField()
+
+    class Meta:
+        model = League
+        fields = ("pk", "name", "organization_name")
+
+    def get_organization_name(self, obj):
+        """Get the first organization name, if any."""
+        # Use prefetched data if available, otherwise query
+        orgs = getattr(obj, "_prefetched_objects_cache", {}).get("organizations")
+        if orgs is not None:
+            return orgs[0].name if orgs else None
+        first_org = obj.organizations.first()
+        return first_org.name if first_org else None
+
+
+class TournamentListSerializer(serializers.ModelSerializer):
+    """Lightweight serializer for tournament list page.
+
+    Only includes basic scalar fields and minimal league info.
+    No nested team/user data for fast performance.
+    """
+
+    league = LeagueMinimalSerializer(read_only=True)
+    user_count = serializers.IntegerField(read_only=True)
+
+    class Meta:
+        model = Tournament
+        fields = (
+            "pk",
+            "name",
+            "date_played",
+            "timezone",
+            "tournament_type",
+            "state",
+            "league",
+            "user_count",
+        )
+
+
 class OrganizationSerializer(serializers.ModelSerializer):
     owner = TournamentUserSerializer(read_only=True)
     owner_id = serializers.PrimaryKeyRelatedField(
@@ -157,6 +200,7 @@ class OrganizationSerializer(serializers.ModelSerializer):
             "logo",
             "discord_link",
             "rules_template",
+            "timezone",
             "owner",
             "owner_id",
             "admins",
@@ -242,6 +286,7 @@ class LeagueSerializer(serializers.ModelSerializer):
             "description",
             "rules",
             "prize_pool",
+            "timezone",
             "admins",
             "staff",
             "admin_ids",
@@ -608,6 +653,33 @@ class TournamentSerializer(serializers.ModelSerializer):
             "league",
             "league_id_write",
         )
+
+    def update(self, instance, validated_data):
+        """
+        Override update to handle captain removal when users are removed.
+        If a user is removed from the tournament and they are a captain,
+        delete their team.
+        """
+        # Check if users are being updated
+        if "users" in validated_data:
+            new_users = set(validated_data["users"])
+            current_users = set(instance.users.all())
+            removed_users = current_users - new_users
+
+            # For each removed user, check if they're a captain and remove their team
+            if removed_users:
+                for user in removed_users:
+                    # Find teams where this user is captain in this tournament
+                    captain_teams = Team.objects.filter(
+                        tournament=instance, captain=user
+                    )
+                    if captain_teams.exists():
+                        log.info(
+                            f"Removing captain {user.username}'s team(s) from tournament {instance.name}"
+                        )
+                        captain_teams.delete()
+
+        return super().update(instance, validated_data)
 
 
 class UserSerializer(serializers.ModelSerializer):

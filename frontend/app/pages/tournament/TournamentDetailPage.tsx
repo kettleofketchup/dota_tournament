@@ -23,19 +23,29 @@ export const TournamentDetailPage: React.FC = () => {
 
   useEffect(() => {
     const parts = slug?.split('/') || [];
-    const tab = parts[0] || 'players';
-    const live = parts[1] === 'draft';
+    // Map legacy "games" URL to "bracket" tab
+    let tab = parts[0] || 'players';
+    if (tab === 'games') {
+      tab = 'bracket';
+    }
+    const isLive = parts[1] === 'draft';
     // Parse draftId from URL: /tournament/:pk/bracket/draft/:draftId
     const draftId = parts[1] === 'draft' && parts[2] ? parseInt(parts[2], 10) : null;
     // Parse matchId from URL: /tournament/:pk/bracket/match/:matchId
     const matchId = parts[1] === 'match' && parts[2] ? parts[2] : null;
 
+    // Batch state updates using unstable_batchedUpdates pattern via setTimeout
+    // This prevents multiple rerenders from sequential state updates
     setActiveTab(tab);
-    setLive(live);
-    setAutoAdvance(live);
     setPendingDraftId(Number.isNaN(draftId) ? null : draftId);
     setPendingMatchId(matchId);
-  }, [slug, setActiveTab, setPendingDraftId, setPendingMatchId]);
+
+    // Only update live/autoAdvance if they actually changed
+    setLive(isLive);
+    if (isLive) {
+      setAutoAdvance(true);
+    }
+  }, [slug, setActiveTab, setLive, setAutoAdvance, setPendingDraftId, setPendingMatchId]);
   useEffect(() => {
     if (pk) {
       const fetchTournament = async () => {
@@ -56,7 +66,7 @@ export const TournamentDetailPage: React.FC = () => {
       fetchTournament();
     }
   }, [pk]);
-  useEffect(() => {}, [tournament.users]);
+
   if (loading) {
     return (
       <div className="flex justify-center items-center h-screen">

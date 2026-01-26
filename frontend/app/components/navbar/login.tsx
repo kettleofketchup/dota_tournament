@@ -1,7 +1,7 @@
 import { useClickAway } from '@uidotdev/usehooks';
 import { LogOutIcon, UserPenIcon } from 'lucide-react';
 import React, { memo, useEffect, useState } from 'react';
-import { useNavigate } from 'react-router';
+import { Link, useNavigate } from 'react-router';
 import { DraftNotificationBadge } from '~/components/draft/DraftNotificationBadge';
 import {
   DropdownMenu,
@@ -15,6 +15,7 @@ import { useUserStore } from '../../store/userStore';
 import type { UserType } from '../user/types';
 
 import { Button } from '~/components/ui/button';
+import { DestructiveButton } from '~/components/ui/buttons';
 import { getLogger } from '~/lib/logger';
 const log = getLogger('login');
 type UserProps = {
@@ -130,19 +131,19 @@ export const ProfileButton: React.FC = () => {
         </DropdownMenuTrigger>
         <DropdownMenuContent>
           <DropdownMenuLabel>
-            <a href="/profile">
+            <Link to="/profile">
               <Button>
                 <UserPenIcon />
                 Profile
               </Button>
-            </a>
+            </Link>
           </DropdownMenuLabel>
           <DropdownMenuSeparator />
           <DropdownMenuItem>
-            <Button className="" onClick={logoutClick} variant={'destructive'}>
+            <DestructiveButton onClick={logoutClick}>
               <LogOutIcon />
               Logout
-            </Button>
+            </DestructiveButton>
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>

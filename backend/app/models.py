@@ -2,7 +2,7 @@ import logging
 
 import nh3
 import requests
-from cacheops import cached_as, invalidate_model
+from cacheops import cached_as, invalidate_obj
 from django.conf import settings
 from django.core.exceptions import ValidationError as DjangoValidationError
 from django.db import models
@@ -47,10 +47,10 @@ class PositionsModel(models.Model):
 
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
-        # Invalidate CustomUser cache since positions are embedded in user serializations
-        from cacheops import invalidate_model
+        # Invalidate the user(s) that own this position preference
 
-        invalidate_model(CustomUser)
+        for user in self.customuser_set.all():
+            invalidate_obj(user)
 
 
 # Enum for Dota2 positions
@@ -70,7 +70,10 @@ class DraftStyles(StrEnum):
 
 
 class CustomUser(AbstractUser):
-    steamid = models.IntegerField(null=True, unique=True, blank=True)
+    # Steam64 (Friend ID) - the full 64-bit Steam ID
+    steamid = models.BigIntegerField(null=True, unique=True, blank=True)
+    # Steam32 (Account ID) - auto-calculated from steamid, used for match lookups
+    steam_account_id = models.IntegerField(null=True, blank=True, db_index=True)
     nickname = models.TextField(null=True, blank=True)
     mmr = models.IntegerField(null=True, blank=True)
     league_mmr = models.IntegerField(null=True, blank=True)
@@ -114,20 +117,13 @@ class CustomUser(AbstractUser):
     # Steam64 (Friend ID) = 76561197960265728 + Steam32 (Account ID)
     STEAM_ID_64_BASE = 76561197960265728
 
-    @property
-    def steam_account_id(self):
-        """
-        Returns the 32-bit Steam Account ID computed from the 64-bit Friend ID.
-
-        Steam uses two ID formats:
-        - Steam64/Friend ID: Used in Steam Community URLs (e.g., 76561198012345678)
-        - Steam32/Account ID: Used in match data from Steam API (e.g., 52079950)
-
-        Conversion: Account ID = Friend ID - 76561197960265728
-        """
-        if self.steamid is None:
-            return None
-        return self.steamid - self.STEAM_ID_64_BASE
+    def save(self, *args, **kwargs):
+        """Auto-calculate steam_account_id when steamid is set."""
+        if self.steamid is not None:
+            self.steam_account_id = self.steamid - self.STEAM_ID_64_BASE
+        else:
+            self.steam_account_id = None
+        super().save(*args, **kwargs)
 
     def createFromDiscordData(self, data):
         self.username = data["user"]["username"]
@@ -244,10 +240,9 @@ class CustomUser(AbstractUser):
 
         super().save(*args, **kwargs)
 
-        # Invalidate caches that depend on CustomUser
-        from cacheops import invalidate_model
+        # Invalidate this specific user's cache
 
-        invalidate_model(CustomUser)
+        invalidate_obj(self)
 
     @property
     def avatarUrl(self):
@@ -280,11 +275,12 @@ class CustomUser(AbstractUser):
 class Organization(models.Model):
     """Organization that owns leagues and tournaments."""
 
-    name = models.CharField(max_length=255)
+    name = models.CharField(max_length=255, db_index=True)
     description = models.TextField(blank=True, default="", max_length=10000)
     logo = models.URLField(blank=True, default="")
     discord_link = models.URLField(blank=True, default="")
     rules_template = models.TextField(blank=True, default="", max_length=50000)
+    timezone = models.CharField(max_length=50, default="America/New_York")
     owner = models.ForeignKey(
         "CustomUser",
         on_delete=models.PROTECT,
@@ -316,19 +312,24 @@ class Organization(models.Model):
         ordering = ["name"]
         verbose_name = "Organization"
         verbose_name_plural = "Organizations"
+        indexes = [
+            models.Index(fields=["created_at"]),
+        ]
 
     def __str__(self):
         return self.name
 
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
-        # Invalidate Organization cache when modified
-        invalidate_model(Organization)
+        # Invalidate this specific organization's cache
+
+        invalidate_obj(self)
 
     def delete(self, *args, **kwargs):
-        # Invalidate caches before deletion
-        invalidate_model(Organization)
-        invalidate_model(League)
+        # Invalidate related leagues before deletion
+
+        for league in self.leagues.all():
+            invalidate_obj(league)
         super().delete(*args, **kwargs)
 
 
@@ -345,6 +346,7 @@ class League(models.Model):
     description = models.TextField(blank=True, default="", max_length=10000)
     rules = models.TextField(blank=True, default="", max_length=50000)
     prize_pool = models.CharField(max_length=100, blank=True, default="")
+    timezone = models.CharField(max_length=50, default="America/New_York")
     admins = models.ManyToManyField(
         "CustomUser",
         related_name="admin_leagues",
@@ -415,21 +417,27 @@ class League(models.Model):
         ordering = ["name"]
         verbose_name = "League"
         verbose_name_plural = "Leagues"
+        indexes = [
+            models.Index(fields=["name"]),
+            models.Index(fields=["created_at"]),
+        ]
 
     def __str__(self):
         return f"{self.name} ({self.steam_league_id})"
 
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
-        # Invalidate League cache and Organization cache
-        # (Organization has league_count annotation that depends on leagues)
-        invalidate_model(League)
-        invalidate_model(Organization)
+        # Invalidate this specific league and its related organizations
+
+        invalidate_obj(self)
+        for org in self.organizations.all():
+            invalidate_obj(org)
 
     def delete(self, *args, **kwargs):
-        # Invalidate caches before deletion
-        invalidate_model(League)
-        invalidate_model(Organization)
+        # Invalidate related organizations before deletion
+
+        for org in self.organizations.all():
+            invalidate_obj(org)
         super().delete(*args, **kwargs)
 
 
@@ -491,11 +499,22 @@ class Tournament(models.Model):
 
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
-        # Invalidate Tournament cache and related caches
-        # (Organization has tournament_count annotation that depends on tournaments via leagues)
-        invalidate_model(Tournament)
-        invalidate_model(League)
-        invalidate_model(Organization)
+        # Invalidate this specific tournament and its related league/org
+        # Use invalidate_obj() to avoid invalidating ALL tournaments
+
+        invalidate_obj(self)
+        if self.league:
+            invalidate_obj(self.league)
+            if self.league.organization:
+                invalidate_obj(self.league.organization)
+
+    class Meta:
+        indexes = [
+            models.Index(fields=["name"]),
+            models.Index(fields=["-date_played"]),
+            models.Index(fields=["state"]),
+            models.Index(fields=["league"]),
+        ]
 
     @property
     def captains(self):
@@ -546,6 +565,13 @@ class Team(models.Model):
         blank=True,
         help_text="Final tournament placement (1=winner, 2=runner-up, etc.)",
     )
+
+    class Meta:
+        indexes = [
+            models.Index(fields=["tournament"]),
+            models.Index(fields=["name"]),
+            models.Index(fields=["captain"]),
+        ]
 
     def __str__(self):
         return self.name
@@ -680,16 +706,25 @@ class Game(models.Model):
     def teams(self):
         return [self.radiant_team, self.dire_team]
 
+    class Meta:
+        indexes = [
+            models.Index(fields=["tournament"]),
+            models.Index(fields=["league"]),
+            models.Index(fields=["status"]),
+            models.Index(fields=["gameid"]),
+            models.Index(fields=["radiant_team"]),
+            models.Index(fields=["dire_team"]),
+        ]
+
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
-        # Invalidate tournament, league, and team caches when games are modified
-        from cacheops import invalidate_model, invalidate_obj
+        # Invalidate this team and related tournament/league caches
 
+        invalidate_obj(self)
         if self.tournament_id:
             invalidate_obj(self.tournament)
         if self.league_id:
             invalidate_obj(self.league)
-        invalidate_model(Team)
 
 
 from cacheops import cached_as
@@ -722,9 +757,7 @@ class Draft(models.Model):
 
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
-        # Invalidate tournament cache when draft are made
-        from cacheops import invalidate_model, invalidate_obj
-
+        # Invalidate tournament cache when draft is modified
         invalidate_obj(self.tournament)
 
     def _simulate_draft(self, draft_style="snake"):
@@ -1215,15 +1248,13 @@ class DraftRound(models.Model):
 
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
-        # Invalidate tournament cache when draft picks are made
-        from cacheops import invalidate_model, invalidate_obj
+        # Invalidate specific tournament and draft when picks are made
+        # Use invalidate_obj() to avoid invalidating ALL tournaments/drafts
 
-        invalidate_obj(self.draft.tournament)
-        invalidate_obj(self.draft)
-
-        invalidate_model(Tournament)
-        invalidate_model(Draft)
-        invalidate_model(Team)
+        if self.draft:
+            invalidate_obj(self.draft)
+            if self.draft.tournament:
+                invalidate_obj(self.draft.tournament)
 
     @property
     def team(self):
@@ -1362,10 +1393,12 @@ class HeroDraft(models.Model):
     )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    paused_at = models.DateTimeField(null=True, blank=True)
 
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
-        invalidate_model(HeroDraft)
+
+        invalidate_obj(self)
 
     def __str__(self):
         return f"HeroDraft for {self.game}"
@@ -1388,7 +1421,10 @@ class DraftTeam(models.Model):
 
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
-        invalidate_model(DraftTeam)
+
+        invalidate_obj(self)
+        if self.draft_id:
+            invalidate_obj(self.draft)
 
     @property
     def captain(self):
@@ -1431,7 +1467,10 @@ class HeroDraftRound(models.Model):
 
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
-        invalidate_model(HeroDraftRound)
+
+        invalidate_obj(self)
+        if self.draft_id:
+            invalidate_obj(self.draft)
 
     def __str__(self):
         return f"Round {self.round_number}: {self.action_type} by {self.draft_team}"
@@ -1474,7 +1513,9 @@ class HeroDraftEvent(models.Model):
 
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
-        invalidate_model(HeroDraftEvent)
+        invalidate_obj(self)
+        if self.draft_id:
+            invalidate_obj(self.draft)
 
     def __str__(self):
         return f"{self.event_type} at {self.created_at}"
